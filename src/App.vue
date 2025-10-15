@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件 //
@@ -27,7 +27,7 @@ nextTick(() => {
         draggable: true
     }, 100, 100, 100))
 
-    app.tree.add(Rect.one({
+    const rect = Rect.one({
         x: 100,
         y: 10,
         width: 100,
@@ -38,7 +38,20 @@ nextTick(() => {
         draggable: true,
         editable: true,
         dashPattern: [6, 6] // 绘制虚线
-    }, 300, 100, 100))
+    }, 300, 100, 100)
+    app.tree.add(rect)
+    
+    rect.on(PointerEvent.ENTER, onEnter)
+    rect.on(PointerEvent.LEAVE, onLeave)
+
+    function onEnter(e: PointerEvent) {
+        (e.current as Rect).fill = '#FFE04B'
+    }
+
+    function onLeave(e: PointerEvent) {
+        (e.current as Rect).fill = '#32cd79'
+    }
+    console.log(app.tree.children)
 })
 
 console.log('leafer-ui-version:', version)
