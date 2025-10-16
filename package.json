@@ -14,6 +14,8 @@
     "@leafer-in/text-editor": "^1.9.12",
     "leafer-editor": "^1.9.12",
     "leafer-ui": "^1.9.12",
+    "leafer-x-easy-snap": "^1.10.1",
+    "leafer-x-ruler": "^2.0.0",
     "vue": "^3.5.22"
   },
   "devDependencies": {

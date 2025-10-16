@@ -1,33 +1,83 @@
 <template>
-<div ref="boardRef" style="height: calc(100vh - 24px);width: 100%;"></div>
+<button @click="exportBoard">导出图片</button>
+<button @click="exportBoardJSON">导出JSON</button>
+
+<div ref="boardRef" style="height: calc(100vh - 50px);width: 100%;background-color:#e2e2e2;"></div>
 </template>
 
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version, PointerEvent } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
-import '@leafer-in/text-editor' // 导入文本编辑插件 //
+import '@leafer-in/text-editor' // 导入文本编辑插件
+import { EditorEvent } from '@leafer-in/editor';
+import { Snap } from 'leafer-x-easy-snap'
+import { Ruler } from 'leafer-x-ruler'
+import '@leafer-in/export' // 引入导出元素插件
+import { ScrollBar } from '@leafer-in/scroll' // 导入滚动条插件 
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
+const selectedUI = ref<IUI>({} as IUI)
+let app: App = {} as App
+
+const exportBoard = () => {
+    app.tree.syncExport('leafer.png',{ pixelRatio: 3, screenshot: false, fill: '#ffffff', quality: 0.9 })
+}
+
+const exportBoardJSON = () => {
+    const json = app.tree.toJSON()
+    console.log(json)
+}
 
 nextTick(() => {
-    const app = new App({
+    app = new App({
         view: boardRef.value!,
+        ground: {
+           fill: '#91124c'
+        },
         editor: {},
         tree: {
-            type: 'design'
-        }
+            type: 'design',
+        },
+        sky: { },  // 添加 sky 层
+        fill: '#ffffff', // 背景色
+        // wheel: { zoomMode: true, preventDefault: true }, // 全局鼠标滚动缩放元素
+        touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
+        pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
     })
 
-    app.tree.add(Text.one({
+    // 启用easy-snap吸附插件
+    const snap = new Snap(app)
+    snap.enable(true)
+
+    // 实例化标尺插件
+    const ruler = new Ruler(app)
+    ruler.enabled = true
+
+    // 启用滚动插件
+    new ScrollBar(app)
+
+    // 创建画板
+    const text = Text.one({
         text: 'Action is the proper fruit of knowledge.',
         editable: true, fill: '#FFE04B', fontSize: 16,
-        draggable: true
-    }, 100, 100, 100))
+        draggable: true,
+        padding: 6,
+        textAlign: 'center',
+        cornerRadius: 5,
+        boxStyle: {
+            stroke: '#32cd79',
+            strokeWidth: 2,
+            cornerRadius: 5,
+            fill: '#ffffff'
+        }
+    }, 100, 100, 100)
+    app.tree.add(text)
 
     const rect = Rect.one({
+        name: 'rect',
         x: 100,
         y: 10,
         width: 100,
@@ -36,8 +86,9 @@ nextTick(() => {
         strokeWidth: 2,
         fill: '#32cd79',
         draggable: true,
+        cornerRadius: 5,
         editable: true,
-        dashPattern: [6, 6] // 绘制虚线
+        dashPattern: [6, 6], // 绘制虚线
     }, 300, 100, 100)
     app.tree.add(rect)
     
@@ -45,31 +96,44 @@ nextTick(() => {
     rect.on(PointerEvent.LEAVE, onLeave)
 
     function onEnter(e: PointerEvent) {
-        (e.current as Rect).fill = '#FFE04B'
+        if (e.current) {
+            (e.current as Rect).fill = '#FFE04B'
+        }
     }
 
     function onLeave(e: PointerEvent) {
-        (e.current as Rect).fill = '#32cd79'
+        if (e.current) {
+             (e.current as Rect).fill = '#32cd79'
+        }
     }
+
+    // 监听选择事件
+    app.editor.on(EditorEvent.SELECT, (evt: EditorEvent) => {
+        if (evt.value) {
+            // 获取选中的元素
+            selectedUI.value = evt.value as IUI
+            // 修改填充颜色
+            // selectedUI.value.fill = 'blue'
+            // 修改选中元素的圆角：[topLeft, topRight, bottomRight, bottomLeft]
+            // selectedUI.value.cornerRadius = [10, 10, 10, 10]
+            // 打印选中元素的tag类型：selectedUI.value.tag
+            console.log('SELECT:',evt.value, selectedUI.value.tag)
+        }
+    })
+
+    // 平移视图 
+    app.tree.on(MoveEvent.BEFORE_MOVE, (e: MoveEvent) => {
+        // console.log('BEFORE_MOVE:', e.moveX, e.moveY)
+        app.tree.zoomLayer.move(app.tree.getValidMove(e.moveX, e.moveY))
+    })
+
+    // 缩放视图
+    app.tree.on(ZoomEvent.BEFORE_ZOOM, (e: ZoomEvent) => {
+        // console.log('BEFORE_ZOOM:', e.scale)
+        app.tree.zoomLayer.scaleOfWorld(e, app.tree.getValidScale(e.scale))
+    })
     console.log(app.tree.children)
 })
 
 console.log('leafer-ui-version:', version)
 </script>
-
-<style scoped>
-.logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-}
-
-.logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-}
-
-.logo.vue:hover {
-    filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>
