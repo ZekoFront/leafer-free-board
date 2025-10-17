@@ -1,6 +1,8 @@
 <template>
 <button @click="exportBoard">导出图片</button>
 <button @click="exportBoardJSON">导出JSON</button>
+<button @click="testUndo">撤销</button>
+<button @click="testRedo">重做</button>
 
 <div ref="boardRef" style="height: calc(100vh - 50px);width: 100%;background-color:#e2e2e2;"></div>
 </template>
@@ -8,7 +10,7 @@
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent, type IUIInputData } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
@@ -17,6 +19,8 @@ import { Snap } from 'leafer-x-easy-snap'
 import { Ruler } from 'leafer-x-ruler'
 import '@leafer-in/export' // 引入导出元素插件
 import { ScrollBar } from '@leafer-in/scroll' // 导入滚动条插件 
+import { UndoManager } from '@/utils/UndoManager'
+import { v4 as uuidv4 } from 'uuid'
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 const selectedUI = ref<IUI>({} as IUI)
@@ -30,6 +34,56 @@ const exportBoardJSON = () => {
     const json = app.tree.toJSON()
     console.log(json)
 }
+
+// 实例化撤销管理器
+
+const undoManager = new UndoManager();
+const historyRecords: Record<string, string> = {};
+ 
+function addHistory(key: string, value: string) {
+  historyRecords[key] = value;
+}
+ 
+function removeHistory(key: string) {
+  delete historyRecords[key];
+}
+ 
+function createHistory(key: string, value: string) {
+  addHistory(key, value);
+  undoManager.add({
+    undo: () => removeHistory(key),
+    redo: () => addHistory(key, value)
+  });
+}
+ 
+createHistory(uuidv4(), "张三");
+createHistory(uuidv4(), "李四");
+
+
+console.log(historyRecords)
+
+// 测试撤销操作
+function testUndo() {
+  undoManager.undo();
+  // 转换为数组：每个元素包含原键（id）和值（name）
+    const arr = Object.entries(historyRecords).map(([id, name]) => ({
+        id: id,
+        name: name
+    }));
+    // 获取数组最后一个元素
+    // const lastItem = arr[arr.length - 1]
+    // app.tree.set({ children: [JSON.parse(String(lastItem&&lastItem.name))]})
+    // console.log('转换后数组:', JSON.parse(String(lastItem&&lastItem.name)))
+    console.log("撤销操作后:", historyRecords);
+}
+
+// 测试重做操作
+function testRedo() {
+  undoManager.redo();
+  console.log("重做操作后:", historyRecords);
+}
+
+
 
 nextTick(() => {
     app = new App({
@@ -131,6 +185,13 @@ nextTick(() => {
     app.tree.on(ZoomEvent.BEFORE_ZOOM, (e: ZoomEvent) => {
         // console.log('BEFORE_ZOOM:', e.scale)
         app.tree.zoomLayer.scaleOfWorld(e, app.tree.getValidScale(e.scale))
+    })
+
+    // 收集历史记录
+    // 结束拖动事件, 拖拽开始没有做任何改变，结束后数据才会改变
+    app.tree.on(DragEvent.END, (e: DragEvent) => {
+        createHistory(uuidv4(), app.editor.toString())
+        console.log('拖动结束:', historyRecords)
     })
     console.log(app.tree.children)
 })
