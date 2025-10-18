@@ -86,6 +86,7 @@ function forceRender() {
         if (lastItem) {
             const { value } = lastItem
             if (value) {
+                app.editor.clear()
                 app.tree.set(JSON.parse(value) as IUIInputData)
             }
         }
