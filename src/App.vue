@@ -10,10 +10,11 @@
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent, type IUIInputData } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent, type IUIInputData, RenderEvent, LeaferEvent, PropertyEvent, ChildEvent } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
+import "@leafer-in/find" // 导入查早元素插件
 import { Editor, EditorEvent } from '@leafer-in/editor';
 import { Snap } from 'leafer-x-easy-snap'
 import { Ruler } from 'leafer-x-ruler'
@@ -86,8 +87,13 @@ function forceRender() {
         if (lastItem) {
             const { value } = lastItem
             if (value) {
-                app.editor.clear()
                 app.tree.set(JSON.parse(value) as IUIInputData)
+                // app.forceRender()
+                const selectedId = selectedUI.value.id;
+                const selectedElement = app.tree.children.find(el => el.id ===selectedId);
+                if (selectedElement) {
+                    app.editor.select(selectedElement)
+                }
             }
         }
     }
@@ -130,8 +136,9 @@ nextTick(() => {
         pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
     })
     // 添加图形编辑器，用于选中元素进行编辑操作
-    app.editor = new Editor()
-    app.sky.add(app.editor)
+    // 会导致多选拖拽出现多余选择框
+    // app.editor = new Editor()
+    // app.sky.add(app.editor)
 
     // 启用easy-snap吸附插件
     const snap = new Snap(app)
@@ -146,6 +153,7 @@ nextTick(() => {
 
     // 创建画板
     const text = Text.one({
+        id: uuidv4(),
         text: 'Action is the proper fruit of knowledge.',
         editable: true, 
         fill: '#FFE04B', 
@@ -164,6 +172,7 @@ nextTick(() => {
     app.tree.add(text)
 
     const rect = Rect.one({
+        id: uuidv4(),
         name: 'rect',
         x: 100,
         y: 10,
@@ -204,7 +213,7 @@ nextTick(() => {
             // 修改选中元素的圆角：[topLeft, topRight, bottomRight, bottomLeft]
             // selectedUI.value.cornerRadius = [10, 10, 10, 10]
             // 打印选中元素的tag类型：selectedUI.value.tag
-            console.log('SELECT:',evt.value, selectedUI.value.tag)
+            console.log('SELECT:',evt.value)
         }
     })
 
@@ -232,6 +241,14 @@ nextTick(() => {
         // createHistory(uuidv4(), app.tree.toString())
         createHistory({ id: uuidv4(), value: app.tree.toString() })
         console.log('拖动结束:', historyRecords)
+    })
+
+    // 监听渲染
+    app.tree.on(LeaferEvent.READY, () => {
+        console.log('Render-Over')
+        app.tree.on(ChildEvent.ADD, () => {
+            console.log('ChildEvent.ADD')
+        })
     })
     console.log(app.tree.children)
 })
