@@ -1,8 +1,8 @@
 <template>
 <button @click="exportBoard">导出图片</button>
 <button @click="exportBoardJSON">导出JSON</button>
-<button @click="testUndo">撤销</button>
-<button @click="testRedo">重做</button>
+<button @click="undo">撤销</button>
+<button @click="redo">重做</button>
 
 <div ref="boardRef" style="height: calc(100vh - 50px);width: 100%;background-color:#e2e2e2;"></div>
 </template>
@@ -14,7 +14,7 @@ import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent,
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
-import { EditorEvent } from '@leafer-in/editor';
+import { Editor, EditorEvent } from '@leafer-in/editor';
 import { Snap } from 'leafer-x-easy-snap'
 import { Ruler } from 'leafer-x-ruler'
 import '@leafer-in/export' // 引入导出元素插件
@@ -27,7 +27,7 @@ const selectedUI = ref<IUI>({} as IUI)
 let app: App = {} as App
 
 const exportBoard = () => {
-    app.tree.syncExport('leafer.png',{ pixelRatio: 3, screenshot: false, fill: '#ffffff', quality: 0.9 })
+    app.tree.syncExport('leafer.png',{ pixelRatio: 3, screenshot: false, fill: '#ffffff', quality: 0.9, padding: 10 })
 }
 
 const exportBoardJSON = () => {
@@ -36,54 +36,81 @@ const exportBoardJSON = () => {
 }
 
 // 实例化撤销管理器
-
+interface IHistory {
+    id: string,
+    value: string
+}
+// 最多保留20条最新记录
+const MAX_HISTORY_SIZE = 20; 
 const undoManager = new UndoManager();
-const historyRecords: Record<string, string> = {};
+// 设置最大撤销步数。默认值：0（无限制）
+undoManager.setLimit(15);
+// 测试数组数据
+const historyRecords: IHistory[] = [];
  
-function addHistory(key: string, value: string) {
-  historyRecords[key] = value;
+function addHistory(value: IHistory) {
+    historyRecords.push(value);
+    forceRender()
+}
+function removeHistory(id: string) {
+    var i = 0, index = -1;
+    for (i = 0; i < historyRecords.length; i += 1) {
+        const item = historyRecords[i] as IHistory;
+        if(item && item.id === id) {
+            index = i;
+        }
+    }
+    if (index !== -1) {
+        historyRecords.splice(index, 1);
+        forceRender()
+    }
 }
  
-function removeHistory(key: string) {
-  delete historyRecords[key];
-}
- 
-function createHistory(key: string, value: string) {
-  addHistory(key, value);
-  undoManager.add({
-    undo: () => removeHistory(key),
-    redo: () => addHistory(key, value)
-  });
-}
- 
-createHistory(uuidv4(), "张三");
-createHistory(uuidv4(), "李四");
+function createHistory(value: IHistory) {
+    historyRecords.push(value);
+    // 若超过最大限制，删除最旧的一条（数组第一条）
+    if (historyRecords.length > MAX_HISTORY_SIZE) {
+        // 移除最旧的记录（index=0）
+        historyRecords.shift();
+    }
 
+    undoManager.add({
+        undo: () => removeHistory(value.id||""),
+        redo: () => addHistory(value)
+    });
+}
+
+function forceRender() {
+    if (historyRecords.length) {
+        const lastItem = historyRecords[historyRecords.length - 1]
+        if (lastItem) {
+            const { value } = lastItem
+            if (value) {
+                app.tree.set(JSON.parse(value) as IUIInputData)
+            }
+        }
+    }
+}
 
 console.log(historyRecords)
 
-// 测试撤销操作
-function testUndo() {
-  undoManager.undo();
-  // 转换为数组：每个元素包含原键（id）和值（name）
-    const arr = Object.entries(historyRecords).map(([id, name]) => ({
-        id: id,
-        name: name
-    }));
-    // 获取数组最后一个元素
-    // const lastItem = arr[arr.length - 1]
-    // app.tree.set({ children: [JSON.parse(String(lastItem&&lastItem.name))]})
-    // console.log('转换后数组:', JSON.parse(String(lastItem&&lastItem.name)))
-    console.log("撤销操作后:", historyRecords);
+// 撤销操作
+function undo() {
+    const hasUndo = undoManager.hasUndo();
+    if (hasUndo) {
+        undoManager.undo();
+        console.log("撤销操作后:", historyRecords);
+    }
 }
 
-// 测试重做操作
-function testRedo() {
-  undoManager.redo();
-  console.log("重做操作后:", historyRecords);
+// 重做操作
+function redo() {
+    const hasRedo = undoManager.hasRedo();
+    if (hasRedo) {
+        undoManager.redo();
+        console.log("重做操作后:", historyRecords);
+    }
 }
-
-
 
 nextTick(() => {
     app = new App({
@@ -101,6 +128,9 @@ nextTick(() => {
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
         pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
     })
+    // 添加图形编辑器，用于选中元素进行编辑操作
+    app.editor = new Editor()
+    app.sky.add(app.editor)
 
     // 启用easy-snap吸附插件
     const snap = new Snap(app)
@@ -116,7 +146,9 @@ nextTick(() => {
     // 创建画板
     const text = Text.one({
         text: 'Action is the proper fruit of knowledge.',
-        editable: true, fill: '#FFE04B', fontSize: 16,
+        editable: true, 
+        fill: '#FFE04B', 
+        fontSize: 16,
         draggable: true,
         padding: 6,
         textAlign: 'center',
@@ -188,9 +220,16 @@ nextTick(() => {
     })
 
     // 收集历史记录
+    // 开始拖拽事件
+    app.tree.on(DragEvent.START, (e: DragEvent) => {
+        // createHistory(uuidv4(), app.tree.toString())
+        createHistory({ id: uuidv4(), value: app.tree.toString() })
+        console.log('拖动开始:', historyRecords)
+    })
     // 结束拖动事件, 拖拽开始没有做任何改变，结束后数据才会改变
     app.tree.on(DragEvent.END, (e: DragEvent) => {
-        createHistory(uuidv4(), app.editor.toString())
+        // createHistory(uuidv4(), app.tree.toString())
+        createHistory({ id: uuidv4(), value: app.tree.toString() })
         console.log('拖动结束:', historyRecords)
     })
     console.log(app.tree.children)
