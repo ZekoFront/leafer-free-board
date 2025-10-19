@@ -1,5 +1,4 @@
 # Logs
-*.d.ts
 .eslintrc-auto-import.json
 logs
 *.log

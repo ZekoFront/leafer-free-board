@@ -8,14 +8,13 @@
 </template>
 
 <script setup lang="ts">
-import { nextTick, ref, useTemplateRef } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent, type IUIInputData, LeaferEvent, ChildEvent, LayoutEvent, Selector, type ILeaf, type IUIJSONData } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, LeaferEvent, type IUIJSONData } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
 import "@leafer-in/find" // 导入查早元素插件
-import { Editor, EditorEvent, InnerEditorEvent } from '@leafer-in/editor';
+import { EditorEvent, EditorMoveEvent } from '@leafer-in/editor';
 import { Snap } from 'leafer-x-easy-snap'
 import { Ruler } from 'leafer-x-ruler'
 import '@leafer-in/export' // 引入导出元素插件
@@ -88,12 +87,15 @@ function forceRender() {
         if (lastItem) {
             const { value } = lastItem
             if (value) {
+                // 清除选中状态
+                app.editor.cancel()
                 app.tree.set(value)
-                const selectedId = selectedUI.value.id;
-                const selectedElement = app.tree.children.find(el => el.id ===selectedId);
-                if (selectedElement) {
-                    app.editor.select(selectedElement)
-                }
+                // const selectedId = selectedUI.value.id;
+                // const selectedElement = app.tree.children.find(el => el.id ===selectedId);
+                // if (selectedElement) {
+                //     // 选中元素
+                //     app.editor.select(selectedElement)
+                // }
             }
         }
     }
@@ -124,8 +126,17 @@ nextTick(() => {
            fill: '#91124c'
         },
         tree: {
-            // 可以按住空白键拖拽画布
+            // design 可以按住空白键拖拽画布
             type: 'design',
+        },
+        editor: {
+            // dimOthers: true, // 淡化其他元素，突出选中元素 //
+            //dimOthers: 0.2 // 可指定淡化的透明度
+            point: { cornerRadius: 0 },
+            middlePoint: {},
+            rotatePoint: { width: 16, height: 16 },
+            rect: { dashPattern: [3, 2] },
+            buttonsDirection:'top',
         },
         sky: { },  // 添加 sky 层
         fill: '#ffffff', // 背景色 
@@ -133,10 +144,10 @@ nextTick(() => {
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
         pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
     })
-    // 添加图形编辑器，用于选中元素进行编辑操作
-    app.editor = new Editor()
     // 添加 sky 层
     app.sky.add(app.editor)
+    // 更新编辑器
+    // app.editor.update()
 
     // 启用easy-snap吸附插件
     const snap = new Snap(app)
@@ -241,24 +252,20 @@ nextTick(() => {
     })
 
     // 收集历史记录事件监听
-    const onChildEvent = debounce(() => {
+    const onDragEvent = debounce((evt: EditorMoveEvent) => {
+        app.editor.cancel()
         createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-        console.log('onDragEvent:', historyRecords)
+        console.log('EditorMoveEvent:', historyRecords, evt)
     }, 500);
-    // 内容层
-    app.tree.on([ChildEvent.ADD, ChildEvent.REMOVE], onChildEvent)
+    // 移动元素事件监听
+    app.editor.on(EditorMoveEvent.MOVE, onDragEvent)
 
-    const onDragEvent = debounce(() => {
+    // 画板加载完成事件监听
+    app.sky.on(LeaferEvent.READY, function () {
         createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-        console.log('onChildEvent:', historyRecords)
-    }, 500);
-    app.editor.on(DragEvent.END, onDragEvent)
-
-    const onInnerEditorEvent = debounce(() => {
-        createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-        console.log('onInnerEditorEvent:', historyRecords)
-    }, 500);
-    app.editor.on(InnerEditorEvent.CLOSE, onInnerEditorEvent)
+        console.log('画板加载完成:', historyRecords)
+    })
+        
     console.log("内容层元素:",app.tree.children)
 })
 
