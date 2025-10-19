@@ -1,4 +1,6 @@
 # Logs
+*.d.ts
+.eslintrc-auto-import.json
 logs
 *.log
 npm-debug.log*

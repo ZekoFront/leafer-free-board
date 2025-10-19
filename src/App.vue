@@ -10,18 +10,19 @@
 <script setup lang="ts">
 import { nextTick, ref, useTemplateRef } from 'vue';
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent, type IUIInputData, RenderEvent, LeaferEvent, PropertyEvent, ChildEvent } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent, type IUIInputData, LeaferEvent, ChildEvent, LayoutEvent, Selector, type ILeaf, type IUIJSONData } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
 import "@leafer-in/find" // 导入查早元素插件
-import { Editor, EditorEvent } from '@leafer-in/editor';
+import { Editor, EditorEvent, InnerEditorEvent } from '@leafer-in/editor';
 import { Snap } from 'leafer-x-easy-snap'
 import { Ruler } from 'leafer-x-ruler'
 import '@leafer-in/export' // 引入导出元素插件
 import { ScrollBar } from '@leafer-in/scroll' // 导入滚动条插件 
-import { UndoManager } from '@/utils/UndoManager'
 import { v4 as uuidv4 } from 'uuid'
+import { debounce } from 'lodash-es'
+import { UndoManager } from './utils/UndoManager';
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 const selectedUI = ref<IUI>({} as IUI)
@@ -39,7 +40,7 @@ const exportBoardJSON = () => {
 // 实例化撤销管理器
 interface IHistory {
     id: string,
-    value: string
+    value: IUIJSONData
 }
 // 最多保留20条最新记录
 const MAX_HISTORY_SIZE = 20; 
@@ -87,8 +88,7 @@ function forceRender() {
         if (lastItem) {
             const { value } = lastItem
             if (value) {
-                app.tree.set(JSON.parse(value) as IUIInputData)
-                // app.forceRender()
+                app.tree.set(value)
                 const selectedId = selectedUI.value.id;
                 const selectedElement = app.tree.children.find(el => el.id ===selectedId);
                 if (selectedElement) {
@@ -98,8 +98,6 @@ function forceRender() {
         }
     }
 }
-
-console.log(historyRecords)
 
 // 撤销操作
 function undo() {
@@ -125,20 +123,20 @@ nextTick(() => {
         ground: {
            fill: '#91124c'
         },
-        editor: {},
         tree: {
+            // 可以按住空白键拖拽画布
             type: 'design',
         },
         sky: { },  // 添加 sky 层
-        fill: '#ffffff', // 背景色
+        fill: '#ffffff', // 背景色 
         // wheel: { zoomMode: true, preventDefault: true }, // 全局鼠标滚动缩放元素
         touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
         pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
     })
     // 添加图形编辑器，用于选中元素进行编辑操作
-    // 会导致多选拖拽出现多余选择框
-    // app.editor = new Editor()
-    // app.sky.add(app.editor)
+    app.editor = new Editor()
+    // 添加 sky 层
+    app.sky.add(app.editor)
 
     // 启用easy-snap吸附插件
     const snap = new Snap(app)
@@ -206,6 +204,8 @@ nextTick(() => {
     // 监听选择事件
     app.editor.on(EditorEvent.SELECT, (evt: EditorEvent) => {
         if (evt.value) {
+            // app.editor.target 选中目标，数组或者对象
+            const selected = app.editor.target
             // 获取选中的元素
             selectedUI.value = evt.value as IUI
             // 修改填充颜色
@@ -213,7 +213,18 @@ nextTick(() => {
             // 修改选中元素的圆角：[topLeft, topRight, bottomRight, bottomLeft]
             // selectedUI.value.cornerRadius = [10, 10, 10, 10]
             // 打印选中元素的tag类型：selectedUI.value.tag
-            console.log('SELECT:',evt.value)
+            if (Array.isArray(selected)) {
+                // console.log('SELECT:', selected)
+            }
+            else {
+                // 修改属性
+                if (selected) {
+                    // 修改颜色
+                    selected.fill = 'blue'
+                    // selected.setAttr('fill', 'blue')
+                }
+                // console.log('SELECT:', selected, app.editor, '图层序号:', selected?.innerId)
+            }
         }
     })
 
@@ -229,28 +240,26 @@ nextTick(() => {
         app.tree.zoomLayer.scaleOfWorld(e, app.tree.getValidScale(e.scale))
     })
 
-    // 收集历史记录
-    // 开始拖拽事件
-    app.tree.on(DragEvent.START, (e: DragEvent) => {
-        // createHistory(uuidv4(), app.tree.toString())
-        createHistory({ id: uuidv4(), value: app.tree.toString() })
-        console.log('拖动开始:', historyRecords)
-    })
-    // 结束拖动事件, 拖拽开始没有做任何改变，结束后数据才会改变
-    app.tree.on(DragEvent.END, (e: DragEvent) => {
-        // createHistory(uuidv4(), app.tree.toString())
-        createHistory({ id: uuidv4(), value: app.tree.toString() })
-        console.log('拖动结束:', historyRecords)
-    })
+    // 收集历史记录事件监听
+    const onChildEvent = debounce(() => {
+        createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+        console.log('onDragEvent:', historyRecords)
+    }, 500);
+    // 内容层
+    app.tree.on([ChildEvent.ADD, ChildEvent.REMOVE], onChildEvent)
 
-    // 监听渲染
-    app.tree.on(LeaferEvent.READY, () => {
-        console.log('Render-Over')
-        app.tree.on(ChildEvent.ADD, () => {
-            console.log('ChildEvent.ADD')
-        })
-    })
-    console.log(app.tree.children)
+    const onDragEvent = debounce(() => {
+        createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+        console.log('onChildEvent:', historyRecords)
+    }, 500);
+    app.editor.on(DragEvent.END, onDragEvent)
+
+    const onInnerEditorEvent = debounce(() => {
+        createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+        console.log('onInnerEditorEvent:', historyRecords)
+    }, 500);
+    app.editor.on(InnerEditorEvent.CLOSE, onInnerEditorEvent)
+    console.log("内容层元素:",app.tree.children)
 })
 
 console.log('leafer-ui-version:', version)
