@@ -1,0 +1,17 @@
+import type EditorBoard from "../EditorBoard";
+import type { IPluginTempl } from "../types";
+import { Ruler } from "leafer-x-ruler";
+
+class RulerPlugin implements IPluginTempl {
+    static pluginName = 'RulerPlugin';
+    static apis = [];
+    static hotkeys: string[]= [];
+
+    constructor(editorBoard: EditorBoard) {
+        // 实例化标尺插件
+        const ruler = new Ruler(editorBoard.app)
+        ruler.enabled = true
+    }
+}
+
+export default RulerPlugin
