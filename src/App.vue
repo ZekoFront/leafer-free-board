@@ -3,7 +3,7 @@
 <button @click="exportBoardJSON">导出JSON</button>
 <button @click="editorBoard.undo">撤销</button>
 <button @click="editorBoard.redo">重做</button>
-
+<button @click="printHistory">打印历史记录</button>
 <div ref="boardRef" style="height: calc(100vh - 50px);width: 100%;background-color:#e2e2e2;"></div>
 </template>
 
@@ -35,11 +35,17 @@ const exportBoardJSON = () => {
     console.log(json)
 }
 
+const printHistory = () => {
+    // 添加历史记录
+    editorBoard.execute()
+    console.log('历史记录:', editorBoard.history())
+}
+
 nextTick(() => {
+    // 创建画板
     editorBoard = createEditorBoard(boardRef.value!)
     app = editorBoard.app
 
-    // 创建画板
     const text = Text.one({
         id: uuidv4(),
         text: 'Action is the proper fruit of knowledge.',
@@ -57,8 +63,9 @@ nextTick(() => {
             fill: '#ffffff'
         }
     }, 100, 100, 100)
-    app.tree.add(text)
-
+    // app.tree.add(text)
+    editorBoard.addLeaferElement(text)
+    editorBoard.execute(text)
     const rect = Rect.one({
         id: uuidv4(),
         name: 'rect',
@@ -74,22 +81,24 @@ nextTick(() => {
         editable: true,
         dashPattern: [6, 6], // 绘制虚线
     }, 300, 100, 100)
-    app.tree.add(rect)
+    // app.tree.add(rect)
+    editorBoard.addLeaferElement(rect)
+    editorBoard.execute(rect)
     
-    rect.on(PointerEvent.ENTER, onEnter)
-    rect.on(PointerEvent.LEAVE, onLeave)
+    // rect.on(PointerEvent.ENTER, onEnter)
+    // rect.on(PointerEvent.LEAVE, onLeave)
 
-    function onEnter(e: PointerEvent) {
-        if (e.current) {
-            (e.current as Rect).fill = '#FFE04B'
-        }
-    }
+    // function onEnter(e: PointerEvent) {
+    //     if (e.current) {
+    //         (e.current as Rect).fill = '#FFE04B'
+    //     }
+    // }
 
-    function onLeave(e: PointerEvent) {
-        if (e.current) {
-             (e.current as Rect).fill = '#32cd79'
-        }
-    }
+    // function onLeave(e: PointerEvent) {
+    //     if (e.current) {
+    //          (e.current as Rect).fill = '#32cd79'
+    //     }
+    // }
 
     // 监听选择事件
     app.editor.on(EditorEvent.SELECT, (evt: EditorEvent) => {
@@ -110,7 +119,7 @@ nextTick(() => {
                 // 修改属性
                 if (selected) {
                     // 修改颜色
-                    selected.fill = 'blue'
+                    // selected.fill = 'blue'
                     // selected.setAttr('fill', 'blue')
                 }
                 // console.log('SELECT:', selected, app.editor, '图层序号:', selected?.innerId)
@@ -138,15 +147,8 @@ nextTick(() => {
     }, 500);
     // 移动元素事件监听
     app.editor.on(EditorMoveEvent.MOVE, onDragEvent)
-
-    // 画板加载完成事件监听
-    app.sky.on(LeaferEvent.READY, function () {
-        // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-        console.log('画板加载完成:')
-    })
         
     console.log("内容层元素:",app.tree.children)
 })
-
 console.log('leafer-ui-version:', version)
 </script>

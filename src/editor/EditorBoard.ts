@@ -1,10 +1,10 @@
-import { App } from "leafer-ui"
+import { App, LeaferEvent, type IUIInputData } from "leafer-ui"
 import type { IPluginClass, IPluginOption, IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';
 
 class EditorBoard {
-    public app: App;
+    public app: App= {} as App;
     [key: string]: any;
     // 插件实例
     public pluginMap: {
@@ -15,15 +15,17 @@ class EditorBoard {
     // 自定义API
     private customApis: string[] = [];
 
+    public elementMap = new Map();
+
     constructor(view: HTMLDivElement) {
-        this.app = this.init(view)
+        this.init(view)
     }
 
     private init(view: HTMLDivElement) {
         // 初始化应用
-        const app = this.initApp(view)
+        this.app = this.initApp(view)
 
-        return app
+        this.listenners()
     }
 
     // 初始化应用
@@ -55,6 +57,14 @@ class EditorBoard {
         return app
     }
 
+    private listenners() {
+        // 画板加载完成事件监听
+        this.app.sky.on(LeaferEvent.READY, function () {
+            // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+            console.log('画板加载完成')
+        })
+    }
+
     // 引入组件
     use(plugin: IPluginTempl, options?: IPluginOption) {
         if (this._checkPlugin(plugin) && this.app) {
@@ -67,6 +77,33 @@ class EditorBoard {
             this._bindingApis(pluginRunTime);
         }
         return this;
+    }
+
+    addLeaferElement(element: IUIInputData) {
+        if (!this.app.tree) {
+            throw new Error('Editor not initialized');
+        }
+
+        if (!element.id) element.id = this.generateId();
+        this.app.tree.add(element);
+        this.elementMap.set(element.id, element);
+
+        return element.id;
+    }
+
+    
+    removeLeaferElement(elementId:string="") {
+        const element = this.getById(elementId);
+        if (element && this.app.tree) {
+            this.app.tree.remove(element);
+            this.elementMap.delete(elementId);
+            return true;
+        }
+        return false;
+    }
+
+    private getById(elementId:string="") {
+        return this.elementMap.get(elementId);
     }
 
     // 绑定快捷键

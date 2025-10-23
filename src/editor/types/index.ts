@@ -1,12 +1,11 @@
-import type { App, IUIJSONData } from "leafer-ui";
+import type { App } from "leafer-ui";
 import type EditorBoard from "../EditorBoard";
 
-export interface IEditorBoard extends EditorBoard { }
+export interface IEditorBoard extends EditorBoard {}
 
 export interface IEditorBoardPlugin {
-    init: <T>(app: App) => T
+    init: <T>(app: App) => T;
 }
-
 
 // 插件实例
 export declare class IPluginTempl {
@@ -23,18 +22,20 @@ export declare interface IPluginOption {
     [propName: string]: unknown | undefined;
 }
 
-
 declare class IPluginClass2 extends IPluginTempl {
-  constructor();
+    constructor();
 }
 
 // 插件class
 export declare interface IPluginClass {
-  new (editor: EditorBoard, options?: IPluginOption): IPluginClass2;
+    new (editor: EditorBoard, options?: IPluginOption): IPluginClass2;
 }
 
-// 实例化撤销管理器
-export interface IHistory {
-    id: string,
-    value: IUIJSONData
+export type ExecuteTypes = 'add-element' | 'delete-element' | 'update-element' | 'move-element';
+
+export enum ExecuteTypeEnum {
+  AddElement = 'add-element',
+  DeleteElement = 'delete-element',
+  UpdateElement = 'update-element',
+  MoveElement = 'move-element',
 }

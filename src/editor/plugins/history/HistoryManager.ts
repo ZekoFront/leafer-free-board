@@ -2,22 +2,21 @@
 import { isEqual } from 'lodash-es'
 
 import type { ICommand } from "./interface/ICommand";
-import type { IPluginOption, IPluginTempl } from '@/editor/types';
+import { ExecuteTypeEnum, type ExecuteTypes, type IPluginOption, type IPluginTempl } from '@/editor/types';
 import type { IUIInputData } from 'leafer-ui';
-import { AddElementCommand } from './commands/AddElementCommand';
+import { AddElementCommand } from './index';
 import type EditorBoard from '@/editor/EditorBoard';
 
 // 历史记录管理器 - 核心撤销重做逻辑
 export class HistoryManager implements IPluginTempl {
 	static pluginName: string="HistoryManager";
     static events: string[] = [];
-    static apis: string[] = ['undo','redo','isCanUndo','isCanRedo','clearHistory'];
+    static apis: string[] = ['undo','redo','isCanUndo','isCanRedo','clearHistory', 'history','execute'];
 	private maxHistorySize: number // 历史记录最大数量
 	private undoStack: ICommand[] = [] // 撤销栈
   	private redoStack: ICommand[] = [] // 重做栈
 	// private cleaning: boolean = false // 是否正在清理
 	private currentBatch: ICommand | null = null // 当前批量操作命令
-
 	constructor(public editorBoard: EditorBoard, options: IPluginOption) {
 		this.maxHistorySize = Number(options.maxHistorySize) || 100;
 		this.undoStack = [];
@@ -26,10 +25,17 @@ export class HistoryManager implements IPluginTempl {
 		// this.cleaning = false
 	}
 
-	// 新增元素命令
-	addAddElementCommand(element: IUIInputData, type?: string) {
-		const addElementCommand = new AddElementCommand({ element, editorBoard: this.editorBoard, type })
-		this.addCommand(addElementCommand)
+	// 执行命令
+	execute<T extends object & { tag?: string, type?: ExecuteTypes }>(element: T) {
+		if (!element) return
+		// leafer 元素
+		if (element.tag) {
+			const leafer = element as IUIInputData
+			const command = new AddElementCommand({ element:leafer, editorBoard: this.editorBoard, type: ExecuteTypeEnum.AddElement })
+			this.addCommand(command)
+		} else if (element.type === ExecuteTypeEnum.AddElement) {
+			
+		}
 	}
 
 	// 通用命令
@@ -119,7 +125,7 @@ export class HistoryManager implements IPluginTempl {
 	}
 
 	// 获取历史记录信息（用于UI显示）
-	getHistoryInfo() {
+	history() {
 		return {
 			undoStack: this.undoStack,
 			redoStack: this.redoStack,

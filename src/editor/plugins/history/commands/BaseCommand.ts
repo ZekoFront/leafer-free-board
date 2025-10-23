@@ -1,7 +1,8 @@
 // src/history/commands/BaseCommand.ts
-import { App, type ILeaf, type IUI, type IUIInputData } from 'leafer-ui'
+import { type IUIInputData } from 'leafer-ui'
 import type { ICommand } from '../interface/ICommand'
 import type EditorBoard from '@/editor/EditorBoard'
+import type { ExecuteTypes } from '@/editor/types'
 
 export abstract class BaseCommand implements ICommand {
   protected editorBoard: EditorBoard
@@ -12,9 +13,9 @@ export abstract class BaseCommand implements ICommand {
   protected compressedData?: any
   public elementId: string
 
-  constructor(elementId: string, editorBoard: EditorBoard, type:string) {
+  constructor(elementId: string, editorBoard: EditorBoard, executeType:ExecuteTypes) {
     this.editorBoard = editorBoard
-    this.type = type
+    this.type = executeType
     this.elementId = elementId
     this.id = `${this.type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     this.timestamp = Date.now()
@@ -46,6 +47,9 @@ export abstract class BaseCommand implements ICommand {
           text: element.text,
           fontSize: element.fontSize,
           fontFamily: element.fontFamily,
+          cornerRadius: element.cornerRadius,
+          dashPattern: element.dashPattern, // 绘制虚线
+          boxStyle: element.boxStyle
       }
       return properties
   }
