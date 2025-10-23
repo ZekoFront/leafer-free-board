@@ -133,7 +133,7 @@ nextTick(() => {
     // 收集历史记录事件监听
     const onDragEvent = debounce((evt: EditorMoveEvent) => {
         app.editor.cancel()
-        editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+        // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
         console.log('EditorMoveEvent')
     }, 500);
     // 移动元素事件监听
@@ -141,7 +141,7 @@ nextTick(() => {
 
     // 画板加载完成事件监听
     app.sky.on(LeaferEvent.READY, function () {
-        editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+        // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
         console.log('画板加载完成:')
     })
         

@@ -1,8 +1,10 @@
 import EditorBoard from "./EditorBoard"
-import HistoryPlugin from "./plugins/HistoryPlugin"
+// import HistoryPlugin from "./plugins/HistoryPlugin"
 import SnapPlugin from "./plugins/SnapPlugin"
 import RulerPlugin from "./plugins/RulerPlugin"
 import ScrollBarPlugin from "./plugins/ScrollBarPlugin"
+// 历史记录插件
+import { HistoryManager as HistoryPlugin } from "./plugins/history"
 
 export function createEditorBoard(view: HTMLDivElement) {
     const editorBoard = new EditorBoard(view)

@@ -1,12 +1,13 @@
 import { App } from "leafer-ui"
 import type { IPluginClass, IPluginOption, IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
+import { v4 as uuidv4 } from 'uuid';
 
 class EditorBoard {
     public app: App;
     [key: string]: any;
     // 插件实例
-    private pluginMap: {
+    public pluginMap: {
         [propName: string]: IPluginTempl;
     } = {};
     // 自定义事件
@@ -115,6 +116,10 @@ class EditorBoard {
             }
         });
         return true;
+    }
+
+    generateId () {
+        return uuidv4();
     }
 
     destory() {
