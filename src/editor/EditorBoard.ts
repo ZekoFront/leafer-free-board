@@ -87,27 +87,33 @@ class EditorBoard {
         // 可选：监听其他需要的事件
         // this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
         // 监听画布元素选择事件
-        // this.app.editor.on(EditorEvent.SELECT, (evt:EditorEvent) => {
-        //     this.selectElement = cloneDeep(evt.value)
-        //     // console.log('EditorEvent.SELECT', evt.value)
-        // });
-        this.app.editor.on(DragEvent.START, (evt:DragEvent) => {
-            this.dragElement = cloneDeep(evt.target)
-            console.log('DragEvent.START', evt.target)
+        this.app.editor.on(EditorEvent.SELECT, (evt:EditorEvent) => {
+            this.selectElement = cloneDeep(evt.value)
+            // console.log('EditorEvent.SELECT', evt.value)
         });
-        this.app.editor.on(DragEvent.END, (evt:DragEvent) => {
-            console.log('DragEvent.END', evt.target)
-            const { x, y, id, tag } = this.dragElement as ILeaf
-            const { x: x1, y: y1 } = evt.target
-            if (!x || !y) return
+        this.app.on(DragEvent.START, (evt:DragEvent) => {
+            this.dragElement = cloneDeep(evt.target)
+            // console.log('DragEvent.START', JSON.stringify(evt.target))
+        });
+        this.app.on(DragEvent.END, (evt:DragEvent) => {
+            // console.log('DragEvent.END', JSON.stringify(evt.target))
+            // 根据选中元素个数来实现不同的拖拽历史记录
+            if (Array.isArray(this.selectElement)) {
+                // 批量拖拽待实现
+            } else {
+                // 单个拖拽
+                const { x, y, id, tag } = this.dragElement as ILeaf
+                const { x: x1, y: y1 } = evt.target
+                if (!x || !y) return
 
-            this.history.execute({ 
-                type: ExecuteTypeEnum.MoveElement, 
-                elementId: id, 
-                tag,
-                oldXYValue: { x, y },
-                newXYValue: { x: x1, y: y1 } 
-            })
+                this.history.execute({ 
+                    type: ExecuteTypeEnum.MoveElement, 
+                    elementId: id, 
+                    tag,
+                    oldXYValue: { x, y },
+                    newXYValue: { x: x1, y: y1 } 
+                })
+            }
         });
 
         // 监听leaferjs元素属性变化事件
