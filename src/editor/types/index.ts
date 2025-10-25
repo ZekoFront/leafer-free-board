@@ -38,4 +38,19 @@ export enum ExecuteTypeEnum {
   DeleteElement = 'delete-element',
   UpdateElement = 'update-element',
   MoveElement = 'move-element',
+  BaseCommand = 'base-command',
+}
+
+export interface IPoint {
+    x: number
+    y: number
+}
+
+export interface IHistoryCommandProps {
+   elementId:string
+   tag: string 
+   editor: EditorBoard
+   oldXYValue: IPoint
+   newXYValue: IPoint
+   desc?: string
 }

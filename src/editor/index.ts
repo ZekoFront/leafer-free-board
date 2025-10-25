@@ -4,7 +4,7 @@ import SnapPlugin from "./plugins/SnapPlugin"
 import RulerPlugin from "./plugins/RulerPlugin"
 import ScrollBarPlugin from "./plugins/ScrollBarPlugin"
 // 历史记录插件
-import { HistoryManager as HistoryPlugin } from "./plugins/history"
+// import { HistoryManager as HistoryPlugin } from "./plugins/history"
 
 export function createEditorBoard(view: HTMLDivElement) {
     const editorBoard = new EditorBoard(view)
@@ -19,7 +19,7 @@ export function createEditorBoard(view: HTMLDivElement) {
     // 添加 sky 层
     editorBoard.app.sky.add(editor)
     // 内置插件注入
-    editorBoard.use(HistoryPlugin)
+    // editorBoard.use(HistoryPlugin)
     editorBoard.use(SnapPlugin)
     editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin)

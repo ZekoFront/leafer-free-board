@@ -1,10 +1,14 @@
-import { App, LeaferEvent, type IUIInputData } from "leafer-ui"
-import type { IPluginClass, IPluginOption, IPluginTempl } from "./types"
+import { App, DragEvent, Event, LeaferEvent, PropertyEvent, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
+import { ExecuteTypeEnum, type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';
+import { HistoryManager } from "./plugins/history";
+import { EditorEvent, EditorMoveEvent } from "@leafer-in/editor";
+import { debounce, cloneDeep } from "lodash-es";
 
 class EditorBoard {
-    public app: App= {} as App;
+    public app: App = {} as App;
+    public history: HistoryManager = {} as HistoryManager;
     [key: string]: any;
     // 插件实例
     public pluginMap: {
@@ -14,17 +18,21 @@ class EditorBoard {
     private customEvents: string[] = [];
     // 自定义API
     private customApis: string[] = [];
-
     public elementMap = new Map();
+    public isDragging: boolean = false;
+    public selectElement: IUI | IUI[] = {} as IUI;
+    public dragElement: ILeaf | ILeaf[] = {} as ILeaf;
 
     constructor(view: HTMLDivElement) {
         this.init(view)
     }
 
     private init(view: HTMLDivElement) {
-        // 初始化应用
+        // 初始化leafer应用
         this.app = this.initApp(view)
-
+        // 初始化历史管理器
+        this.history = new HistoryManager(this, { maxHistorySize: 50 });
+        // 监听事件
         this.listenners()
     }
 
@@ -63,10 +71,62 @@ class EditorBoard {
             // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
             console.log('画板加载完成')
         })
+
+        const onDragEvent = debounce((evt: EditorMoveEvent) => {
+            // 取消选中元素
+            // this.app.editor.cancel()
+            // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+            if (this.selectElement) {
+                if (Array.isArray(this.selectElement)) {
+
+                } else {
+                    // const { x, y } = this.selectElement
+                    // const { x: x1, y: y1 } = evt.target
+                    // this.history.execute({ type: ExecuteTypeEnum.MoveElement, elementId: this.selectElement.id, editor: this, tag: this.selectElement.tag, oldXYValue: { x, y }, newXYValue: { x: x1, y: y1 } })
+                }
+            }
+            // console.log('EditorMoveEvent11', evt, evt.target.x, evt.target.y)
+        }, 500);
+
+        // 可选：监听其他需要的事件
+        this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
+        // 监听画布元素选择事件
+        this.app.editor.on(EditorEvent.SELECT, (evt:EditorEvent) => {
+            this.selectElement = cloneDeep(evt.value)
+            console.log('EditorEvent.SELECT', evt.value)
+        });
+        this.app.editor.on(DragEvent.START, (evt:DragEvent) => {
+            this.dragElement = cloneDeep(evt.target)
+            console.log('DragEvent.START', evt.target.x, evt.target.y)
+        });
+        this.app.editor.on(DragEvent.END, (evt:DragEvent) => {
+            // 根据拖拽元素个数来处理
+            const { x, y, id, tag } = this.dragElement as ILeaf
+            const { x: x1, y: y1 } = evt.target
+            this.history.execute({ 
+                type: ExecuteTypeEnum.MoveElement, 
+                elementId: id, 
+                editor: this, 
+                tag,
+                oldXYValue: { x, y }, 
+                newXYValue: { x: x1, y: y1 } 
+            })
+            console.log('DragEvent.END', evt.target.children)
+        });
+
+        // 监听leaferjs元素属性变化事件
+        // this.app.editor.on(PropertyEvent.CHANGE, (evt: EditorMoveEvent) => {
+        //     // this.isDragging = true;
+        //     // 拖拽过程中禁止触发属性变化事件
+        //     if (!this.isDragging) {
+        //         console.log('PropertyEvent.CHANGE', this.app.draggable)
+        //     }
+           
+        // })
     }
 
     // 引入组件
-    use(plugin: IPluginTempl, options?: IPluginOption) {
+    public use(plugin: IPluginTempl, options?: IPluginOption) {
         if (this._checkPlugin(plugin) && this.app) {
             this._saveCustomAttr(plugin);
             const pluginRunTime = new (plugin as IPluginClass)(this, options || {});
@@ -79,7 +139,7 @@ class EditorBoard {
         return this;
     }
 
-    addLeaferElement(element: IUIInputData) {
+    public addLeaferElement(element: IUIInputData) {
         if (!this.app.tree) {
             throw new Error('Editor not initialized');
         }
@@ -92,7 +152,7 @@ class EditorBoard {
     }
 
     
-    removeLeaferElement(elementId:string="") {
+    public removeLeaferElement(elementId:string="") {
         const element = this.getById(elementId);
         if (element && this.app.tree) {
             this.app.tree.remove(element);
@@ -102,7 +162,7 @@ class EditorBoard {
         return false;
     }
 
-    private getById(elementId:string="") {
+    public getById(elementId:string="") {
         return this.elementMap.get(elementId);
     }
 
@@ -155,11 +215,11 @@ class EditorBoard {
         return true;
     }
 
-    generateId () {
+    public generateId () {
         return uuidv4();
     }
 
-    destory() {
+    public destory() {
         this.app.destroy()
         this.pluginMap = {};
         this.customEvents = [];

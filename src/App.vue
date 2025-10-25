@@ -1,8 +1,8 @@
 <template>
 <button @click="exportBoard">导出图片</button>
 <button @click="exportBoardJSON">导出JSON</button>
-<button @click="editorBoard.undo">撤销</button>
-<button @click="editorBoard.redo">重做</button>
+<button @click="editorBoard.history.undo">撤销</button>
+<button @click="editorBoard.history.redo">重做</button>
 <button @click="printHistory">打印历史记录</button>
 <div ref="boardRef" style="height: calc(100vh - 50px);width: 100%;background-color:#e2e2e2;"></div>
 </template>
@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { debounce } from 'lodash-es'
 import { createEditorBoard } from './editor';
 import type EditorBoard from '@/editor/EditorBoard';
+import { ExecuteTypeEnum } from './editor/types';
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 const selectedUI = ref<IUI>({} as IUI)
@@ -37,8 +38,7 @@ const exportBoardJSON = () => {
 
 const printHistory = () => {
     // 添加历史记录
-    editorBoard.execute()
-    console.log('历史记录:', editorBoard.history())
+    console.log('历史记录:', editorBoard.history.state())
 }
 
 nextTick(() => {
@@ -65,7 +65,8 @@ nextTick(() => {
     }, 100, 100, 100)
     // app.tree.add(text)
     editorBoard.addLeaferElement(text)
-    editorBoard.execute(text)
+    editorBoard.history.execute(text)
+
     const rect = Rect.one({
         id: uuidv4(),
         name: 'rect',
@@ -83,7 +84,8 @@ nextTick(() => {
     }, 300, 100, 100)
     // app.tree.add(rect)
     editorBoard.addLeaferElement(rect)
-    editorBoard.execute(rect)
+    // 调用历史插件，添加历史记录
+    editorBoard.history.execute(rect)
     
     // rect.on(PointerEvent.ENTER, onEnter)
     // rect.on(PointerEvent.LEAVE, onLeave)
@@ -140,13 +142,13 @@ nextTick(() => {
     })
 
     // 收集历史记录事件监听
-    const onDragEvent = debounce((evt: EditorMoveEvent) => {
-        app.editor.cancel()
-        // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-        console.log('EditorMoveEvent')
-    }, 500);
+    // const onDragEvent = debounce((evt: EditorMoveEvent) => {
+    //     app.editor.cancel()
+    //     // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
+    //     console.log('EditorMoveEvent11')
+    // }, 500);
     // 移动元素事件监听
-    app.editor.on(EditorMoveEvent.MOVE, onDragEvent)
+    // app.editor.on(EditorMoveEvent.MOVE, onDragEvent)
         
     console.log("内容层元素:",app.tree.children)
 })

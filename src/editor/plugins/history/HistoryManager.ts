@@ -2,23 +2,23 @@
 import { isEqual } from 'lodash-es'
 
 import type { ICommand } from "./interface/ICommand";
-import { ExecuteTypeEnum, type ExecuteTypes, type IPluginOption, type IPluginTempl } from '@/editor/types';
+import { ExecuteTypeEnum, type ExecuteTypes, type IHistoryCommandProps, type IPluginOption, type IPluginTempl } from '@/editor/types';
 import type { IUIInputData } from 'leafer-ui';
-import { AddElementCommand } from './index';
+import { AddElementCommand, MoveCommand } from './index';
 import type EditorBoard from '@/editor/EditorBoard';
 
 // 历史记录管理器 - 核心撤销重做逻辑
 export class HistoryManager implements IPluginTempl {
 	static pluginName: string="HistoryManager";
     static events: string[] = [];
-    static apis: string[] = ['undo','redo','isCanUndo','isCanRedo','clearHistory', 'history','execute'];
+    static apis: string[] = ['undo','redo','isCanUndo','isCanRedo','clearHistory'];
 	private maxHistorySize: number // 历史记录最大数量
 	private undoStack: ICommand[] = [] // 撤销栈
   	private redoStack: ICommand[] = [] // 重做栈
 	// private cleaning: boolean = false // 是否正在清理
 	private currentBatch: ICommand | null = null // 当前批量操作命令
 	constructor(public editorBoard: EditorBoard, options: IPluginOption) {
-		this.maxHistorySize = Number(options.maxHistorySize) || 100;
+		this.maxHistorySize = Number(options.maxHistorySize) || 50;
 		this.undoStack = [];
 		this.redoStack = [];
 		this.currentBatch = null;
@@ -29,12 +29,16 @@ export class HistoryManager implements IPluginTempl {
 	execute<T extends object & { tag?: string, type?: ExecuteTypes }>(element: T) {
 		if (!element) return
 		// leafer 元素
-		if (element.tag) {
+		if (!element.type) {
 			const leafer = element as IUIInputData
+			leafer.type = ExecuteTypeEnum.AddElement
 			const command = new AddElementCommand({ element:leafer, editorBoard: this.editorBoard, type: ExecuteTypeEnum.AddElement })
 			this.addCommand(command)
-		} else if (element.type === ExecuteTypeEnum.AddElement) {
-			
+		} else if (element.type === ExecuteTypeEnum.MoveElement) {
+			// 移动元素命令
+			const moveCommand = element as unknown as IHistoryCommandProps
+			const command = new MoveCommand(moveCommand)
+			this.addCommand(command)
 		}
 	}
 
@@ -118,14 +122,14 @@ export class HistoryManager implements IPluginTempl {
 	}
 
 	// 清空历史记录
-	clearHistory() {
+	clear() {
 		this.undoStack = [];
 		this.redoStack = [];
 		this.currentBatch = null;
 	}
 
 	// 获取历史记录信息（用于UI显示）
-	history() {
+	state() {
 		return {
 			undoStack: this.undoStack,
 			redoStack: this.redoStack,

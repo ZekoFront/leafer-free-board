@@ -7,13 +7,14 @@ interface IAddElementCommandProps {
     element: IUIInputData
     editorBoard: EditorBoard
     type?: string
+    desc?: string
 }
 
 // 新增元素命令
 export class AddElementCommand extends BaseCommand {
     private tag: string
     private elementProps: IUIInputData
-    static desc: string = '新增元素命令'
+    static desc: string
     constructor(props: IAddElementCommandProps) {
         super(props.element.id||"", props.editorBoard, ExecuteTypeEnum.AddElement)
         this.tag = props.element.tag||""
@@ -43,6 +44,10 @@ export class AddElementCommand extends BaseCommand {
 
     // 验证命令有效性
     isValid(): boolean {
+        if (!this.elementId) {
+            console.error('AddElementCommand isValid elementId is empty:', this)
+            return false
+        }
         const isOk = this.elementId && this.tag;
         return Boolean(isOk)
     }
