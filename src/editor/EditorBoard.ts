@@ -1,4 +1,4 @@
-import { App, DragEvent, Event, LeaferEvent, PropertyEvent, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
+import { App, DragEvent, Event, LeaferEvent, PointerEvent, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
 import { ExecuteTypeEnum, type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';
@@ -73,45 +73,41 @@ class EditorBoard {
         })
 
         const onDragEvent = debounce((evt: EditorMoveEvent) => {
+            console.log('EditorMoveEvent11', this.dragElement)
             // 取消选中元素
             // this.app.editor.cancel()
-            // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-            if (this.selectElement) {
-                if (Array.isArray(this.selectElement)) {
-
-                } else {
-                    // const { x, y } = this.selectElement
-                    // const { x: x1, y: y1 } = evt.target
-                    // this.history.execute({ type: ExecuteTypeEnum.MoveElement, elementId: this.selectElement.id, editor: this, tag: this.selectElement.tag, oldXYValue: { x, y }, newXYValue: { x: x1, y: y1 } })
-                }
-            }
-            // console.log('EditorMoveEvent11', evt, evt.target.x, evt.target.y)
         }, 500);
 
+        // 鼠标、手写笔、触摸屏点击事件，支持 右键菜单 事件
+        // this.app.editor.on(PointerEvent.CLICK, (evt: PointerEvent) => {
+        //     console.log('PointerEvent.CLICK', evt);
+        //     this.dragElement = cloneDeep(evt.target)
+        // })
+
         // 可选：监听其他需要的事件
-        this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
+        // this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
         // 监听画布元素选择事件
-        this.app.editor.on(EditorEvent.SELECT, (evt:EditorEvent) => {
-            this.selectElement = cloneDeep(evt.value)
-            console.log('EditorEvent.SELECT', evt.value)
-        });
+        // this.app.editor.on(EditorEvent.SELECT, (evt:EditorEvent) => {
+        //     this.selectElement = cloneDeep(evt.value)
+        //     // console.log('EditorEvent.SELECT', evt.value)
+        // });
         this.app.editor.on(DragEvent.START, (evt:DragEvent) => {
             this.dragElement = cloneDeep(evt.target)
-            console.log('DragEvent.START', evt.target.x, evt.target.y)
+            console.log('DragEvent.START', evt.target)
         });
         this.app.editor.on(DragEvent.END, (evt:DragEvent) => {
-            // 根据拖拽元素个数来处理
+            console.log('DragEvent.END', evt.target)
             const { x, y, id, tag } = this.dragElement as ILeaf
             const { x: x1, y: y1 } = evt.target
+            if (!x || !y) return
+
             this.history.execute({ 
                 type: ExecuteTypeEnum.MoveElement, 
                 elementId: id, 
-                editor: this, 
                 tag,
-                oldXYValue: { x, y }, 
+                oldXYValue: { x, y },
                 newXYValue: { x: x1, y: y1 } 
             })
-            console.log('DragEvent.END', evt.target.children)
         });
 
         // 监听leaferjs元素属性变化事件

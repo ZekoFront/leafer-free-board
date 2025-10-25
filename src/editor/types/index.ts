@@ -31,7 +31,7 @@ export declare interface IPluginClass {
     new (editor: EditorBoard, options?: IPluginOption): IPluginClass2;
 }
 
-export type ExecuteTypes = 'add-element' | 'delete-element' | 'update-element' | 'move-element';
+export type ExecuteTypes = 'add-element' | 'delete-element' | 'update-element' | 'move-element' | 'multi-movale-element';
 
 export enum ExecuteTypeEnum {
   AddElement = 'add-element',
@@ -39,6 +39,7 @@ export enum ExecuteTypeEnum {
   UpdateElement = 'update-element',
   MoveElement = 'move-element',
   BaseCommand = 'base-command',
+  MultiDragElement = "multi-movale-element",
 }
 
 export interface IPoint {

@@ -9,7 +9,7 @@
 
 <script setup lang="ts">
 // import HelloWorld from './components/HelloWorld.vue'
-import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, LeaferEvent } from 'leafer-ui';
+import { App, Rect, Text, version, PointerEvent, type IUI, MoveEvent, ZoomEvent, DragEvent } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
@@ -103,31 +103,31 @@ nextTick(() => {
     // }
 
     // 监听选择事件
-    app.editor.on(EditorEvent.SELECT, (evt: EditorEvent) => {
-        if (evt.value) {
-            // app.editor.target 选中目标，数组或者对象
-            const selected = app.editor.target
-            // 获取选中的元素
-            selectedUI.value = evt.value as IUI
-            // 修改填充颜色
-            // selectedUI.value.fill = 'blue'
-            // 修改选中元素的圆角：[topLeft, topRight, bottomRight, bottomLeft]
-            // selectedUI.value.cornerRadius = [10, 10, 10, 10]
-            // 打印选中元素的tag类型：selectedUI.value.tag
-            if (Array.isArray(selected)) {
-                // console.log('SELECT:', selected)
-            }
-            else {
-                // 修改属性
-                if (selected) {
-                    // 修改颜色
-                    // selected.fill = 'blue'
-                    // selected.setAttr('fill', 'blue')
-                }
-                // console.log('SELECT:', selected, app.editor, '图层序号:', selected?.innerId)
-            }
-        }
-    })
+    // app.editor.on(EditorEvent.SELECT, (evt: EditorEvent) => {
+    //     if (evt.value) {
+    //         // app.editor.target 选中目标，数组或者对象
+    //         const selected = app.editor.target
+    //         // 获取选中的元素
+    //         selectedUI.value = evt.value as IUI
+    //         // 修改填充颜色
+    //         // selectedUI.value.fill = 'blue'
+    //         // 修改选中元素的圆角：[topLeft, topRight, bottomRight, bottomLeft]
+    //         // selectedUI.value.cornerRadius = [10, 10, 10, 10]
+    //         // 打印选中元素的tag类型：selectedUI.value.tag
+    //         if (Array.isArray(selected)) {
+    //             // console.log('SELECT:', selected)
+    //         }
+    //         else {
+    //             // 修改属性
+    //             if (selected) {
+    //                 // 修改颜色
+    //                 // selected.fill = 'blue'
+    //                 // selected.setAttr('fill', 'blue')
+    //             }
+    //             // console.log('SELECT:', selected, app.editor, '图层序号:', selected?.innerId)
+    //         }
+    //     }
+    // })
 
     // 平移视图 
     app.tree.on(MoveEvent.BEFORE_MOVE, (e: MoveEvent) => {
@@ -149,6 +149,14 @@ nextTick(() => {
     // }, 500);
     // 移动元素事件监听
     // app.editor.on(EditorMoveEvent.MOVE, onDragEvent)
+
+    // app.editor.on(DragEvent.START, (evt:DragEvent) => {
+    //     // this.dragElement = cloneDeep(evt.target)
+    //     console.log('DragEvent.START', evt.target)
+    // });
+    // app.editor.on(DragEvent.END, (evt:DragEvent) => {
+    //     console.log('DragEvent.END', evt.target)
+    // });
         
     console.log("内容层元素:",app.tree.children)
 })

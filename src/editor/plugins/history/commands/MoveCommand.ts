@@ -20,7 +20,9 @@ export class MoveCommand extends BaseCommand {
     // 重做用旧属性值
     execute(): void {
         // 批量修改待实现，根据批量element来处理...
-        const element = this.getElement();
+        // const element = this.getElement();
+        const element = this.editorBoard.app.tree.findId(this.elementId);
+        console.log('MoveCommand.execute', element)
         if (element) {
             element.set({
                 x: this.newValue.x,

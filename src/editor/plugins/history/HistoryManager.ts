@@ -37,6 +37,7 @@ export class HistoryManager implements IPluginTempl {
 		} else if (element.type === ExecuteTypeEnum.MoveElement) {
 			// 移动元素命令
 			const moveCommand = element as unknown as IHistoryCommandProps
+			moveCommand.editor = this.editorBoard
 			const command = new MoveCommand(moveCommand)
 			this.addCommand(command)
 		}
