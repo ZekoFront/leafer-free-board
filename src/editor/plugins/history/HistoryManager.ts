@@ -9,9 +9,9 @@ import type EditorBoard from '@/editor/EditorBoard';
 
 // 历史记录管理器 - 核心撤销重做逻辑
 export class HistoryManager implements IPluginTempl {
-	static pluginName: string="HistoryManager";
+	static pluginName: string = "HistoryManager";
     static events: string[] = [];
-    static apis: string[] = ['undo','redo','isCanUndo','isCanRedo','clearHistory'];
+    static apis: string[] = [];
 	private maxHistorySize: number // 历史记录最大数量
 	private undoStack: ICommand[] = [] // 撤销栈
   	private redoStack: ICommand[] = [] // 重做栈

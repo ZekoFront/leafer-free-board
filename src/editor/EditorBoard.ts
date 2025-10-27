@@ -1,12 +1,12 @@
-import { App, DragEvent, Event, LeaferEvent, PointerEvent, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
-import { ExecuteTypeEnum, type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
+import { EventEmitter } from "events";
+import { App, type ILeaf, type IUIInputData } from "leafer-ui"
+import { type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';
 import { HistoryManager } from "./plugins/history";
-import { EditorEvent, EditorMoveEvent } from "@leafer-in/editor";
-import { debounce, cloneDeep } from "lodash-es";
+import HandlerPlugin from "./plugins/HandlerPlugin";
 
-class EditorBoard {
+class EditorBoard extends EventEmitter {
     public app: App = {} as App;
     public history: HistoryManager = {} as HistoryManager;
     [key: string]: any;
@@ -19,21 +19,17 @@ class EditorBoard {
     // 自定义API
     private customApis: string[] = [];
     public elementMap = new Map();
-    public isDragging: boolean = false;
-    public selectElement: IUI | IUI[] = {} as IUI;
-    public dragElement: ILeaf | ILeaf[] = {} as ILeaf;
 
     constructor(view: HTMLDivElement) {
+        super()
         this.init(view)
     }
 
     private init(view: HTMLDivElement) {
         // 初始化leafer应用
         this.app = this.initApp(view)
-        // 初始化历史管理器
-        this.history = new HistoryManager(this, { maxHistorySize: 50 });
-        // 监听事件
-        this.listenners()
+        this.history = new HistoryManager(this, { maxHistorySize: 50 })
+        this._initHandlerPlugin()
     }
 
     // 初始化应用
@@ -65,66 +61,9 @@ class EditorBoard {
         return app
     }
 
-    private listenners() {
-        // 画板加载完成事件监听
-        this.app.sky.on(LeaferEvent.READY, function () {
-            // editorBoard.createHistory({ id: uuidv4(), value: app.tree.toJSON() })
-            console.log('画板加载完成')
-        })
-
-        const onDragEvent = debounce((evt: EditorMoveEvent) => {
-            console.log('EditorMoveEvent11', this.dragElement)
-            // 取消选中元素
-            // this.app.editor.cancel()
-        }, 500);
-
-        // 鼠标、手写笔、触摸屏点击事件，支持 右键菜单 事件
-        // this.app.editor.on(PointerEvent.CLICK, (evt: PointerEvent) => {
-        //     console.log('PointerEvent.CLICK', evt);
-        //     this.dragElement = cloneDeep(evt.target)
-        // })
-
-        // 可选：监听其他需要的事件
-        // this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
-        // 监听画布元素选择事件
-        this.app.editor.on(EditorEvent.SELECT, (evt:EditorEvent) => {
-            this.selectElement = cloneDeep(evt.value)
-            // console.log('EditorEvent.SELECT', evt.value)
-        });
-        this.app.on(DragEvent.START, (evt:DragEvent) => {
-            this.dragElement = cloneDeep(evt.target)
-            // console.log('DragEvent.START', JSON.stringify(evt.target))
-        });
-        this.app.on(DragEvent.END, (evt:DragEvent) => {
-            // console.log('DragEvent.END', JSON.stringify(evt.target))
-            // 根据选中元素个数来实现不同的拖拽历史记录
-            if (Array.isArray(this.selectElement)) {
-                // 批量拖拽待实现
-            } else {
-                // 单个拖拽
-                const { x, y, id, tag } = this.dragElement as ILeaf
-                const { x: x1, y: y1 } = evt.target
-                if (!x || !y) return
-
-                this.history.execute({ 
-                    type: ExecuteTypeEnum.MoveElement, 
-                    elementId: id, 
-                    tag,
-                    oldXYValue: { x, y },
-                    newXYValue: { x: x1, y: y1 } 
-                })
-            }
-        });
-
-        // 监听leaferjs元素属性变化事件
-        // this.app.editor.on(PropertyEvent.CHANGE, (evt: EditorMoveEvent) => {
-        //     // this.isDragging = true;
-        //     // 拖拽过程中禁止触发属性变化事件
-        //     if (!this.isDragging) {
-        //         console.log('PropertyEvent.CHANGE', this.app.draggable)
-        //     }
-           
-        // })
+    // EditorBoard核心业务处理插件
+    private _initHandlerPlugin() {
+        this.use(HandlerPlugin);
     }
 
     // 引入组件
@@ -226,6 +165,15 @@ class EditorBoard {
         this.pluginMap = {};
         this.customEvents = [];
         this.customApis = [];
+        this.elementMap = new Map();
+        this.dragElement = {} as ILeaf;
+        this.history = {} as HistoryManager;
+    }
+
+    // 解决 listener 为 undefined 的时候卸载错误
+    public off(eventName: string, listener: any): this {
+        // noinspection TypeScriptValidateTypes
+        return listener ? super.off(eventName, listener) : this;
     }
 }
 

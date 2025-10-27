@@ -3,6 +3,8 @@ import EditorBoard from "./EditorBoard"
 import SnapPlugin from "./plugins/SnapPlugin"
 import RulerPlugin from "./plugins/RulerPlugin"
 import ScrollBarPlugin from "./plugins/ScrollBarPlugin"
+// import HandlerPlugin from "./plugins/HandlerPlugin"
+
 // 历史记录插件
 // import { HistoryManager as HistoryPlugin } from "./plugins/history"
 
@@ -23,7 +25,13 @@ export function createEditorBoard(view: HTMLDivElement) {
     editorBoard.use(SnapPlugin)
     editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin)
+    // 内部插件注入
+    // editorBoard.use(HandlerPlugin)
 
     console.log('editorBoard:', editorBoard)
     return editorBoard
+}
+
+export {
+    EditorBoard
 }

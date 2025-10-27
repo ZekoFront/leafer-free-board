@@ -54,3 +54,12 @@ app.on(DragEvent.END, (evt:DragEvent) => {
 });
 ```
 
+# 取消选中元素
+取消已选择元素
+```js
+this.app.editor.cancel()
+
+// 可选：监听其他需要的事件
+// this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
+```
+
