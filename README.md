@@ -62,4 +62,18 @@ this.app.editor.cancel()
 // 可选：监听其他需要的事件
 // this.app.editor.on(EditorMoveEvent.MOVE, onDragEvent);
 ```
+# 平移视图 
+```js
+// 平移视图 
+app.tree.on(MoveEvent.BEFORE_MOVE, (e: MoveEvent) => {
+    // console.log('BEFORE_MOVE:', e.moveX, e.moveY)
+    app.tree.zoomLayer.move(app.tree.getValidMove(e.moveX, e.moveY))
+})
+
+// 缩放视图
+app.tree.on(ZoomEvent.BEFORE_ZOOM, (e: ZoomEvent) => {
+    // console.log('BEFORE_ZOOM:', e.scale)
+    app.tree.zoomLayer.scaleOfWorld(e, app.tree.getValidScale(e.scale))
+})
+```
 

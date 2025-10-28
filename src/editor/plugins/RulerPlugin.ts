@@ -2,7 +2,7 @@ import type EditorBoard from "../EditorBoard";
 import type { IPluginTempl } from "../types";
 import { Ruler } from "leafer-x-ruler";
 
-class RulerPlugin implements IPluginTempl {
+export class RulerPlugin implements IPluginTempl {
     static pluginName = 'RulerPlugin';
     static apis = [];
     static hotkeys: string[]= [];
@@ -13,5 +13,3 @@ class RulerPlugin implements IPluginTempl {
         ruler.enabled = true
     }
 }
-
-export default RulerPlugin

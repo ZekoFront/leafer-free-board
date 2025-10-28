@@ -2,7 +2,7 @@ import { Snap } from "leafer-x-easy-snap";
 import type EditorBoard from "../EditorBoard";
 import type { IPluginTempl } from "../types";
 
-class SnapPlugin implements IPluginTempl {
+export class SnapPlugin implements IPluginTempl {
     static pluginName = 'SnapPlugin';
     static apis = [];
     static hotkeys: string[]= [];
@@ -13,5 +13,3 @@ class SnapPlugin implements IPluginTempl {
         snap.enable(true)
     }
 }
-
-export default SnapPlugin

@@ -1,35 +1,42 @@
 import type EditorBoard from "@/editor/EditorBoard";
 import { SelectMode, SelectEvent } from "@/utils";
-import type { EditorEvent, IUI } from "leafer-editor";
+import type { IUI } from "leafer-editor";
 
 export interface Selector {
     selectedMode: (typeof SelectMode)[keyof typeof SelectMode];
     selectedId: string | undefined;
     selectedIds: (string | undefined)[];
     seletcedType: string;
-    selectedActive: unknown;
+    selectedActive: IUI | undefined;
+    editorBoard: EditorBoard;
 }
 
-export default function useSelectorListen(editorBoard: EditorBoard) {
+export default function useSelectorListen() {
+    // 注入editorBoard并校验存在性
+    const editorBoard = inject('editorBoard') as EditorBoard;
+    if (!editorBoard) {
+        throw new Error('useSelectorListen 依赖 "editorBoard"，请通过 provide 注入');
+    }
+
     const state = reactive<Selector>({
         selectedMode: SelectMode.EMPTY,
         selectedId: '',
         selectedIds: [],
         selectedActive: undefined,
         seletcedType: '',
+        editorBoard: editorBoard,
     });
 
-    const selectSingle = (evt: EditorEvent) => {
-        const target = evt.value as IUI
+    const selectSingle = (value: IUI) => {
         state.selectedMode = SelectMode.SINGLE;
-        state.selectedId = target.id;
-        state.selectedIds = [target.id];
-        state.selectedActive = target;
-        state.seletcedType = target.tag;
+        state.selectedId = value.id;
+        state.selectedIds = [value.id];
+        state.selectedActive = value;
+        state.seletcedType = value.tag;
     }
 
-    const selectMultiple = (evt: EditorEvent) => {
-        const target = evt.value as IUI[]
+    const selectMultiple = (value: IUI[]) => {
+        const target = value
         state.selectedMode = SelectMode.MULTIPLE;
         state.selectedId = '';
         state.selectedIds = target.map((item: IUI) => item.id);
@@ -44,18 +51,26 @@ export default function useSelectorListen(editorBoard: EditorBoard) {
         state.seletcedType = '';
     }
 
+    const isSingle = computed(() => state.selectedMode === SelectMode.SINGLE);
+    const isMultiple = computed(() => state.selectedMode === SelectMode.MULTIPLE);
+    const selectedModes = computed(() => state.selectedMode);
+
     onMounted(() => {
-        console.log(editorBoard, 9999)
-        // editorBoard.on(SelectEvent.SINGLE, selectSingle);
-        // editorBoard.on(SelectEvent.MULTIPLE, selectMultiple);
-        // editorBoard.on(SelectEvent.EMPTY, selectEmpty);
+        editorBoard.on(SelectEvent.SINGLE, selectSingle);
+        editorBoard.on(SelectEvent.MULTIPLE, selectMultiple);
+        editorBoard.on(SelectEvent.EMPTY, selectEmpty);
     });
 
-    // onBeforeMount(() => {
-    //     editorBoard.off(SelectEvent.SINGLE, selectSingle);
-    //     editorBoard.off(SelectEvent.MULTIPLE, selectMultiple);
-    //     editorBoard.off(SelectEvent.EMPTY, selectEmpty);
-    // });
+    onBeforeMount(() => {
+        editorBoard.off(SelectEvent.SINGLE, selectSingle);
+        editorBoard.off(SelectEvent.MULTIPLE, selectMultiple);
+        editorBoard.off(SelectEvent.EMPTY, selectEmpty);
+    });
 
-    return state;
+    return {
+        editorBoard,
+        isSingle,
+        isMultiple,
+        selectedMode: selectedModes,
+    }
 }

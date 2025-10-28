@@ -2,7 +2,7 @@ import { ScrollBar } from "leafer-editor";
 import type EditorBoard from "../EditorBoard";
 import type { IPluginTempl } from "../types";
 
-class ScrollBarPlugin implements IPluginTempl {
+export class ScrollBarPlugin implements IPluginTempl {
     static pluginName = 'ScrollBarPlugin';
     static apis = [];
     static hotkeys: string[]= [];
@@ -12,5 +12,3 @@ class ScrollBarPlugin implements IPluginTempl {
         new ScrollBar(editorBoard.app)
     }
 }
-
-export default ScrollBarPlugin

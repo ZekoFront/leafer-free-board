@@ -3,7 +3,7 @@ import { App, type ILeaf, type IUIInputData } from "leafer-ui"
 import { type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';
-import { HistoryManager } from "./plugins/history";
+import { HistoryManager } from "./history";
 import HandlerPlugin from "./plugins/HandlerPlugin";
 
 class EditorBoard extends EventEmitter {
@@ -20,45 +20,10 @@ class EditorBoard extends EventEmitter {
     private customApis: string[] = [];
     public elementMap = new Map();
 
-    constructor(view: HTMLDivElement) {
-        super()
-        this.init(view)
-    }
-
-    private init(view: HTMLDivElement) {
-        // 初始化leafer应用
-        this.app = this.initApp(view)
+    public init(app: App) {
+        this.app = app
         this.history = new HistoryManager(this, { maxHistorySize: 50 })
         this._initHandlerPlugin()
-    }
-
-    // 初始化应用
-    private initApp(view: HTMLDivElement) {
-        const app = new App({
-            view: view,
-            ground: {
-                fill: '#91124c'
-            },
-            tree: {
-                // design 可以按住空白键拖拽画布
-                type: 'design',
-            },
-            editor: {
-                // dimOthers: true, // 淡化其他元素，突出选中元素 //
-                //dimOthers: 0.2 // 可指定淡化的透明度
-                point: { cornerRadius: 0 },
-                middlePoint: {},
-                rotatePoint: { width: 16, height: 16 },
-                rect: { dashPattern: [3, 2] },
-                buttonsDirection: 'top',
-            },
-            sky: {},  // 添加 sky 层
-            fill: '#ffffff', // 背景色 
-            // wheel: { zoomMode: true, preventDefault: true }, // 全局鼠标滚动缩放元素
-            touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
-            pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
-        })
-        return app
     }
 
     // EditorBoard核心业务处理插件
