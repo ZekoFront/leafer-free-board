@@ -1,11 +1,11 @@
-import { ExecuteTypeEnum, type IHistoryCommandProps, type IPoint } from "@/editor/types";
+import { ExecuteTypeEnum, type IHistoryCommandProps, type IPointItem } from "@/editor/types";
 import { BaseCommand } from "./BaseCommand";
 
 export class MoveCommand extends BaseCommand {
     static tag: string
     static desc: string
-    public oldValue: IPoint
-    public newValue: IPoint
+    public oldValue: IPointItem
+    public newValue: IPointItem
 
     constructor(options: IHistoryCommandProps) {
         super(options.elementId, options.editor, ExecuteTypeEnum.MoveElement);

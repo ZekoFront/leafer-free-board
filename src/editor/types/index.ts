@@ -42,7 +42,7 @@ export enum ExecuteTypeEnum {
   MultiDragElement = "multi-movale-element",
 }
 
-export interface IPoint {
+export interface IPointItem {
     x: number
     y: number
 }
@@ -51,7 +51,13 @@ export interface IHistoryCommandProps {
    elementId:string
    tag: string 
    editor: EditorBoard
-   oldXYValue: IPoint
-   newXYValue: IPoint
+   oldXYValue: IPointItem
+   newXYValue: IPointItem
    desc?: string
+}
+
+export interface IToolBar {
+    icon: any
+    title: string
+    type: string
 }

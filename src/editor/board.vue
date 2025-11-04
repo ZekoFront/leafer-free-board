@@ -2,24 +2,7 @@
     <div class="leafer-free-board--root">
         <div class="leafer-free-board--header">
             <div class="left">左边</div>
-            <div class="center">
-                <div class="icon-block" title="矩形">
-                    <RectIcon></RectIcon>
-                </div>
-                <div class="icon-block" title="文本">
-                    <TextIcon></TextIcon>
-                </div>
-                <div class="icon-block" title="撤销" @click="editorBoard.history.undo">
-                    <UndoIcon></UndoIcon>
-                </div>
-                <div class="icon-block" title="重做" @click="editorBoard.history.redo">
-                    <RedoIcon></RedoIcon>
-                </div>
-                <button @click="exportBoard">导出图片</button>
-                <button @click="exportBoardJSON">导出JSON</button>
-                <button @click="printHistory">打印历史记录</button>
-                <!-- <Header /> -->
-            </div>
+            <ToolBar :editorBoard="editorBoard"></ToolBar>
             <div class="right">右边</div>
         </div>
         <div ref="boardRef" class="leafer-free-board--body">
@@ -35,27 +18,12 @@ import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
-import Header from './components/Header.vue'
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin } from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
-import { RectIcon, RedoIcon, UndoIcon, TextIcon } from '@/icons'
+import ToolBar from './components/ToolBar.vue'
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 let app: App = {} as App
-
-const exportBoard = () => {
-    app.tree.syncExport('leafer.png',{ pixelRatio: 3, screenshot: false, fill: '#ffffff', quality: 0.9, padding: 10 })
-}
-
-const exportBoardJSON = () => {
-    const json = app.tree.toJSON()
-    console.log(json)
-}
-
-const printHistory = () => {
-    // 添加历史记录
-    console.log('历史记录:', editorBoard.history.state())
-}
 
 // 初始化编辑器
 const editorBoard:EditorBoard = new EditorBoard()
@@ -150,7 +118,6 @@ onMounted(() => {
     // console.log("内容层元素:",app.tree.children)
 })
 
-// console.log('editorBoard:', editorBoard)
 
 provide('editorBoard', editorBoard)
 console.log('leaferjs:', version)
