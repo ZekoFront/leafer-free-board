@@ -38,10 +38,7 @@ import '@leafer-in/export' // 引入导出元素插件
 import Header from './components/Header.vue'
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin } from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
-import RectIcon from '@/icons/rect-icon.svg'
-import TextIcon from '@/icons/text-icon.svg'
-import UndoIcon from '@/icons/undo-icon.svg'
-import RedoIcon from '@/icons/redo-icon.svg'
+import { RectIcon, RedoIcon, UndoIcon, TextIcon } from '@/icons'
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 let app: App = {} as App
