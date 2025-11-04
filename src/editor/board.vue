@@ -3,12 +3,22 @@
         <div class="leafer-free-board--header">
             <div class="left">左边</div>
             <div class="center">
+                <div class="icon-block" title="矩形">
+                    <RectIcon></RectIcon>
+                </div>
+                <div class="icon-block" title="文本">
+                    <TextIcon></TextIcon>
+                </div>
+                <div class="icon-block" title="撤销" @click="editorBoard.history.undo">
+                    <UndoIcon></UndoIcon>
+                </div>
+                <div class="icon-block" title="重做" @click="editorBoard.history.redo">
+                    <RedoIcon></RedoIcon>
+                </div>
                 <button @click="exportBoard">导出图片</button>
                 <button @click="exportBoardJSON">导出JSON</button>
-                <button @click="editorBoard.history.undo">撤销</button>
-                <button @click="editorBoard.history.redo">重做</button>
                 <button @click="printHistory">打印历史记录</button>
-                <Header />
+                <!-- <Header /> -->
             </div>
             <div class="right">右边</div>
         </div>
@@ -28,6 +38,10 @@ import '@leafer-in/export' // 引入导出元素插件
 import Header from './components/Header.vue'
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin } from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
+import RectIcon from '@/icons/rect-icon.svg'
+import TextIcon from '@/icons/text-icon.svg'
+import UndoIcon from '@/icons/undo-icon.svg'
+import RedoIcon from '@/icons/redo-icon.svg'
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 let app: App = {} as App
@@ -145,36 +159,5 @@ provide('editorBoard', editorBoard)
 console.log('leaferjs:', version)
 </script>
 <style lang="scss">
-.leafer-free-board {
-    &--root {
-        height: 100%;
-        width: 100%;
-        position: relative;
-        user-select: none;
-        margin-left: 0px;
-        margin-top: 0px;
-        pointer-events: auto;
-    }
-    &--header {
-        // position: absolute;
-        // top: 30px;
-        // left: 50%;
-        background: #ffffff;
-        box-sizing: border-box;
-        border-radius: .5rem;
-        padding: 4px;
-        box-shadow: 0px 0px .9310142993927002px 0px rgba(0, 0, 0, .17), 0px 0px 3.1270833015441895px 0px rgba(0, 0, 0, .08), 0px 7px 14px 0px rgba(0, 0, 0, .05);
-        z-index: 3;
-        display: grid;
-        grid-template-columns: 1fr 2fr 1fr;
-        grid-gap: 1rem;
-        align-items: flex-start;
-        cursor: default;
-        width: inherit;
-    }
-    &--body {
-        height: 100%;
-    }
-}
-
+@import './css/index.scss';
 </style>

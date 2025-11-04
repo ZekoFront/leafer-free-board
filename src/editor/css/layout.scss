@@ -1,0 +1,51 @@
+.leafer-free-board {
+    &--root {
+        height: 100%;
+        width: 100%;
+        position: relative;
+        user-select: none;
+        margin-left: 0px;
+        margin-top: 0px;
+        pointer-events: auto;
+    }
+    &--header {
+        // position: absolute;
+        // top: 30px;
+        // left: 50%;
+        background: #ffffff;
+        box-sizing: border-box;
+        padding: 4px;
+        z-index: 3;
+        display: grid;
+        grid-template-columns: 1fr 2fr 1fr;
+        grid-gap: 1rem;
+        align-items: flex-start;
+        cursor: default;
+        width: inherit;
+        .center {
+            display: flex;
+            align-items: center;
+            border-radius: .5rem;
+            box-shadow: 0px 0px .9310142993927002px 0px rgba(0, 0, 0, .17), 0px 0px 3.1270833015441895px 0px rgba(0, 0, 0, .08), 0px 7px 14px 0px rgba(0, 0, 0, .05);
+            .icon-block {
+                width: 2.25rem;
+                aspect-ratio: 1 / 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.5rem;
+                &:hover {
+                    background: rgba(24, 160, 88, 0.16);
+                    // svg {
+                    //     path {
+                    //         fill: #18a058;
+                    //     }
+                    // }
+                }
+            }
+        }
+    }
+    &--body {
+        height: 100%;
+    }
+}
