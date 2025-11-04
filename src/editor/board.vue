@@ -156,5 +156,5 @@ provide('editorBoard', editorBoard)
 console.log('leaferjs:', version)
 </script>
 <style lang="scss">
-@import './css/index.scss';
+@use './css/index.scss';
 </style>
