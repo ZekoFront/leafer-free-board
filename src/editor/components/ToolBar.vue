@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { PointerEvent, Text, Rect, Group, type IUI } from 'leafer-ui';
+import { PointerEvent, Text, Rect, Group, type IUI, Box } from 'leafer-ui';
 import { EditorBoard } from '..'
 import { RectIcon, RedoIcon, UndoIcon, TextIcon, SelectIcon } from '@/icons'
 import type { IPointItem, IToolBar } from '../types'
@@ -82,35 +82,73 @@ const onDropLeafer = (e:DragEvent) => {
         // 根据拖拽类型生成图形
         console.log(type,point)
         if (type === 'rect') {
-            const rect = new Rect({
-                editable: false,
-                fill: options.fill,
-                cornerRadius: options.cornerRadius,
-                opacity: options.opacity,
-            })
+            // const rect = new Rect({
+            //     editable: false,
+            //     fill: options.fill,
+            //     cornerRadius: options.cornerRadius,
+            //     opacity: options.opacity,
+            // })
 
-            const text = new Text({
-                draggable: false,
-                editable: true,
-                text: '矩形',
-                fill: '#333',
-                fontSize: 12,
-                fontWeight: 'bold',
-                textAlign: 'center',
-                verticalAlign: 'middle',
-                x: 10,
-                y: 10,
-            })
+            // const text = new Text({
+            //     draggable: false,
+            //     editable: true,
+            //     text: '矩形',
+            //     fill: '#333',
+            //     fontSize: 12,
+            //     fontWeight: 'bold',
+            //     textAlign: 'center',
+            //     verticalAlign: 'middle',
+            //     x: 10,
+            //     y: 10,
+            // })
 
-            const group = new Group({
-                editable: true,
-                draggable: true,
+            // const group = new Group({
+            //     editable: true,
+            //     draggable: true,
+            //     x: point.x,
+            //     y: point.y,
+            //     children: [rect, text],
+            // })
+            // Box 不设置宽高时，将自适应内容
+            const box = new Box({
                 x: point.x,
                 y: point.y,
-                children: [rect, text],
+                fill: '#FFFFFF',
+                cornerRadius: 20,
+                textBox: true,
+                hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
+                editable: true,
+                resizeChildren: true, // 同时 resize 文本
+                strokeWidth: 1,
+                stroke: "#32cd79",
+                children: [{
+                    tag: 'Text',
+                    text: 'Welcome to LeaferJS',
+                    fill: 'black',
+                    fontSize: 16,
+                    padding: [10, 20],
+                    textAlign: 'left',
+                    verticalAlign: 'top'
+                }]
             })
             // 添加图形到画布
-            props.editorBoard.app.tree.add(group)
+            props.editorBoard.app.tree.add(box)
+        } else if (type === 'text') {
+            const text = new Text({
+                fill: '#333333',
+                placeholder: '请输入文本', // 占位符文本  
+                placeholderColor: 'rgba(120,120,120,0.5)',  // 占位符颜色
+                draggable: true,
+                fontSize: 16,
+                padding: 12,
+                boxStyle: {
+                    padding: 12
+                },
+                editable: true,
+                x: point.x,
+                y: point.y
+            })
+            props.editorBoard.app.tree.add(text)
         }
     }
     e.preventDefault()
