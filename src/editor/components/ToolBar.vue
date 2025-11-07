@@ -1,6 +1,6 @@
 <template>
     <div class="center">
-        <div v-for="(item, index) in toolbars" :key="item.type" :class="['icon-block', { 'active': currentIndex === index }]" :title="item.title" @click="handleClick(item, index)">
+        <div draggable="true" v-for="(item, index) in toolbars" :key="item.type" :class="['icon-block', { 'active': currentIndex === index }]" :id="item.type" :title="item.title" @click="handleClick(item, index)">
             <component :is="item.icon"></component>
         </div>
         <div class="icon-block--undo" title="撤回" @click="editorBoard.history.undo()">
@@ -49,23 +49,8 @@ const toolbars = shallowRef<IToolBar[]>([
     }
 ])
 
-const selectType = ref('')
 const handleClick = (item: IToolBar, index: number) => {
     console.log(item, index)
-    currentIndex.value = index
-    selectType.value = item.type
-    if (item.type === 'rect') {
-        props.editorBoard.app.cursor = 'crosshair'
-        props.editorBoard.app.editor.config.selector = false
-        // props.editor.setCurrentTool('rect')
-    } else if (item.type === 'text') {
-        // props.editor.setCurrentTool('text')
-        props.editorBoard.app.cursor = 'crosshair'
-        props.editorBoard.app.editor.config.selector = false
-    } else if (item.type === 'select') {
-        props.editorBoard.app.cursor = 'default'
-        props.editorBoard.app.editor.config.selector = true
-    }
 }
 
 const exportBoard = () => {
@@ -82,165 +67,89 @@ const printHistory = () => {
     console.log('历史记录:', props.editorBoard.history.state())
 }
 
-const isDragging = ref(false)
-const isMouseDown = ref(false)
-const points = ref<IPointItem[]>([])
-let element:IUI = {} as IUI
 const options = {
     fill: '#FEB027',
     stroke: '#13ad8cff',
     cornerRadius: 10,
     opacity: 0.7,
 }
-// PointerEvent.MENU支持右键菜单
-// 鼠标按下事件
-const onDown = (e: PointerEvent) => {
-    console.log('鼠标按下事件', e)
-    isMouseDown.value = true
-    // 取消选中
-    if (props.editorBoard.app.editor&&props.editorBoard.app.cursor === 'crosshair') {
-        props.editorBoard.app.editor.target = undefined
-    }
+let leafer:HTMLDivElement|undefined;
+const onDropLeafer = (e:DragEvent) => {
+    if (e.dataTransfer) {
+        const type = e.dataTransfer.getData("type")
+        // 浏览器原生事件的 client 坐标 转 应用的 page 坐标
+        const point = props.editorBoard.app.getPagePointByClient(e)
+        // 根据拖拽类型生成图形
+        console.log(type,point)
+        if (type === 'rect') {
+            const rect = new Rect({
+                editable: false,
+                fill: options.fill,
+                cornerRadius: options.cornerRadius,
+                opacity: options.opacity,
+            })
 
-    // 获取起始坐标
-    const startPoint = e.getPagePoint()
-    points.value.push(startPoint)
-    if (selectType.value === 'rect') {
-        element = createElement(startPoint)
+            const text = new Text({
+                draggable: false,
+                editable: true,
+                text: '矩形',
+                fill: '#333',
+                fontSize: 12,
+                fontWeight: 'bold',
+                textAlign: 'center',
+                verticalAlign: 'middle',
+                x: 10,
+                y: 10,
+            })
+
+            const group = new Group({
+                editable: true,
+                draggable: true,
+                x: point.x,
+                y: point.y,
+                children: [rect, text],
+            })
+            // 添加图形到画布
+            props.editorBoard.app.tree.add(group)
+        }
     }
+    e.preventDefault()
 }
 
-// 鼠标移动事件
-const onMove = (e: PointerEvent) => {
-    if (!isDragging.value && props.editorBoard.app.cursor === 'crosshair'&&element.x) {
-        isDragging.value = true
-        console.log(element, 5555)
-        // 关闭选择器
-        props.editorBoard.app.tree.add(element)
-    }
-    if (isDragging.value && isMouseDown.value && selectType.value === 'rect') {
-        const endPoint = e.getPagePoint()
-        console.log('鼠标移动事件', endPoint)
-        // 更新元素位置
-        updateElement(element, endPoint)
-        // 计算偏移量
-        // const offsetX = endPoint.x - startPoint.value.x
-        // const offsetY = endPoint.y - startPoint.value.y
-        // console.log('偏移量:', offsetX, offsetY)
-    }
+const onDragElementListener = (type: string) => {
+    const element = document.getElementById(type)
+    element&&element.addEventListener('dragstart', function (e:DragEvent) {
+        e.dataTransfer&&e.dataTransfer.setData("type", type)
+    })
+}
+const onDragElementRemoveListener = (type: string) => {
+    const element = document.getElementById(type)
+    element&&element.removeEventListener('dragstart', function (e:DragEvent) {
+        e.dataTransfer&&e.dataTransfer.setData("type", type)
+    })
 }
 
-// 鼠标松开事件
-const onUp = (e: PointerEvent) => {
-    if (props.editorBoard.app.cursor === 'crosshair') {
-        isDragging.value = false
-        isMouseDown.value = false
-        console.log('鼠标松开事件', e)
-        points.value = []
-        // 开启选择器
-        props.editorBoard.app.editor.config.selector = true
-        props.editorBoard.app.cursor = 'default'
-        currentIndex.value = 0
-    }
-}
-
-// 创建图形
-const createElement = (startPoint: IPointItem): IUI => {
-    const rect = new Rect({
-        editable: false,
-        fill: options.fill,
-        cornerRadius: options.cornerRadius,
-        opacity: options.opacity,
+onMounted(() => {
+    // 监听拖拽元素
+    toolbars.value.forEach(item => {
+        onDragElementListener(item.type)
     })
 
-    const text = new Text({
-        draggable: false,
-        editable: true,
-        text: '矩形',
-        fill: '#333',
-        fontSize: 12,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        verticalAlign: 'middle',
-        x: 10,
-        y: 10,
+    leafer = document.getElementById('leafer') as HTMLDivElement
+    leafer&&leafer.addEventListener('dragover', function (e:DragEvent) {
+        e.preventDefault()
     })
 
-    const group = new Group({
-        editable: true,
-        draggable: true,
-        x: startPoint.x,
-        y: startPoint.y,
-        children: [rect, text],
+    // 设置目标区域可接收拖拽
+    leafer&&leafer.addEventListener('drop', onDropLeafer)
+})
+
+onBeforeUnmount(() => {
+    // 移除监听拖拽元素
+    toolbars.value.forEach(item => {
+        onDragElementRemoveListener(item.type)
     })
-
-    return group
-}
-
-const updateElement = (element: IUI, endPoint: IPointItem) => {
-    points.value[1] = endPoint
-
-    const startPoints = points.value[0]
-    const group = element as Group
-    const bounds = calculateRectBounds(startPoints as IPointItem, endPoint)
-    const { x, y, width, height } = bounds
-    group.x = x
-    group.y = y
-
-    const [rect, text] = group.children
-    if (rect && text) {
-        rect.width = width
-        rect.height = height
-
-        text.width = Math.abs(width - 20)
-        text.height = Math.abs(height - 20)
-    }
-}
-
-const calculateRectBounds = (startPoint: IPointItem, endPoint: IPointItem) => {
-    const { x: startX, y: startY } = startPoint
-    const { x: endX, y: endY } = endPoint
-    const deltaX = endX - startX
-    const deltaY = endY - startY
-
-    const width = Math.abs(deltaX)
-    const height = Math.abs(deltaY)
-
-    let x = 0
-    let y = 0
-
-    if (deltaX >= 0 && deltaY >= 0) {
-      // 右下方向
-      x = startX
-      y = startY
-    } else if (deltaX < 0 && deltaY >= 0) {
-      // 左下方向
-      x = startX + deltaX
-      y = startY
-    } else if (deltaX >= 0 && deltaY < 0) {
-      // 右上方向
-      x = startX
-      y = startY + deltaY
-    } else {
-      // 左上方向
-      x = startX + deltaX
-      y = startY + deltaY
-    }
-
-    return {
-      x,
-      y,
-      width,
-      height,
-    }
-  }
-
-
-// 后期移动到插件DrawShapePlugin内部实现
-nextTick(() => {
-    // 绑定鼠标事件
-    props.editorBoard.app.on(PointerEvent.DOWN, onDown)
-    props.editorBoard.app.on(PointerEvent.MOVE, onMove)
-    props.editorBoard.app.on(PointerEvent.UP, onUp)
+    // 移除监听
+    leafer&&leafer.removeEventListener('drop', onDropLeafer)
 })
 </script>

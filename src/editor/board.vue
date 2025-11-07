@@ -5,7 +5,7 @@
             <ToolBar :editorBoard="editorBoard"></ToolBar>
             <div class="right">右边</div>
         </div>
-        <div ref="boardRef" class="leafer-free-board--body">
+        <div id="leafer" ref="boardRef" class="leafer-free-board--body">
 
         </div>
     </div>
