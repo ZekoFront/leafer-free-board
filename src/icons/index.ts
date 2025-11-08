@@ -14,6 +14,7 @@ export { default as RedoIcon } from './redo-icon.svg'
 export { default as UndoIcon } from './undo-icon.svg'
 export { default as TextIcon } from './text-icon.svg'
 export { default as SelectIcon } from './select-icon.svg'
+export { default as ArrowIcon } from './arrow-icon.svg'
 
 
 

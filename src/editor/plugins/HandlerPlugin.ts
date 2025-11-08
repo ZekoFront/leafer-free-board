@@ -50,7 +50,7 @@ class HandlerPlugin implements IPluginTempl {
 
     // evt: LeaferEvent
     private _listenSkyReadyEvent() {
-        console.log('LeaferEvent.READY') 
+        console.log('编辑器初始化完成') 
     }
 
     private _listenSelectEvent(evt: EditorEvent) {

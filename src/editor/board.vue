@@ -18,7 +18,7 @@ import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
-import { SnapPlugin, RulerPlugin, ScrollBarPlugin } from '@/editor/plugins'
+import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin } from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
 import ToolBar from './components/ToolBar.vue'
 
@@ -60,7 +60,8 @@ onMounted(() => {
     editorBoard.use(SnapPlugin)
     editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin)
-
+    editorBoard.use(ShapePlugin)
+    console.log('editorBoard:',editorBoard)
     const text = Text.one({
         id: editorBoard.generateId(),
         text: 'Action is the proper fruit of knowledge.',
@@ -120,7 +121,7 @@ onMounted(() => {
 
 
 provide('editorBoard', editorBoard)
-console.log('leaferjs:', version)
+// console.log('leaferjs:', version)
 </script>
 <style lang="scss">
 @use './css/index.scss';
