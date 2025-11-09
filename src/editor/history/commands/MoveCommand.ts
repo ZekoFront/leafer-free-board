@@ -1,11 +1,12 @@
-import { ExecuteTypeEnum, type IHistoryCommandProps, type IPointItem } from "@/editor/types";
+import { ExecuteTypeEnum, type IHistoryCommandProps } from "@/editor/types";
 import { BaseCommand } from "./BaseCommand";
+import type { IPointData } from "leafer-ui";
 
 export class MoveCommand extends BaseCommand {
     static tag: string
     static desc: string
-    public oldValue: IPointItem
-    public newValue: IPointItem
+    public oldValue: IPointData
+    public newValue: IPointData
 
     constructor(options: IHistoryCommandProps) {
         super(options.elementId, options.editor, ExecuteTypeEnum.MoveElement);

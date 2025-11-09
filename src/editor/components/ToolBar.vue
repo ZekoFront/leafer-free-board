@@ -1,6 +1,13 @@
 <template>
     <div class="center">
-        <div :draggable="isDraggable(item.type)" v-for="(item, index) in toolbars" :key="item.type" :class="['icon-block', { 'active': currentIndex === index }]" :id="item.type" :title="item.title" @click="handleClick(item, index)">
+        <div 
+            v-for="(item, index) in toolbars" 
+            :key="item.type" 
+            :class="['icon-block', { 'active': currentIndex === index }]" 
+            :id="item.type" :title="item.title"
+            :draggable="item.draggable" 
+            @mousedown="handleClick(item, index)" 
+            @click="handleClick(item, index)">
             <component :is="item.icon"></component>
         </div>
         <div class="icon-block--undo" title="撤回" @click="editorBoard.history.undo()">
@@ -27,12 +34,9 @@ const { editorBoard } = useSelectorListen()
 const currentIndex = ref<number>(0)
 const toolbars = shallowRef<IToolBar[]>(toolBarMenu)
 
-const isDraggable = (type:string) => {
-  return !['arrow'].includes(type);
-}
-
 const handleClick = (item: IToolBar, index: number) => {
     currentIndex.value = index
+    editorBoard.setToolbarActive(item.type)
     console.log(item, index)
 }
 

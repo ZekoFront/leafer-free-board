@@ -1,11 +1,7 @@
-import type { App } from "leafer-ui";
+import type { IPointData } from "leafer-ui";
 import type EditorBoard from "../EditorBoard";
 
 export interface IEditorBoard extends EditorBoard {}
-
-export interface IEditorBoardPlugin {
-    init: <T>(app: App) => T;
-}
 
 // 插件实例
 export declare class IPluginTempl {
@@ -42,17 +38,12 @@ export enum ExecuteTypeEnum {
   MultiDragElement = "multi-movale-element",
 }
 
-export interface IPointItem {
-    x: number
-    y: number
-}
-
 export interface IHistoryCommandProps {
    elementId:string
    tag: string 
    editor: EditorBoard
-   oldXYValue: IPointItem
-   newXYValue: IPointItem
+   oldXYValue: IPointData
+   newXYValue: IPointData
    desc?: string
 }
 
@@ -60,4 +51,5 @@ export interface IToolBar {
     icon: any
     title: string
     type: string
+    draggable?: boolean
 }

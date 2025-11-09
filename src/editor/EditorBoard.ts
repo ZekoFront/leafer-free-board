@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { App, type ILeaf, type IUIInputData } from "leafer-ui"
+import { App, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
 import { type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';

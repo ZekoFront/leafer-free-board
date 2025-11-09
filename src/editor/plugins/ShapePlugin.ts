@@ -1,38 +1,44 @@
-import { Box, Text, PointerEvent } from "leafer-ui";
+import { PointerEvent, type IPointData, type IUI } from "leafer-ui";
+import { Arrow } from "@leafer-in/arrow";
 import type EditorBoard from "../EditorBoard";
 import { type IPluginTempl } from "../types";
 import { toolbars } from "@/scripts/toolBar";
-
+import { createShape } from "../utils/creatShape";
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
-    static apis = [];
+    static apis = ['setToolbarActive'];
     static hotkeys: string[]= [];
+    static events = ['testEvent'];
     public toolbars = toolbars;
-    private options = {
-        fill: '#32cd79',
-        stroke: '#13ad8cff',
-        fontColor: '#FFFFFF',
-        cornerRadius: 10,
-        opacity: 0.7,
-    }
+    private toolbarActiveType = '';
+    private excludeTypes = ['select','arrow'];
+    private element: IUI | null = null
+    private points: IPointData[] = []
+    private isDrawing = false
     // 处理拖拽生成图形
     private leafer:HTMLDivElement|undefined;
-    private isMouseDown = true
     constructor(public editorBoard: EditorBoard) {
+        // this._listenners()
+    }
+
+    protected setToolbarActive(type: string) {
+        this.toolbarActiveType = type
+        // 需要手动拖拽绘制的图形
+        if (type==='arrow') {
+            this.editorBoard.app.cursor = 'crosshair'
+            this.editorBoard.app.editor.config.selector = false
+        }
+        console.log('设置工具栏激活状态:', type)
         this._listenners()
     }
 
     private _listenners() {
-        // 监听拖拽元素
         this.toolbars.forEach(item => {
-            // 排除箭头工具
-            if (item.type !== 'arrow') this._onDragElementListener(item.type)
+            if (!this.excludeTypes.includes(item.type)) this._onDragElementListener(item.type)
         })
 
         this.leafer = document.getElementById('leafer') as HTMLDivElement
-        this.leafer.addEventListener('dragover', (evt) => {
-            evt.preventDefault()
-        })
+        this.leafer.addEventListener('dragover', (evt) => evt.preventDefault())
 
         // 设置目标区域可接收拖拽
         this.leafer&&this.leafer.addEventListener('drop', (evt:DragEvent) => this._onDropLeafer(evt))
@@ -41,18 +47,48 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.app.on(PointerEvent.UP, (evt:PointerEvent) => this._onUpPointer(evt))
     }
 
+    private _unListenners() {
+        this.toolbars.forEach(item => {
+           if (!this.excludeTypes.includes(item.type)) this._onDragElementRemoveListener(item.type)
+        })
+        this.leafer && this.leafer.removeEventListener('dragover', (evt) => evt.preventDefault())
+        this.leafer&&this.leafer.removeEventListener('drop', (evt:DragEvent) => this._onDropLeafer(evt))
+        this.editorBoard.app.off(PointerEvent.DOWN, (evt:PointerEvent) => this._onDownPointer(evt))
+        this.editorBoard.app.off(PointerEvent.MOVE, (evt:PointerEvent) => this._onMovePointer(evt))
+        this.editorBoard.app.off(PointerEvent.UP, (evt:PointerEvent) => this._onUpPointer(evt))
+    }
+
     private _onDownPointer = (_evt:PointerEvent) => {
-        console.log('按下了')
-        this.isMouseDown = true
+        if (this.editorBoard.app.editor&&this.editorBoard.app.cursor === 'crosshair') {
+            this.editorBoard.app.editor.target = undefined
+            // 绘制箭头
+            if (this.toolbarActiveType == 'arrow') {
+                const startPoint = _evt.getPagePoint()
+                this.points.push(startPoint)
+                this.element = createShape('arrow', startPoint) as unknown as IUI
+            }
+        }
     }
     private _onMovePointer = (_evt:PointerEvent) => {
-        if (this.isMouseDown) {
-            console.log('移动中')
+        if (!this.element) return 
+        if (this.editorBoard.app && !this.isDrawing) {
+            this.editorBoard.app.tree.add(this.element)
+            // 进入绘制状态
+            this.isDrawing = true
+        }
+        const endPoint = _evt.getPagePoint()
+        const arrow = this.element as Arrow
+        if (this.points[0]) {
+            arrow.points = [this.points[0].x, this.points[0].y, endPoint.x, endPoint.y]
         }
     }
     private _onUpPointer = (_evt:PointerEvent) => {
-        console.log('抬起了')
-        this.isMouseDown = false
+        this.isDrawing = false
+        this.element = null
+        this.points = []
+        this.editorBoard.app.editor.config.selector = true
+        this.editorBoard.app.cursor = 'default'
+        this._unListenners()
     }
 
     private _onDragElementListener (type:string) {
@@ -76,62 +112,14 @@ export class ShapePlugin implements IPluginTempl {
             const point = this.editorBoard.app.getPagePointByClient(e)
             // 根据拖拽类型生成图形
             console.log(type,point)
-            if (type === 'rect') {
-                // Box 不设置宽高时，将自适应内容
-                const box = new Box({
-                    x: point.x,
-                    y: point.y,
-                    fill: this.options.fill,
-                    cornerRadius: 20,
-                    textBox: true,
-                    hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
-                    editable: true,
-                    resizeChildren: true, // 同时 resize 文本
-                    strokeWidth: 1,
-                    stroke: "#32cd79",
-                    children: [{
-                        tag: 'Text',
-                        text: 'Welcome to LeaferJS',
-                        fill: this.options.fontColor,
-                        fontSize: 16,
-                        padding: [10, 20],
-                        textAlign: 'left',
-                        verticalAlign: 'top'
-                    }]
-                })
-                // 添加图形到画布
-                this.editorBoard.app.tree.add(box)
-            } else if (type === 'text') {
-                const text = new Text({
-                    fill: '#333333',
-                    placeholder: '请输入文本', // 占位符文本  
-                    placeholderColor: 'rgba(120,120,120,0.5)',  // 占位符颜色
-                    draggable: true,
-                    fontSize: 16,
-                    padding: 12,
-                    boxStyle: {
-                        padding: 12
-                    },
-                    editable: true,
-                    x: point.x,
-                    y: point.y
-                })
-                this.editorBoard.app.tree.add(text)
-            }
+            const shape = createShape(type, point)
+            shape && this.editorBoard.app.tree.add(shape)
         }
+        this._unListenners()
         e.preventDefault()
     }
 
     public clear () {
-        // 移除监听拖拽元素
-        this.toolbars.forEach(item => {
-            // 排除箭头工具
-            if (item.type !== 'arrow') this._onDragElementRemoveListener(item.type)
-        })
-        // 移除监听
-        this.leafer&&this.leafer.removeEventListener('drop', (evt:DragEvent) => this._onDropLeafer(evt))
-        this.editorBoard.app.off(PointerEvent.DOWN, (evt:PointerEvent) => this._onDownPointer(evt))
-        this.editorBoard.app.off(PointerEvent.MOVE, (evt:PointerEvent) => this._onMovePointer(evt))
-        this.editorBoard.app.off(PointerEvent.UP, (evt:PointerEvent) => this._onUpPointer(evt))
+    
     }
 }

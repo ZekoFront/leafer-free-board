@@ -16,10 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import { PointerEvent, Text, Rect, Group, type IUI } from 'leafer-ui';
+import { PointerEvent, Text, Rect, Group, type IUI, type IPointData } from 'leafer-ui';
 import { EditorBoard } from '..'
 import { RectIcon, RedoIcon, UndoIcon, TextIcon, SelectIcon } from '@/icons'
-import type { IPointItem, IToolBar } from '../types'
+import type { IToolBar } from '../types'
 
 defineOptions({ name: 'ToolBar' })
 
@@ -84,7 +84,7 @@ const printHistory = () => {
 
 const isDragging = ref(false)
 const isMouseDown = ref(false)
-const points = ref<IPointItem[]>([])
+const points = ref<IPointData[]>([])
 let element:IUI = {} as IUI
 const options = {
     fill: '#FEB027',
@@ -145,7 +145,7 @@ const onUp = (e: PointerEvent) => {
 }
 
 // 创建图形
-const createElement = (startPoint: IPointItem): IUI => {
+const createElement = (startPoint: IPointData): IUI => {
     const rect = new Rect({
         editable: false,
         fill: options.fill,
@@ -177,12 +177,12 @@ const createElement = (startPoint: IPointItem): IUI => {
     return group
 }
 
-const updateElement = (element: IUI, endPoint: IPointItem) => {
+const updateElement = (element: IUI, endPoint: IPointData) => {
     points.value[1] = endPoint
 
     const startPoints = points.value[0]
     const group = element as Group
-    const bounds = calculateRectBounds(startPoints as IPointItem, endPoint)
+    const bounds = calculateRectBounds(startPoints as IPointData, endPoint)
     const { x, y, width, height } = bounds
     group.x = x
     group.y = y
@@ -197,7 +197,7 @@ const updateElement = (element: IUI, endPoint: IPointItem) => {
     }
 }
 
-const calculateRectBounds = (startPoint: IPointItem, endPoint: IPointItem) => {
+const calculateRectBounds = (startPoint: IPointData, endPoint: IPointData) => {
     const { x: startX, y: startY } = startPoint
     const { x: endX, y: endY } = endPoint
     const deltaX = endX - startX

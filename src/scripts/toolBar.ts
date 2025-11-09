@@ -5,21 +5,25 @@ export const toolbars: IToolBar[] = [
     {
         icon: SelectIcon,
         title: '选择',
-        type: 'select'
+        type: 'select',
+        draggable: false
     },
     {
         icon: RectIcon,
         title: '矩形',
-        type: 'rect'
+        type: 'rect',
+        draggable: true
     },
     {
         icon: TextIcon,
         title: '文本',
-        type: 'text'                        
+        type: 'text',
+        draggable: true                        
     },
     {
         icon: ArrowIcon,
         title: '箭头',
-        type: 'arrow'                        
+        type: 'arrow',
+        draggable: false                        
     }
 ]
