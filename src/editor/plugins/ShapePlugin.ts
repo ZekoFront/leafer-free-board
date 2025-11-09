@@ -111,7 +111,7 @@ export class ShapePlugin implements IPluginTempl {
             // 浏览器原生事件的 client 坐标 转 应用的 page 坐标
             const point = this.editorBoard.app.getPagePointByClient(e)
             // 根据拖拽类型生成图形
-            console.log(type,point)
+            // console.log(type,point)
             const shape = createShape(type, point)
             shape && this.editorBoard.app.tree.add(shape)
         }

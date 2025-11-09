@@ -37,7 +37,6 @@ const toolbars = shallowRef<IToolBar[]>(toolBarMenu)
 const handleClick = (item: IToolBar, index: number) => {
     currentIndex.value = index
     editorBoard.setToolbarActive(item.type)
-    console.log(item, index)
 }
 
 const exportBoard = () => {
