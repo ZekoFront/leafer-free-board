@@ -12,7 +12,7 @@
     
 </template>
 <script setup lang="ts">
-import { App, Rect, Text, version } from 'leafer-ui';
+import { App, Rect, Text, version, DragEvent, Bounds } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
@@ -100,6 +100,12 @@ onMounted(() => {
     editorBoard.addLeaferElement(rect)
     // 调用历史插件，添加历史记录
     editorBoard.history.execute(rect)
+
+    // 检测 text 是否与 rect 碰撞 （通过世界坐标中的 box 包围盒跨层级检测）
+    text.on(DragEvent.DRAG, () => {
+        const rect2Bounds = new Bounds(rect.worldBoxBounds)  
+        text.fill = rect2Bounds.hit(text.worldBoxBounds) ? 'blue' : '#FFE04B' // 碰撞则显示蓝色边框
+    }) 
 
     // rect.on(PointerEvent.ENTER, onEnter)
     // rect.on(PointerEvent.LEAVE, onLeave)
