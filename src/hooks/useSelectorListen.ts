@@ -7,7 +7,7 @@ export interface Selector {
     selectedId: string | undefined;
     selectedIds: (string | undefined)[];
     seletcedType: string;
-    selectedActive: IUI | undefined;
+    selectedActive?: IUI | undefined;
     editorBoard: EditorBoard;
 }
 
@@ -18,11 +18,11 @@ export default function useSelectorListen() {
         throw new Error('useSelectorListen 依赖 "editorBoard"，请通过 provide 注入');
     }
 
+    const selectedActive = ref<IUI | IUI[] | null>(null);
     const state = reactive<Selector>({
         selectedMode: SelectMode.EMPTY,
         selectedId: '',
         selectedIds: [],
-        selectedActive: undefined,
         seletcedType: '',
         editorBoard: editorBoard,
     });
@@ -31,7 +31,7 @@ export default function useSelectorListen() {
         state.selectedMode = SelectMode.SINGLE;
         state.selectedId = value.id;
         state.selectedIds = [value.id];
-        state.selectedActive = value;
+        selectedActive.value = value;
         state.seletcedType = value.tag;
     }
 
@@ -41,13 +41,14 @@ export default function useSelectorListen() {
         state.selectedId = '';
         state.selectedIds = target.map((item: IUI) => item.id);
         state.seletcedType = '';
+        selectedActive.value = null;
     }
 
     const selectEmpty = () => {
         state.selectedMode = SelectMode.EMPTY;
         state.selectedId = '';
         state.selectedIds = [];
-        state.selectedActive = undefined;
+        selectedActive.value = null;
         state.seletcedType = '';
     }
 
@@ -72,5 +73,6 @@ export default function useSelectorListen() {
         isSingle,
         isMultiple,
         selectedMode: selectedModes,
+        selectedActive,
     }
 }

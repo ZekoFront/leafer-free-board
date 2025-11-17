@@ -5,17 +5,16 @@
             <ToolBar :editorBoard="editorBoard"></ToolBar>
             <div class="right">右边</div>
         </div>
-        <div id="leafer" ref="boardRef" class="leafer-free-board--body">
-
-        </div>
+        <div id="leafer" ref="boardRef" class="leafer-free-board--body"></div>
+        <ElementAttributes></ElementAttributes>
     </div>
-    
 </template>
 <script setup lang="ts">
 import { App, Rect, Text, version, DragEvent, Bounds } from 'leafer-ui';
 import '@leafer-in/editor' // 导入图形编辑器插件  
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
+import ElementAttributes from './components/ElementAttributes.vue'
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin } from '@/editor/plugins'

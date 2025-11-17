@@ -77,3 +77,7 @@ app.tree.on(ZoomEvent.BEFORE_ZOOM, (e: ZoomEvent) => {
 })
 ```
 
+# 监听指针事件PointerEvent
+支持右键菜单功能
+https://www.leaferjs.com/ui/reference/event/ui/Pointer.html#%E5%8F%B3%E9%94%AE%E8%8F%9C%E5%8D%95-1
+

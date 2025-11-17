@@ -1,6 +1,7 @@
 // import { Arrow } from "leafer-editor";
-import { Arrow } from "@leafer-in/arrow";
+import { Arrow,  } from "@leafer-in/arrow";
 import { Box, Text, type IPointData } from "leafer-ui";
+import { v4 as uuidv4 } from 'uuid';
 
 const options = {
     fill: '#32cd79',
@@ -13,12 +14,16 @@ const options = {
 export class DrawArrow extends Arrow {
     constructor(point:IPointData) {
         super({
+            id: uuidv4(),
+            name: 'Arrow',
             curve: true,
             points: [point.x, point.y, 0, 0],
             strokeCap: 'round',
             strokeJoin: 'round',
             strokeWidth: 5,
             stroke: options.stroke,
+            startArrow: 'circle',
+            endArrow: 'circle',
             editable: true,
             draggable: true,
         })
@@ -29,6 +34,8 @@ export class DrawArrow extends Arrow {
 export class DrawBoxText extends Box {
     constructor(point:IPointData) {
         super({
+            id: uuidv4(),
+            name: 'BoxText',
             x: point.x,
             y: point.y,
             fill: options.fill,
@@ -55,6 +62,8 @@ export class DrawBoxText extends Box {
 export class DrawText extends Text {
     constructor(point:IPointData) {
         super({
+            id: uuidv4(),
+            name: 'Text',
             fill: '#333333',
             placeholder: '请输入文本', // 占位符文本  
             placeholderColor: 'rgba(120,120,120,0.5)',  // 占位符颜色

@@ -24,7 +24,7 @@
 
 <script setup lang="ts">
 import { RedoIcon, UndoIcon } from '@/icons'
-import type { IToolBar } from '../types'
+import type { IDrawState, IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { toolbars as toolBarMenu } from "@/scripts/toolBar";
 defineOptions({ name: 'ToolBar' })
@@ -36,7 +36,15 @@ const toolbars = shallowRef<IToolBar[]>(toolBarMenu)
 
 const handleClick = (item: IToolBar, index: number) => {
     currentIndex.value = index
-    editorBoard.setToolbarActive(item.type)
+    editorBoard.setToolbarActive(item.type, (state?:IDrawState) => {
+        if (state?.type === item.type) {
+            currentIndex.value = 0
+        }
+    })
+}
+
+const handleSelectArrow = (key: string) => {
+    console.log(key)   
 }
 
 const exportBoard = () => {

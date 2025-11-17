@@ -1,9 +1,10 @@
 import { PointerEvent, type IPointData, type IUI } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
 import type EditorBoard from "../EditorBoard";
-import { type IPluginTempl } from "../types";
+import { type IDrawState, type IPluginTempl } from "../types";
 import { toolbars } from "@/scripts/toolBar";
 import { createShape } from "../utils/creatShape";
+
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
     static apis = ['setToolbarActive'];
@@ -17,17 +18,23 @@ export class ShapePlugin implements IPluginTempl {
     private isDrawing = false
     // 处理拖拽生成图形
     private leafer:HTMLDivElement|undefined;
+    // 初始化一个空函数作为默认值
+    private callBack: (state:IDrawState) => void = () => {}; 
     constructor(public editorBoard: EditorBoard) {
         // this._listenners()
     }
 
-    protected setToolbarActive(type: string) {
+    protected setToolbarActive(type: string, callBack:(state?:IDrawState)=>void) {
         this.toolbarActiveType = type
         // 需要手动拖拽绘制的图形
         if (type==='arrow') {
             this.editorBoard.app.cursor = 'crosshair'
             this.editorBoard.app.editor.config.selector = false
+        } else {
+            this.editorBoard.app.cursor = 'pointer'
+            this.editorBoard.app.editor.config.selector = true
         }
+        this.callBack = callBack
         console.log('设置工具栏激活状态:', type)
         this._listenners()
     }
@@ -42,6 +49,7 @@ export class ShapePlugin implements IPluginTempl {
 
         // 设置目标区域可接收拖拽
         this.leafer&&this.leafer.addEventListener('drop', (evt:DragEvent) => this._onDropLeafer(evt))
+        // PointerEvent指针事件监听，鼠标、手写笔、触摸屏点击事件，支持 右键菜单 事件
         this.editorBoard.app.on(PointerEvent.DOWN, (evt:PointerEvent) => this._onDownPointer(evt))
         this.editorBoard.app.on(PointerEvent.MOVE, (evt:PointerEvent) => this._onMovePointer(evt))
         this.editorBoard.app.on(PointerEvent.UP, (evt:PointerEvent) => this._onUpPointer(evt))
@@ -88,6 +96,7 @@ export class ShapePlugin implements IPluginTempl {
         this.points = []
         this.editorBoard.app.editor.config.selector = true
         this.editorBoard.app.cursor = 'default'
+        this.callBack({ type: this.toolbarActiveType, state: 'success' })
         this._unListenners()
     }
 
@@ -111,7 +120,6 @@ export class ShapePlugin implements IPluginTempl {
             // 浏览器原生事件的 client 坐标 转 应用的 page 坐标
             const point = this.editorBoard.app.getPagePointByClient(e)
             // 根据拖拽类型生成图形
-            // console.log(type,point)
             const shape = createShape(type, point)
             shape && this.editorBoard.app.tree.add(shape)
         }

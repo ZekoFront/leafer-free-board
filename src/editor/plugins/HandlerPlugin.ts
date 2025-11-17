@@ -10,7 +10,7 @@ class HandlerPlugin implements IPluginTempl {
     static apis = ['getSelectMode'];
     static hotkeys: string[]= [];
     public selectedMode: SelectMode;
-    public dragElement: ILeaf | ILeaf[] = {} as ILeaf;
+    public dragElement: ILeaf | ILeaf[] | null = null;
     
     constructor(public editorBoard: EditorBoard) {
         this.selectedMode = SelectMode.EMPTY
@@ -20,15 +20,29 @@ class HandlerPlugin implements IPluginTempl {
     private _listenners() {
         this.editorBoard.app.sky.on(LeaferEvent.READY, () => this._listenSkyReadyEvent())
         this.editorBoard.app.editor.on(EditorEvent.SELECT, (evt: EditorEvent) => this._listenSelectEvent(evt))
+        // DragEvent拖拽事件监听
         this.editorBoard.app.on(DragEvent.START, (evt: DragEvent) => this._listenDragStartEvent(evt))
         this.editorBoard.app.on(DragEvent.END, (evt: DragEvent) => this._listenDragEndEvent(evt))
+        this.editorBoard.app.on(DragEvent.MOVE, (evt: DragEvent) => this._listenDragMoveEvent(evt))
     }
 
     private _listenDragStartEvent (evt:DragEvent) {
-        this.dragElement = cloneDeep(evt.target)
+        if (evt.target.id) {
+            this.dragElement = cloneDeep(evt.target)
+            console.log('拖拽元素:', this.dragElement)
+        } else  {
+            // const { x, y} = evt.target
+            // console.log('拖拽箭头:', { x, y })
+        }
+    }
+
+    private _listenDragMoveEvent (evt:DragEvent) {
+        if (!this.dragElement) return
+        // console.log('移动事件:', this.dragElement)
     }
 
     private _listenDragEndEvent (evt:DragEvent) {
+        if (!this.dragElement) return
         // 根据选中元素个数来实现不同的拖拽历史记录
         if (this.selectedMode === SelectMode.MULTIPLE) {
             // 批量拖拽待实现
@@ -46,6 +60,7 @@ class HandlerPlugin implements IPluginTempl {
                 newXYValue: { x: x1, y: y1 } 
             })
         }
+        this.dragElement = null
     }
 
     // evt: LeaferEvent
@@ -57,14 +72,14 @@ class HandlerPlugin implements IPluginTempl {
         if (isArray(evt.value)) {
             // console.log('多选：', evt.value)
             this.selectedMode = SelectMode.MULTIPLE
-            this.editorBoard.emit(SelectEvent.MULTIPLE, evt.value)
+            this.editorBoard.emit(SelectEvent.MULTIPLE, evt.editor.target)
         } else if (isObject(evt.value)) {
             this.selectedMode = SelectMode.SINGLE
-            this.editorBoard.emit(SelectEvent.SINGLE, evt.value)
+            this.editorBoard.emit(SelectEvent.SINGLE, evt.editor.target)
             // console.log('单选：', evt.value)
         } else if (isNull(evt.value)) {
             this.selectedMode = SelectMode.EMPTY
-            this.editorBoard.emit(SelectEvent.EMPTY, evt.value)
+            this.editorBoard.emit(SelectEvent.EMPTY, evt.editor.target)
             // console.log('取消', evt)
         }
     }

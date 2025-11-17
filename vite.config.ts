@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import AutoImport from 'unplugin-auto-import/vite'
-import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
+import { NaiveUiResolver, ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import { fileURLToPath, URL } from 'node:url'
 import svgLoader from 'vite-svg-loader'
@@ -21,14 +21,6 @@ export default defineConfig({
                 'vue-router', 
                 'pinia', 
                 '@vueuse/core',
-                {
-                    'naive-ui': [
-                        'useDialog',
-                        'useMessage',
-                        'useNotification',
-                        'useLoadingBar'
-                    ]
-                }
             ],
             dts: fileURLToPath(new URL('./auto-import.d.ts', import.meta.url)),
             eslintrc: {
@@ -39,9 +31,10 @@ export default defineConfig({
                 ),
                 globalsPropValue: true
             },
+            resolvers: [ElementPlusResolver()]
         }),
         Components({
-            resolvers: [NaiveUiResolver()]
+            resolvers: [ElementPlusResolver()]
         })
     ],
     resolve: {
