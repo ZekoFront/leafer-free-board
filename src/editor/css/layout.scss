@@ -7,6 +7,7 @@
         margin-left: 0px;
         margin-top: 0px;
         pointer-events: auto;
+        overflow: hidden;
     }
     &--header {
         // position: absolute;
@@ -39,6 +40,8 @@
                 cursor: pointer;
                 svg {
                     outline: none;
+                    width: 24px;
+                    height: 24px;
                 }
                 &.active {
                     background: rgba(24, 160, 88, 0.16);
@@ -64,20 +67,39 @@
     }
     &--element-attributes {
         position: absolute;
-        left: 0px;
-        top: 55px;
-        border-radius: 0 0.6rem 0.6rem 0;
+        right: 0px;
+        top: 51px;
+        width: 266px;
+        border-radius: 0.6rem 0 0 0.6rem;
         box-shadow: 0 0 1rem #0000004d;
         background: #ffffff;
-        padding: 0.8rem 0.5rem;
-
+        padding: 0.5rem 0.5rem;
+        .attribute-item {
+            &__label {
+                font-size: 0.75rem;
+                font-weight: 700;
+            }
+            &__options {
+                font-size: 0.75rem;
+                font-weight: 400;
+                .arrow-item {
+                    display: flex;
+                    align-items: center;
+                    .arrow-icon {
+                        width: 5rem;
+                        height: 2rem;
+                        margin-right: 0.2rem;
+                    }
+                }
+            }
+        }
     }
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-attr-enter-active, .fade-attr-leave-active {
     transition: all 0.3s ease;
 }
-.fade-enter-from, .fade-leave-to {
+.fade-attr-enter-from, .fade-attr-leave-to {
     opacity: 0;
-    transform: translateX(-10px);
+    transform: translateX(10px);
 }

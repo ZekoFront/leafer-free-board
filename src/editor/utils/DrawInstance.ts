@@ -1,5 +1,5 @@
 // import { Arrow } from "leafer-editor";
-import { Arrow,  } from "@leafer-in/arrow";
+import { Arrow  } from "@leafer-in/arrow";
 import { Box, Text, type IPointData } from "leafer-ui";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -22,8 +22,8 @@ export class DrawArrow extends Arrow {
             strokeJoin: 'round',
             strokeWidth: 5,
             stroke: options.stroke,
-            startArrow: 'circle',
-            endArrow: 'circle',
+            startArrow: '',
+            endArrow: 'angle',
             editable: true,
             draggable: true,
         })
