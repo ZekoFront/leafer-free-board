@@ -45,7 +45,7 @@ export const arrowTypes = [
         icon: circleIcon
     },
     {
-        label: '圆形箭头（线性）',
+        label: '圆形箭头(线性)',
         key: 'circle-line',
         icon: circleLineIcon
     },
@@ -55,7 +55,7 @@ export const arrowTypes = [
         icon: squareIcon
     },
     {
-        label: '方形箭头（线性）',
+        label: '方形箭头(线性)',
         key: 'square-line',
         icon: squareLineIcon
     },
@@ -65,7 +65,7 @@ export const arrowTypes = [
         icon: diamondIcon
     },
     {
-        label: '菱形箭头（线性）',
+        label: '菱形箭头(线性)',
         key: 'diamond-line',
         icon: diamondLineIcon
     },

@@ -1,6 +1,7 @@
 import type EditorBoard from "@/editor/EditorBoard";
 import { SelectMode, SelectEvent } from "@/utils";
-import type { IUI } from "leafer-editor";
+import type { IUI, Leaf } from "leafer-editor";
+import type { IUIInputData } from 'leafer-ui';
 
 export interface Selector {
     selectedMode: (typeof SelectMode)[keyof typeof SelectMode];
@@ -18,7 +19,7 @@ export default function useSelectorListen() {
         throw new Error('useSelectorListen 依赖 "editorBoard"，请通过 provide 注入');
     }
 
-    const selectedActive = ref<IUI | IUI[] | null>(null);
+    const selectedActive = ref<IUIInputData | null>(null);
     const state = reactive<Selector>({
         selectedMode: SelectMode.EMPTY,
         selectedId: '',
