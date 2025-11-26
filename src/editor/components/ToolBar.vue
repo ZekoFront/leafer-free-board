@@ -10,7 +10,7 @@
             @click="handleClick(item, index)">
             <component :is="item.icon"></component>
         </div>
-        <div class="icon-block--undo" title="撤回" @click="editorBoard.history.undo()">
+        <div class="icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
             <UndoIcon></UndoIcon>
         </div>
         <div class="icon-block--redo" title="重做" @click="editorBoard.history.redo()">
@@ -58,6 +58,6 @@ const exportBoardJSON = () => {
 
 const printHistory = () => {
     // 添加历史记录
-    console.log('历史记录:', editorBoard.history.state())
+    console.log('历史记录:', editorBoard.history.state(), editorBoard.app.editor.children)
 }
 </script>

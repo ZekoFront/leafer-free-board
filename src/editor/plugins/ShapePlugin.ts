@@ -1,7 +1,7 @@
-import { PointerEvent, type IPointData, type IUI } from "leafer-ui";
+import { PointerEvent, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
 import type EditorBoard from "../EditorBoard";
-import { type IDrawState, type IPluginTempl } from "../types";
+import { ExecuteTypeEnum, type IDrawState, type IPluginTempl } from "../types";
 import { toolbars } from "@/scripts/toolBar";
 import { createShape } from "../utils/creatShape";
 
@@ -13,15 +13,16 @@ export class ShapePlugin implements IPluginTempl {
     public toolbars = toolbars;
     private toolbarActiveType = '';
     private excludeTypes = ['select','arrow'];
-    private element: IUI | null = null
+    private element: IUIInputData | null = null
     private points: IPointData[] = []
+    private dragHandlers: Map<string, (e: DragEvent) => void> = new Map();
     private isDrawing = false
     // 处理拖拽生成图形
     private leafer:HTMLDivElement|undefined;
     // 初始化一个空函数作为默认值
     private callBack: (state:IDrawState) => void = () => {}; 
     constructor(public editorBoard: EditorBoard) {
-        // this._listenners()
+        this._listenners()
     }
 
     protected setToolbarActive(type: string, callBack:(state?:IDrawState)=>void) {
@@ -36,34 +37,48 @@ export class ShapePlugin implements IPluginTempl {
         }
         this.callBack = callBack
         console.log('设置工具栏激活状态:', type)
-        this._listenners()
     }
 
     private _listenners() {
         this.toolbars.forEach(item => {
+            // 这里的逻辑取决于 _onDragElementListener 内部实现
+            // 如果内部也是 addEventListener，也需要确保引用一致
             if (!this.excludeTypes.includes(item.type)) this._onDragElementListener(item.type)
         })
 
         this.leafer = document.getElementById('leafer') as HTMLDivElement
-        this.leafer.addEventListener('dragover', (evt) => evt.preventDefault())
+        
+        // 2. 传入函数引用，而不是匿名包装函数
+        if (this.leafer) {
+            this.leafer.addEventListener('dragover', this._onDragLeaferOver);
+            this.leafer.addEventListener('drop', this._onDropLeafer);
+        }
 
-        // 设置目标区域可接收拖拽
-        this.leafer&&this.leafer.addEventListener('drop', (evt:DragEvent) => this._onDropLeafer(evt))
-        // PointerEvent指针事件监听，鼠标、手写笔、触摸屏点击事件，支持 右键菜单 事件
-        this.editorBoard.app.on(PointerEvent.DOWN, (evt:PointerEvent) => this._onDownPointer(evt))
-        this.editorBoard.app.on(PointerEvent.MOVE, (evt:PointerEvent) => this._onMovePointer(evt))
-        this.editorBoard.app.on(PointerEvent.UP, (evt:PointerEvent) => this._onUpPointer(evt))
+        // 指针事件监听
+        // 直接传入 this._onDownPointer 引用
+        this.editorBoard.app.on(PointerEvent.DOWN, this._onDownPointer);
+        this.editorBoard.app.on(PointerEvent.MOVE, this._onMovePointer);
+        this.editorBoard.app.on(PointerEvent.UP, this._onUpPointer);
+    }
+
+    private _onDragLeaferOver = (evt:DragEvent) => {
+        evt.preventDefault()
     }
 
     private _unListenners() {
         this.toolbars.forEach(item => {
            if (!this.excludeTypes.includes(item.type)) this._onDragElementRemoveListener(item.type)
         })
-        this.leafer && this.leafer.removeEventListener('dragover', (evt) => evt.preventDefault())
-        this.leafer&&this.leafer.removeEventListener('drop', (evt:DragEvent) => this._onDropLeafer(evt))
-        this.editorBoard.app.off(PointerEvent.DOWN, (evt:PointerEvent) => this._onDownPointer(evt))
-        this.editorBoard.app.off(PointerEvent.MOVE, (evt:PointerEvent) => this._onMovePointer(evt))
-        this.editorBoard.app.off(PointerEvent.UP, (evt:PointerEvent) => this._onUpPointer(evt))
+
+        // 3. 移除时传入完全相同的引用
+        if (this.leafer) {
+            this.leafer.removeEventListener('dragover', this._onDragLeaferOver);
+            this.leafer.removeEventListener('drop', this._onDropLeafer);
+        }
+
+        this.editorBoard.app.off(PointerEvent.DOWN, this._onDownPointer);
+        this.editorBoard.app.off(PointerEvent.MOVE, this._onMovePointer);
+        this.editorBoard.app.off(PointerEvent.UP, this._onUpPointer);
     }
 
     private _onDownPointer = (_evt:PointerEvent) => {
@@ -91,43 +106,62 @@ export class ShapePlugin implements IPluginTempl {
         }
     }
     private _onUpPointer = (_evt:PointerEvent) => {
+        if (this.element && this.element.data) {
+            this.element.data.executeType = ExecuteTypeEnum.AddElement
+            this.editorBoard.history.execute(this.element)
+        }
         this.isDrawing = false
         this.element = null
         this.points = []
         this.editorBoard.app.editor.config.selector = true
         this.editorBoard.app.cursor = 'default'
         this.callBack({ type: this.toolbarActiveType, state: 'success' })
-        this._unListenners()
     }
 
     private _onDragElementListener (type:string) {
-        const element = document.getElementById(type)
-        element&&element.addEventListener('dragstart', function (e:DragEvent) {
-            e.dataTransfer&&e.dataTransfer.setData("type", type)
-        })
+        const element = document.getElementById(type);
+        if (!element) return;
+
+        const handler = (e: DragEvent) => {
+            if (e.dataTransfer) {
+                e.dataTransfer.setData("type", type);
+            }
+        };
+
+        this.dragHandlers.set(type, handler);
+        element.addEventListener('dragstart', handler);
     }
 
     private _onDragElementRemoveListener = (type: string) => {
-        const element = document.getElementById(type)
-        element&&element.removeEventListener('dragstart', function (e:DragEvent) {
-            e.dataTransfer&&e.dataTransfer.setData("type", type)
-        })
+        const element = document.getElementById(type);
+        const handler = this.dragHandlers.get(type);
+
+        if (element && handler) {
+            element.removeEventListener('dragstart', handler);
+            this.dragHandlers.delete(type);
+        }
     }
 
-    private _onDropLeafer (e:DragEvent) {
+    private _onDropLeafer = (e:DragEvent) => {
         if (e.dataTransfer) {
             const type = e.dataTransfer.getData("type")
             // 浏览器原生事件的 client 坐标 转 应用的 page 坐标
             const point = this.editorBoard.app.getPagePointByClient(e)
             // 根据拖拽类型生成图形
             const shape = createShape(type, point)
-            shape && this.editorBoard.app.tree.add(shape)
+            if (shape) {
+                shape.data.executeType = ExecuteTypeEnum.AddElement
+                console.log('生成图形:', shape)
+                this.editorBoard.app.tree.add(shape)
+                this.editorBoard.history.execute(shape)
+            }
         }
-        this._unListenners()
+        
         e.preventDefault()
     }
 
-    public clear () {
-    
+    public destroy () {
+        this._unListenners()
+        this.dragHandlers.clear()
     }
 }

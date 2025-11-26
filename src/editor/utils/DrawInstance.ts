@@ -47,6 +47,7 @@ export class DrawBoxText extends Box {
             strokeWidth: 1,
             stroke: "#32cd79",
             children: [{
+                id: uuidv4(),
                 tag: 'Text',
                 text: 'Welcome to LeaferJS',
                 fill: options.fontColor,

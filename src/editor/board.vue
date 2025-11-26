@@ -20,6 +20,7 @@ import '@leafer-in/export' // 引入导出元素插件
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin } from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
 import ToolBar from './components/ToolBar.vue'
+import { ExecuteTypeEnum } from './types';
 
 const boardRef = useTemplateRef<HTMLDivElement>('boardRef')
 let app: App = {} as App
@@ -76,6 +77,9 @@ onMounted(() => {
             strokeWidth: 2,
             cornerRadius: 5,
             fill: '#ffffff'
+        },
+        data: {
+            executeType: ExecuteTypeEnum.AddElement
         }
     }, 100, 100, 100)
     editorBoard.addLeaferElement(text)
@@ -95,6 +99,9 @@ onMounted(() => {
         cornerRadius: 5,
         editable: true,
         dashPattern: [6, 6], // 绘制虚线
+        data: {
+            executeType: ExecuteTypeEnum.AddElement
+        }
     }, 300, 100, 100)
     editorBoard.addLeaferElement(rect)
     // 调用历史插件，添加历史记录

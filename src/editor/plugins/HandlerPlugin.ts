@@ -52,12 +52,14 @@ class HandlerPlugin implements IPluginTempl {
             const { x: x1, y: y1 } = evt.target
             if (!x || !y) return
 
-            this.editorBoard.history.execute({ 
-                type: ExecuteTypeEnum.MoveElement, 
-                elementId: id, 
-                tag,
-                oldXYValue: { x, y },
-                newXYValue: { x: x1, y: y1 } 
+            this.editorBoard.history.execute({
+                data: {
+                    executeType: ExecuteTypeEnum.MoveElement,
+                    elementId: id,
+                    oldXYValue: { x, y },
+                    newXYValue: { x: x1, y: y1 }
+                }, 
+                tag
             })
         }
         this.dragElement = null
@@ -88,7 +90,7 @@ class HandlerPlugin implements IPluginTempl {
         return String(this.selectedMode);
     }
 
-    public clear () {
+    public destroy () {
         this.selectedMode = SelectMode.EMPTY;
         this.dragElement = {} as ILeaf;
     }

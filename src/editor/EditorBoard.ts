@@ -1,5 +1,5 @@
 import { EventEmitter } from "events";
-import { App, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
+import { App, type ILeaf, type IUIInputData } from "leafer-ui"
 import { type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from 'uuid';
@@ -126,6 +126,10 @@ class EditorBoard extends EventEmitter {
     }
 
     public destory() {
+        this.history.destroy();
+        Object.keys(this.pluginMap).forEach((key) => {
+            this.pluginMap[key] && this.pluginMap[key].destroy();
+        });
         this.app.destroy()
         this.pluginMap = {};
         this.customEvents = [];

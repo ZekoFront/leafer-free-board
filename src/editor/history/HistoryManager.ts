@@ -2,7 +2,7 @@
 import { isEqual } from 'lodash-es'
 
 import type { ICommand } from "./interface/ICommand";
-import { ExecuteTypeEnum, type ExecuteTypes, type IHistoryCommandProps, type IPluginOption, type IPluginTempl } from '@/editor/types';
+import { ExecuteTypeEnum, type IPluginOption, type IPluginTempl } from '@/editor/types';
 import type { IUIInputData } from 'leafer-ui';
 import { AddElementCommand, MoveCommand } from './index';
 import type EditorBoard from '@/editor/EditorBoard';
@@ -26,19 +26,22 @@ export class HistoryManager implements IPluginTempl {
 	}
 
 	// 执行命令
-	execute<T extends object & { tag?: string, type?: ExecuteTypes }>(element: T) {
-		if (!element) return
-		// leafer 元素
-		if (!element.type) {
-			const leafer = element as IUIInputData
-			leafer.type = ExecuteTypeEnum.AddElement
-			const command = new AddElementCommand({ element:leafer, editorBoard: this.editorBoard, type: ExecuteTypeEnum.AddElement })
+	execute(element: IUIInputData) {
+		if (!element || !element.data) return
+		// 新增元素命令
+		if (element.data.executeType === ExecuteTypeEnum.AddElement) {
+			element.type = ExecuteTypeEnum.AddElement
+			const command = new AddElementCommand({ element, editorBoard: this.editorBoard, type: ExecuteTypeEnum.AddElement })
 			this.addCommand(command)
-		} else if (element.type === ExecuteTypeEnum.MoveElement) {
+		} else if (element.data.executeType === ExecuteTypeEnum.MoveElement) {
 			// 移动元素命令
-			const moveCommand = element as unknown as IHistoryCommandProps
-			moveCommand.editor = this.editorBoard
-			const command = new MoveCommand(moveCommand)
+			const command = new MoveCommand({
+				elementId: element.data.elementId,
+				tag: element.tag||"",
+				editor: this.editorBoard,
+				oldXYValue: element.data.oldXYValue,
+				newXYValue: element.data.newXYValue
+			})
 			this.addCommand(command)
 		}
 	}
@@ -123,7 +126,7 @@ export class HistoryManager implements IPluginTempl {
 	}
 
 	// 清空历史记录
-	clear() {
+	destroy() {
 		this.undoStack = [];
 		this.redoStack = [];
 		this.currentBatch = null;
