@@ -16,8 +16,6 @@
         <div class="icon-block--redo" title="重做" @click="editorBoard.history.redo()">
             <RedoIcon></RedoIcon>
         </div>
-        <button @click="exportBoard">导出图片</button>
-        <button @click="exportBoardJSON">导出JSON</button>
         <button @click="printHistory">打印历史记录</button>
     </div>
 </template>
@@ -41,19 +39,6 @@ const handleClick = (item: IToolBar, index: number) => {
             currentIndex.value = 0
         }
     })
-}
-
-const handleSelectArrow = (key: string) => {
-    console.log(key)   
-}
-
-const exportBoard = () => {
-    editorBoard.app.tree.syncExport('leafer.png',{ pixelRatio: 3, screenshot: false, fill: '#ffffff', quality: 0.9, padding: 10 })
-}
-
-const exportBoardJSON = () => {
-    const json = editorBoard.app.tree.toJSON()
-    console.log(json)
 }
 
 const printHistory = () => {
