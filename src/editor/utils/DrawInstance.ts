@@ -14,13 +14,12 @@ const options = {
 export class DrawArrow extends Arrow {
     constructor(point:IPointData) {
         super({
-            id: uuidv4(),
             name: 'Arrow',
             curve: true,
             points: [point.x, point.y, 0, 0],
             strokeCap: 'round',
             strokeJoin: 'round',
-            strokeWidth: 5,
+            strokeWidth: 2,
             stroke: options.stroke,
             startArrow: '',
             endArrow: 'angle',
@@ -34,7 +33,6 @@ export class DrawArrow extends Arrow {
 export class DrawBoxText extends Box {
     constructor(point:IPointData) {
         super({
-            id: uuidv4(),
             name: 'BoxText',
             x: point.x,
             y: point.y,
@@ -63,7 +61,6 @@ export class DrawBoxText extends Box {
 export class DrawText extends Text {
     constructor(point:IPointData) {
         super({
-            id: uuidv4(),
             name: 'Text',
             fill: '#333333',
             placeholder: '请输入文本', // 占位符文本  

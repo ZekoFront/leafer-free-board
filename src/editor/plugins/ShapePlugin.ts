@@ -1,4 +1,4 @@
-import { PointerEvent, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
+import { Ellipse, PointerEvent, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IDrawState, type IPluginTempl } from "../types";
@@ -19,6 +19,7 @@ export class ShapePlugin implements IPluginTempl {
     private isDrawing = false
     // 处理拖拽生成图形
     private leafer:HTMLDivElement|undefined;
+    private point:IUIInputData | null = null
     // 初始化一个空函数作为默认值
     private callBack: (state:IDrawState) => void = () => {}; 
     constructor(public editorBoard: EditorBoard) {
@@ -56,9 +57,9 @@ export class ShapePlugin implements IPluginTempl {
 
         // 指针事件监听
         // 直接传入 this._onDownPointer 引用
-        this.editorBoard.app.on(PointerEvent.DOWN, this._onDownPointer);
-        this.editorBoard.app.on(PointerEvent.MOVE, this._onMovePointer);
-        this.editorBoard.app.on(PointerEvent.UP, this._onUpPointer);
+        this.editorBoard.app.on(PointerEvent.DOWN, this._onDownPointer)
+        this.editorBoard.app.on(PointerEvent.MOVE, this._onMovePointer)
+        this.editorBoard.app.on(PointerEvent.UP, this._onUpPointer)
     }
 
     private _onDragLeaferOver = (evt:DragEvent) => {
@@ -76,12 +77,22 @@ export class ShapePlugin implements IPluginTempl {
             this.leafer.removeEventListener('drop', this._onDropLeafer);
         }
 
-        this.editorBoard.app.off(PointerEvent.DOWN, this._onDownPointer);
-        this.editorBoard.app.off(PointerEvent.MOVE, this._onMovePointer);
-        this.editorBoard.app.off(PointerEvent.UP, this._onUpPointer);
+        this.editorBoard.app.off(PointerEvent.DOWN, this._onDownPointer)
+        this.editorBoard.app.off(PointerEvent.MOVE, this._onMovePointer)
+        this.editorBoard.app.off(PointerEvent.UP, this._onUpPointer)
     }
 
     private _onDownPointer = (_evt:PointerEvent) => {
+        console.log(_evt, 666)
+        this.point = new Ellipse({
+            width: 10,
+            height: 10,
+            x: _evt.x,
+            y: _evt.y,
+            fill: "#C71585"
+        })
+        this.editorBoard.addLeaferElement(this.point)
+        // this.editorBoard.app.editor.cancel()
         if (this.editorBoard.app.editor&&this.editorBoard.app.cursor === 'crosshair') {
             this.editorBoard.app.editor.target = undefined
             // 绘制箭头
@@ -152,8 +163,10 @@ export class ShapePlugin implements IPluginTempl {
             if (shape) {
                 shape.data.executeType = ExecuteTypeEnum.AddElement
                 console.log('生成图形:', shape)
-                this.editorBoard.app.tree.add(shape)
-                this.editorBoard.history.execute(shape)
+                const res = this.editorBoard.addLeaferElement(shape)
+                if (res) {
+                    this.editorBoard.history.execute(shape)
+                }
             }
         }
         

@@ -54,7 +54,7 @@ class EditorBoard extends EventEmitter {
         this.app.tree.add(element);
         this.elementMap.set(element.id, element);
 
-        return element.id;
+        return element;
     }
 
     

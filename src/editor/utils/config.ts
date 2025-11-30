@@ -82,3 +82,34 @@ export const colorPanel = [
     '#808080', '#404040', '#ABCDEF', '#FF4500', '#CC5800', '#FAD000', '#94E094',
     '#00BFBF', '#2680F0', '#C71585', '#FFFFFF', 
 ]
+
+export const exportOptions = [
+    {
+        label: '导出图片 png',
+        key: 'png',
+    },
+    {
+        label: '导出图片 png',
+        key: 'jpg',
+    },
+    {
+        label: '导出数据 json',
+        key: 'json',
+    },
+    {
+        label: '导出图片 webp',
+        key: 'webp',
+    },
+    {
+        label: '导出图片 bmp',
+        key: 'bmp',
+    },
+    {
+        type: 'divider',
+        key: 'd1'
+    },
+    {
+        label: '导入 json 文件',
+        key: 'importJson',
+    },
+]

@@ -1,4 +1,4 @@
-import { type IPointData, type IUI } from "leafer-ui";
+import { type IPointData } from "leafer-ui";
 import { DrawArrow, DrawBoxText, DrawText } from "./DrawInstance";
 
 export function createShape(type: string, point:IPointData) {

@@ -1,7 +1,7 @@
 <template>
     <div class="leafer-free-board--root">
         <div class="leafer-free-board--header">
-            <div class="left">左边</div>
+            <HeaderLeft :editor="editorBoard"></HeaderLeft>
             <ToolBar :editorBoard="editorBoard"></ToolBar>
             <div class="right">右边</div>
         </div>
@@ -15,6 +15,7 @@ import '@leafer-in/editor' // 导入图形编辑器插件
 import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
 import ElementAttributes from './components/ElementAttributes.vue'
+import HeaderLeft from './components/HeaderLeft.vue'
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin } from '@/editor/plugins'
@@ -44,7 +45,7 @@ onMounted(() => {
             //dimOthers: 0.2 // 可指定淡化的透明度
             point: { cornerRadius: 0 },
             middlePoint: {},
-            rotatePoint: { width: 16, height: 16 },
+            rotatePoint: { width: 16, height: 16, cursor: "all-scroll" },
             rect: { dashPattern: [3, 2] },
             buttonsDirection: 'top',
         },
