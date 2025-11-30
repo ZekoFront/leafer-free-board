@@ -1,18 +1,18 @@
 <template>
     <transition name="fade-attr">
         <div class="leafer-free-board--element-attributes" v-if="isSingle&&selectedActive">
-           <el-tabs v-model="activeName" class="demo-tabs" @tab-click="handleClick">
-                <el-tab-pane label="设置" name="setting">
+            <n-tabs tab-class="tab-class" type="line" animated :on-update:value="handleClick">
+                <n-tab-pane name="setting" tab="设置">
                     <div class="attribute-item arrow-type" v-if="selectedActive.tag === 'Arrow'">
                         <div class="attribute-item__label">头尾同步
-                            <el-switch
-                            v-model="isArrowBothEnds"
-                            class="ml-2"
-                            inline-prompt
-                            active-text="是"
-                            inactive-text="否"
-                            style="margin-left: 1rem;"
-                            />
+                            <n-switch v-model:value="isArrowBothEnds">
+                                <template #checked>
+                                是
+                                </template>
+                                <template #unchecked>
+                                否
+                                </template>
+                            </n-switch>
                         </div>
                         <div class="attribute-item__label">箭头类型</div>
                         <div class="attribute-item__options">
@@ -21,17 +21,19 @@
                     </div>
                     <div class="attribute-item arrow-type">
                         <div class="attribute-item__label">填充颜色</div>
-                        <el-color-picker-panel
-                            class="attribute-item__picker"
-                            v-model="fillColor"
-                            :border="false"
-                            show-alpha
-                            :predefine="predefineColors"
+                        <aside class="attribute-item__color-picker-swatches">
+                            <span v-for="(item, index) in colorPanel" :key="index+item" :style="{ background: item }"></span>
+                        </aside>
+                        <n-color-picker
+                            v-model:value="fillColor"
+                            :swatches="colorPanel"
                         />
                     </div>
-                </el-tab-pane>
-                <el-tab-pane label="图层" name="layer">图层</el-tab-pane>
-            </el-tabs>
+                </n-tab-pane>
+                <n-tab-pane name="layer" tab="图层">
+                    图层
+                </n-tab-pane>
+            </n-tabs>
         </div>
     </transition>
 </template>
@@ -39,39 +41,18 @@
 <script setup lang="ts">
 defineOptions({ name: 'ElementAttributes' })
 import { Arrow  } from "@leafer-in/arrow";
-import { arrowTypes } from '@/editor/utils';
+import { arrowTypes, colorPanel } from '@/editor/utils';
 import useSelectorListen from '@/hooks/useSelectorListen';
+import { NTabs, NTabPane, NColorPicker, NSwitch } from 'naive-ui'
 
 const { selectedMode, isSingle, selectedActive } = useSelectorListen()
 
 const activeName = ref('setting');
 const isArrowBothEnds = ref(false);
 const fillColor = ref('#32cd79');
-const predefineColors = [
-    '#ff4500',
-    '#ff8c00',
-    '#ffd700',
-    '#90ee90',
-    '#00ced1',
-    '#1e90ff',
-    '#c71585',
-    '#32cd79',
-    '#cccccc',
-    '#000000',
-    '#808080',
-    '#404040',
-    '#abcdef',
-    'rgba(255, 69, 0, 0.68)',
-    'rgb(255, 120, 0)',
-    'hsv(51, 100, 98)',
-    'hsva(120, 40, 94, 0.5)',
-    'hsl(181, 100%, 37%)',
-    'hsla(209, 100%, 56%, 0.73)',
-    '#c7158577',
-]
 
-const handleClick = (tab: any) => {
-    activeName.value = tab.name;
+const handleClick = (val: string) => {
+    activeName.value = val;
 }
 
 const handleArrowTypeClick = (type: string) => {

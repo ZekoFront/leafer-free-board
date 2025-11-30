@@ -75,3 +75,10 @@ export const arrowTypes = [
         icon: markIcon
     }
 ]
+
+export const colorPanel = [
+    '#18A058', '#2080F0', '#F0A020', '#FF4500', '#FF8C00', '#FFD700',
+    '#90EE90', '#00CED1', '#1E90FF', '#C71585', '#32CD79', '#CCCCCC', '#000000',
+    '#808080', '#404040', '#ABCDEF', '#FF4500', '#CC5800', '#FAD000', '#94E094',
+    '#00BFBF', '#2680F0', '#C71585', '#FFFFFF', 
+]

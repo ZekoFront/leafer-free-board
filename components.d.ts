@@ -10,8 +10,6 @@ declare module 'vue' {
   export interface GlobalComponents {
     ElColorPickerPanel: typeof import('element-plus/es')['ElColorPickerPanel']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
-    ElTabPane: typeof import('element-plus/es')['ElTabPane']
-    ElTabs: typeof import('element-plus/es')['ElTabs']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
   }
 }
