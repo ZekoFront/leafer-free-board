@@ -64,3 +64,10 @@ export interface IDrawState {
     type: string;
     state: string;
 }
+
+export interface IPointItem {
+    x: number;
+    y: number;
+    dirX: number;
+    dirY: number;
+}

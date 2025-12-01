@@ -8,13 +8,19 @@
             :draggable="item.draggable" 
             @mousedown="handleClick(item, index)" 
             @click="handleClick(item, index)">
-            <component :is="item.icon"></component>
+            <n-icon :size="22">
+                <component :is="item.icon"></component>
+            </n-icon>
         </div>
-        <div class="icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
-            <UndoIcon></UndoIcon>
+        <div class="icon-block icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
+            <n-icon :size="22">
+                <UndoIcon></UndoIcon>
+            </n-icon>
         </div>
-        <div class="icon-block--redo" title="重做" @click="editorBoard.history.redo()">
-            <RedoIcon></RedoIcon>
+        <div class="icon-block icon-block--redo" title="重做" @click="editorBoard.history.redo()">
+            <n-icon :size="22">
+                <RedoIcon></RedoIcon>
+            </n-icon>
         </div>
         <button @click="printHistory">打印历史记录</button>
     </div>
@@ -25,6 +31,7 @@ import { RedoIcon, UndoIcon } from '@/icons'
 import type { IDrawState, IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { toolbars as toolBarMenu } from "@/scripts/toolBar";
+import { NIcon  } from 'naive-ui';
 defineOptions({ name: 'ToolBar' })
 
 const { editorBoard } = useSelectorListen()

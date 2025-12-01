@@ -44,6 +44,7 @@ export class DrawBoxText extends Box {
             resizeChildren: true, // 同时 resize 文本
             strokeWidth: 1,
             stroke: "#32cd79",
+            height: 100,
             children: [{
                 id: uuidv4(),
                 tag: 'Text',
@@ -68,6 +69,7 @@ export class DrawText extends Text {
             draggable: true,
             fontSize: 16,
             padding: 12,
+            height: 50,
             boxStyle: {
                 padding: 12
             },
