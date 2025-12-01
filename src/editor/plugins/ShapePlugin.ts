@@ -7,7 +7,7 @@ import { createShape } from "../utils/creatShape";
 
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
-    static apis = ['setToolbarActive'];
+    static apis = ['setToolbarActive', 'onDragEventElement'];
     static hotkeys: string[]= [];
     static events = ['testEvent'];
     public toolbars = toolbars;
@@ -84,15 +84,6 @@ export class ShapePlugin implements IPluginTempl {
     }
 
     private _onDownPointer = (evt:PointerEvent) => {
-        // this.element = new Ellipse({
-        //     width: 10,
-        //     height: 10,
-        //     x: _evt.x,
-        //     y: _evt.y,
-        //     fill: "#C71585"
-        // })
-        // this.editorBoard.addLeaferElement(this.point)
-        // this.editorBoard.app.editor.cancel()
         if (this.editorBoard.app.editor&&this.editorBoard.app.cursor === 'crosshair') {
             this.editorBoard.app.editor.target = undefined
             evt.target.draggable = false
@@ -111,7 +102,8 @@ export class ShapePlugin implements IPluginTempl {
                     this.element = new Line({
                         id: this.editorBoard.generateId(),
                         stroke: '#555', strokeWidth: 2, dashPattern: [4, 4],
-                        points: [centerPoint.x, centerPoint.y, evt.x, evt.y]
+                        points: [centerPoint.x, centerPoint.y, evt.x, evt.y],
+                        hittable: false // 让这条线无法被点击/拾取
                     })
                 }
 
@@ -151,22 +143,21 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.app.cursor = 'default'
 
         // 绘制最终线段，替换虚线
-        console.log('up')
         if (this.toolbarActiveType == 'line'&&this.startRect) {
-            const dropResult = this.editorBoard.app.pick({ x: _evt.x, y: _evt.y })
+            const dropResult = this.editorBoard.app.tree.pick({ x: _evt.x, y: _evt.y })
             const endRect = dropResult.target
             if (endRect && endRect !== this.startRect) {
                 this._createConnection(this.startRect, endRect as IUIInputData)
             }
+            this.element&&this.element.remove()
         }
 
-        this.element&&this.element.remove()
         this.element = null
         this.startRect = null
         this.isDrawing = false
         this.points = []
-        this.toolbarActiveType  = ''
         this.callBack({ type: this.toolbarActiveType, state: 'success' })
+        this.toolbarActiveType  = ''
     }
 
     private _onDragElementListener (type:string) {
@@ -201,7 +192,7 @@ export class ShapePlugin implements IPluginTempl {
             // 根据拖拽类型生成图形
             const shape = createShape(type, point)
             if (shape) {
-                shape.data.executeType = ExecuteTypeEnum.AddElement
+                shape.data&&(shape.data.executeType = ExecuteTypeEnum.AddElement)
                 console.log('生成图形:', shape)
                 const res = this.editorBoard.addLeaferElement(shape)
                 if (res) {
@@ -237,7 +228,7 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.addLeaferElement(line)
         this.connections.push({ from: startRect, to: endRect, line: line })
 
-        console.log('计算点和方向:', p0, p3)
+        console.log('计算点和方向:', p0, p3, this.connections)
         return { p0, p3 };
     }
 
@@ -325,6 +316,27 @@ export class ShapePlugin implements IPluginTempl {
 
         // 生成 SVG Path 命令: M 起点 C 控制点1 控制点2 终点
         return `M ${p0.x} ${p0.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${p3.x} ${p3.y}`;
+    }
+
+    public onDragEventElement (evt:DragEvent) {
+        this._updateRelatedLines(evt)
+    }
+
+    private _updateRelatedLines(e:DragEvent) {
+        const movingRect = e.target 
+        this.connections.forEach(conn => {
+            if (conn.from === movingRect || conn.to === movingRect) {
+                // 1. 重新计算最佳连接点 (p0, p3 及其方向)
+                // const { p0, p3 } = this._getBestConnection(conn.from, conn.to)
+                
+                // 2. 重新生成 SVG Path 字符串
+                // const newPathData = getBezierPathString(p0, p3)
+                
+                // 3. 更新 Path 属性
+                // conn.line.path = newPathData
+                // conn.line.points = [p0.x, p0.y, p3.x, p3.y]
+            }
+        })
     }
 
     public destroy () {

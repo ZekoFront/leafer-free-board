@@ -1,14 +1,23 @@
-import { type IPointData } from "leafer-ui";
-import { DrawArrow, DrawBoxText, DrawText } from "./DrawInstance";
+import { type IPointData, type IUIInputData } from "leafer-ui";
+import { drawArrow, drawBoxText, drawText } from "./DrawInstance";
 
 export function createShape(type: string, point:IPointData) {
-    if (type === 'rect') {
-       return new DrawBoxText(point)
-    } else if (type === 'text') {
-        return new DrawText(point)
-    } else if (type === 'arrow') {
-        return new DrawArrow(point)
-    } else {
-        throw new Error('Unsupported shape type: ' + type)
+    let element:IUIInputData;
+    switch (type) {
+        case 'rect':
+            element = drawBoxText(point)
+            break;
+        case 'text':
+            element = drawText(point)
+            break;
+        case 'arrow':
+            element = drawArrow(point)
+            break;
+        default:
+            element = {} as IUIInputData
+            console.error('Unsupported shape type: ' + type)
+            break;
     }
+
+    return element;
 }

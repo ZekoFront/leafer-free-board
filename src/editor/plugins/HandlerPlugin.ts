@@ -38,6 +38,7 @@ class HandlerPlugin implements IPluginTempl {
 
     private _listenDragMoveEvent (evt:DragEvent) {
         if (!this.dragElement) return
+        this.editorBoard.onDragEventElement(this.dragElement)
         // console.log('移动事件:', this.dragElement)
     }
 
