@@ -1,22 +1,24 @@
-import { Ellipse, Line, Path, PointerEvent, Rect, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
+import { Line, Path, PointerEvent, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
+import { isEqual } from 'lodash-es'
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IDrawState, type IPluginTempl, type IPointItem } from "../types";
-import { toolbars } from "@/scripts/toolBar";
+import { toolbars } from "../utils";
 import { createShape } from "../utils/creatShape";
 
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
-    static apis = ['setToolbarActive', 'onDragEventElement'];
+    static apis = ['setToolbarActive', 'onDragMoveElement', 'onDragStartElement'];
     static hotkeys: string[]= [];
     static events = ['testEvent'];
     public toolbars = toolbars;
-    private toolbarActiveType = '';
+    private drawMode = '';
     private excludeTypes = ['select','arrow'];
     private element: IUIInputData | null = null
     private points: IPointData[] = []
     private dragHandlers: Map<string, (e: DragEvent) => void> = new Map();
     private isDrawing = false
+    private draggingNode: IUIInputData | null = null
     // 处理拖拽生成图形
     private leafer: HTMLDivElement|undefined
     public startRect:IUIInputData | null = null
@@ -28,9 +30,9 @@ export class ShapePlugin implements IPluginTempl {
     }
 
     protected setToolbarActive(type: string, callBack:(state?:IDrawState)=>void) {
-        this.toolbarActiveType = type
+        this.drawMode = type
         // 需要手动拖拽绘制的图形
-        if (type==='arrow'||type==='line') {
+        if (['arrow', 'line', 'curve'].includes(type)) {
             this.editorBoard.app.cursor = 'crosshair'
             this.editorBoard.app.editor.config.selector = false
         } else {
@@ -38,7 +40,7 @@ export class ShapePlugin implements IPluginTempl {
             this.editorBoard.app.editor.config.selector = true
         }
         this.callBack = callBack
-        console.log('设置工具栏激活状态:', type)
+        console.log('激活工具:', type)
     }
 
     private _listenners() {
@@ -83,30 +85,39 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.app.off(PointerEvent.UP, this._onUpPointer)
     }
 
+    private _tempElement (evt:PointerEvent) {
+        // 绘制连线，允许有id的元素进行连线
+        if (evt.target&&evt.target.id) {
+            this.startRect = evt.target as IUIInputData
+            this.startRect.x
+            const centerPoint: IPointData = { x: (this.startRect.x || 0) + (this.startRect.width || 0) / 2, y: (this.startRect.y || 0) + (this.startRect.height || 0) / 2 }
+            this.points.push(centerPoint)
+            this.element = new Line({
+                id: this.editorBoard.generateId(),
+                stroke: '#555', strokeWidth: 2, dashPattern: [4, 4],
+                points: [centerPoint.x, centerPoint.y, evt.x, evt.y],
+                hittable: false // 让这条线无法被点击/拾取
+            })
+        }
+    }
+
     private _onDownPointer = (evt:PointerEvent) => {
         if (this.editorBoard.app.editor&&this.editorBoard.app.cursor === 'crosshair') {
             this.editorBoard.app.editor.target = undefined
             evt.target.draggable = false
             // 绘制箭头
-            if (this.toolbarActiveType == 'arrow') {
+            if (this.drawMode == 'arrow') {
                 const startPoint = evt.getPagePoint()
                 this.points.push(startPoint)
                 this.element = createShape('arrow', startPoint) as unknown as IUI
-            } else if (this.toolbarActiveType == 'line') {
-                // 绘制连线，允许有id的元素进行连线
-                if (evt.target&&evt.target.id) {
-                    this.startRect = evt.target as IUIInputData
-                    this.startRect.x
-                    const centerPoint: IPointData = { x: (this.startRect.x || 0) + (this.startRect.width || 0) / 2, y: (this.startRect.y || 0) + (this.startRect.height || 0) / 2 }
-                    this.points.push(centerPoint)
-                    this.element = new Line({
-                        id: this.editorBoard.generateId(),
-                        stroke: '#555', strokeWidth: 2, dashPattern: [4, 4],
-                        points: [centerPoint.x, centerPoint.y, evt.x, evt.y],
-                        hittable: false // 让这条线无法被点击/拾取
-                    })
-                }
-
+            } 
+            // 绘制直线
+            else if (this.drawMode == 'line') {
+                this._tempElement(evt)
+            } 
+            // 绘制直线
+            else if (this.drawMode == 'curve') {
+                this._tempElement(evt)
             }
         }
     }
@@ -119,14 +130,14 @@ export class ShapePlugin implements IPluginTempl {
         }
         const endPoint = _evt.getPagePoint()
         // 绘制箭头
-        if (this.toolbarActiveType == 'arrow') {
+        if (this.drawMode == 'arrow') {
             const arrow = this.element as Arrow
             if (this.points[0]) {
                 arrow.points = [this.points[0].x, this.points[0].y, endPoint.x, endPoint.y]
             }
         }
-        // 绘制连线
-        else if (this.toolbarActiveType == 'line'&&this.element) {
+        // 绘制临时连线
+        else if (['line', 'curve'].includes(this.drawMode)&&this.element) {
             const line = this.element as Line
             if (this.points[0]) {
                 line.points = [this.points[0].x, this.points[0].y, endPoint.x, endPoint.y]
@@ -143,7 +154,7 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.app.cursor = 'default'
 
         // 绘制最终线段，替换虚线
-        if (this.toolbarActiveType == 'line'&&this.startRect) {
+        if (['line', 'curve'].includes(this.drawMode)&&this.startRect) {
             const dropResult = this.editorBoard.app.tree.pick({ x: _evt.x, y: _evt.y })
             const endRect = dropResult.target
             if (endRect && endRect !== this.startRect) {
@@ -156,8 +167,8 @@ export class ShapePlugin implements IPluginTempl {
         this.startRect = null
         this.isDrawing = false
         this.points = []
-        this.callBack({ type: this.toolbarActiveType, state: 'success' })
-        this.toolbarActiveType  = ''
+        this.callBack({ type: this.drawMode, state: 'success' })
+        this.drawMode = ''
     }
 
     private _onDragElementListener (type:string) {
@@ -193,11 +204,9 @@ export class ShapePlugin implements IPluginTempl {
             const shape = createShape(type, point)
             if (shape) {
                 shape.data&&(shape.data.executeType = ExecuteTypeEnum.AddElement)
-                console.log('生成图形:', shape)
+                // console.log('生成图形:', shape)
                 const res = this.editorBoard.addLeaferElement(shape)
-                if (res) {
-                    this.editorBoard.history.execute(shape)
-                }
+                res && this.editorBoard.history.execute(shape)
             }
         }
         
@@ -207,37 +216,41 @@ export class ShapePlugin implements IPluginTempl {
     private _createConnection(startRect: IUIInputData| null, endRect: IUIInputData) {
         // 计算点和方向
         const { p0, p3 } = this._getBestConnection(startRect || ({} as IUIInputData), endRect)
-        // 生成贝塞尔路径数据
-        // const pathData = this._getBezierPathString(p0, p3)
-        // const path = new Path({
-        //     path: pathData,
-        //     stroke: '#555',
-        //     strokeWidth: 2,
-        //     endArrow: 'arrow'
-        // })
-        // 放到最底层
-        // this.editorBoard.app.tree.addAt(path, 0) 
-        // 创建直线
-        const line = new Line({
-            id: this.editorBoard.generateId(),
-            editable: true,
-            stroke: '#555', strokeWidth: 2, dashPattern: [0, 0],
-            points: [p0.x, p0.y, p3.x, p3.y]
-        })
+        let line: IUI|null = null;
+        if (this.drawMode == 'curve') {
+            // 生成贝塞尔路径数据
+            const pathData = this._getBezierPathString(p0, p3)
+            line = new Path({
+                path: pathData,
+                stroke: '#555',
+                strokeWidth: 2,
+                // endArrow: 'arrow' // 箭头
+            })
+            // 放到最底层
+            // this.editorBoard.app.tree.addAt(path, 0) 
+        } else if (this.drawMode == 'line') {
+            // 创建直线
+            line = new Line({
+                editable: true,
+                stroke: '#555', strokeWidth: 2, dashPattern: [0, 0],
+                points: [p0.x, p0.y, p3.x, p3.y],
+                draggable: false,
+                endArrow: 'arrow' // 箭头
+            })
+        }
 
-        this.editorBoard.addLeaferElement(line)
-        this.connections.push({ from: startRect, to: endRect, line: line })
-
-        console.log('计算点和方向:', p0, p3, this.connections)
-        return { p0, p3 };
+        if (line) {
+            this.editorBoard.addLeaferElement(line)
+            this.connections.push({ from: startRect, to: endRect, line: line })
+        }
     }
 
     // 获取两个矩形连接的最近点
     // dirX: 1: 表示“向右走”，控制点会加到当前点的右边，把线拉出去。
     // dirY: -1: 表示“向上走”，控制点会减去 Y 值，把线向上提。
-    private _getBestConnection(leaferRectA: IUIInputData, leaferRectB: IUIInputData) {
-        const rectA = this._getRectBounds(leaferRectA)
-        const rectB = this._getRectBounds(leaferRectB)
+    private _getBestConnection(elA: IUIInputData, elB: IUIInputData) {
+        const rectA = this._getRectBounds(elA)
+        const rectB = this._getRectBounds(elB)
         // 计算中心点
         const cxA = (rectA.left || 0) + (rectA.width || 0) / 2;
         const cyA = (rectA.top || 0) + (rectA.height || 0) / 2;
@@ -318,23 +331,30 @@ export class ShapePlugin implements IPluginTempl {
         return `M ${p0.x} ${p0.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${p3.x} ${p3.y}`;
     }
 
-    public onDragEventElement (evt:DragEvent) {
-        this._updateRelatedLines(evt)
+    public onDragStartElement (ele: IUIInputData) {
+        this.draggingNode = ele
     }
 
-    private _updateRelatedLines(e:DragEvent) {
-        const movingRect = e.target 
+    public onDragMoveElement () {
+        // 绘制模式下不触发更新
+        if (this.drawMode || !this.draggingNode) return
+        if (this.connections.length === 0) return
+        this._updateRelatedLines(this.draggingNode)
+    }
+
+    private _updateRelatedLines(movingRect:IUIInputData) {
         this.connections.forEach(conn => {
-            if (conn.from === movingRect || conn.to === movingRect) {
-                // 1. 重新计算最佳连接点 (p0, p3 及其方向)
-                // const { p0, p3 } = this._getBestConnection(conn.from, conn.to)
-                
-                // 2. 重新生成 SVG Path 字符串
-                // const newPathData = getBezierPathString(p0, p3)
-                
-                // 3. 更新 Path 属性
-                // conn.line.path = newPathData
-                // conn.line.points = [p0.x, p0.y, p3.x, p3.y]
+            if (isEqual(conn.from, movingRect) || isEqual(conn.to, movingRect)) {
+                // 重新计算最佳连接点 (p0, p3 及其方向)
+                const { p0, p3 } = this._getBestConnection(conn.from, conn.to)
+                if (conn.line.tag == 'Path') {
+                    // 更新曲线
+                    const newPathData = this._getBezierPathString(p0, p3)
+                    conn.line.path = newPathData
+                } else if (conn.line.tag == 'Line') {
+                    // 更新直线
+                    conn.line.points = [p0.x, p0.y, p3.x, p3.y]
+                }
             }
         })
     }
@@ -342,5 +362,6 @@ export class ShapePlugin implements IPluginTempl {
     public destroy () {
         this._unListenners()
         this.dragHandlers.clear()
+        this.connections.length = 0
     }
 }

@@ -1,5 +1,5 @@
 import type { IToolBar } from "@/editor/types";
-import { ArrowAngleIcon, LineIcon, RectIcon, SelectIcon, TextIcon } from "@/icons";
+import { ArrowAngleIcon, CurveIcon, LineIcon, RectIcon, SelectIcon, TextIcon } from "@/icons";
 
 export const toolbars: IToolBar[] = [
     {
@@ -28,8 +28,14 @@ export const toolbars: IToolBar[] = [
     },
     {
         icon: LineIcon,
-        title: '连线',
+        title: '直线连线(带箭头)',
         type: 'line',
+        draggable: false                       
+    },
+    {
+        icon: CurveIcon,
+        title: '曲线连接',
+        type: 'curve',
         draggable: false                       
     }
 ]

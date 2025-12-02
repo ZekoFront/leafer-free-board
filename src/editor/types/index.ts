@@ -9,6 +9,7 @@ export declare class IPluginTempl {
     static pluginName: string;
     static events: string[];
     static apis: string[];
+    static hotkeys: string[];
     hotkeyEvent?: (name: string, e: KeyboardEvent) => void;
     [propName: string]: any;
     editor?: IEditorBoard;

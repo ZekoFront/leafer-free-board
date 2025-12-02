@@ -33,7 +33,7 @@ export const drawBoxText = (point:IPointData) => {
         x: point.x,
         y: point.y,
         fill: options.fill,
-        cornerRadius: 20,
+        cornerRadius: 5,
         textBox: true,
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         editable: true,
@@ -48,7 +48,8 @@ export const drawBoxText = (point:IPointData) => {
             fontSize: 16,
             padding: [5, 10],
             textAlign: 'left',
-            verticalAlign: 'top'
+            verticalAlign: 'top',
+            hittable: false // false表示无法被点击/拾取，true表示可以被点击/拾取
         }]
     })
 }

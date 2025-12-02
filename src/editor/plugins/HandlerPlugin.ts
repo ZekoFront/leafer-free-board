@@ -8,7 +8,6 @@ import { cloneDeep, isArray, isNull, isObject } from "lodash-es";
 class HandlerPlugin implements IPluginTempl {
     static pluginName = 'HandlerPlugin';
     static apis = ['getSelectMode'];
-    static hotkeys: string[]= [];
     public selectedMode: SelectMode;
     public dragElement: ILeaf | ILeaf[] | null = null;
     
@@ -28,8 +27,10 @@ class HandlerPlugin implements IPluginTempl {
 
     private _listenDragStartEvent (evt:DragEvent) {
         if (evt.target.id) {
+            this.editorBoard.onDragStartElement(evt.target)
+            // 注意：拷贝的数据引用地址变化了，用===比较时永远是false
             this.dragElement = cloneDeep(evt.target)
-            console.log('拖拽元素:', this.dragElement)
+            // console.log('拖拽元素:', this.dragElement)
         } else  {
             // const { x, y} = evt.target
             // console.log('拖拽箭头:', { x, y })
@@ -38,7 +39,7 @@ class HandlerPlugin implements IPluginTempl {
 
     private _listenDragMoveEvent (evt:DragEvent) {
         if (!this.dragElement) return
-        this.editorBoard.onDragEventElement(this.dragElement)
+        this.editorBoard.onDragMoveElement(evt)
         // console.log('移动事件:', this.dragElement)
     }
 

@@ -30,7 +30,7 @@
 import { RedoIcon, UndoIcon } from '@/icons'
 import type { IDrawState, IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
-import { toolbars as toolBarMenu } from "@/scripts/toolBar";
+import { toolbars as toolBarMenu } from "@/editor/utils";
 import { NIcon  } from 'naive-ui';
 defineOptions({ name: 'ToolBar' })
 

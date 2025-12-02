@@ -18,7 +18,7 @@ import ElementAttributes from './components/ElementAttributes.vue'
 import HeaderLeft from './components/HeaderLeft.vue'
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
-import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin } from '@/editor/plugins'
+import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin, DeleteHotKeyPlugin } from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
 import ToolBar from './components/ToolBar.vue'
 import { ExecuteTypeEnum } from './types';
@@ -61,6 +61,7 @@ onMounted(() => {
     editorBoard.use(SnapPlugin)
     editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin)
+    editorBoard.use(DeleteHotKeyPlugin)
     editorBoard.use(ShapePlugin)
     console.log('editorBoard:',editorBoard)
     const text = Text.one({
