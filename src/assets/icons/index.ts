@@ -10,6 +10,8 @@ export { default as LineIcon } from './line-icon.svg'
 export { default as CurveIcon } from './curve-icon.svg'
 export { default as ZoomInIcon } from './zoomin-icon.svg'
 export { default as ZoomOutIcon } from './zoomout-icon.svg'
+export { default as VerticalLineIcon } from './vertical-line-icon.svg'
+export { default as ImageAddIcon } from './image-add-icon.svg'
 
 
  

@@ -1,5 +1,5 @@
 import type { IToolBar } from "@/editor/types";
-import { ArrowAngleIcon, CurveIcon, LineIcon, RectIcon, SelectIcon, TextIcon } from "@/icons";
+import { ArrowAngleIcon, CurveIcon, LineIcon, RectIcon, SelectIcon, TextIcon } from "@/assets/icons";
 
 export const toolbars: IToolBar[] = [
     {

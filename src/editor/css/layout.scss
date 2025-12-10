@@ -41,11 +41,6 @@
                 border-radius: 0.5rem;
                 margin: 0rem .2rem;
                 cursor: pointer;
-                // svg {
-                //     outline: none;
-                //     width: 24px;
-                //     height: 24px;
-                // }
                 &.active {
                     background: rgba(24, 160, 88, 0.16);
                     svg {
@@ -62,6 +57,13 @@
                 &:hover {
                     background: rgba(24, 160, 88, 0.16);
                 }
+            }
+            .icon-block-blank {
+                width: 0.5rem;
+                aspect-ratio: 1 / 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
         }
     }

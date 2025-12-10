@@ -12,6 +12,16 @@
                 <component :is="item.icon"></component>
             </n-icon>
         </div>
+        <div class="icon-block-blank">
+            <n-icon :size="22" color="#b7b7b9">
+                <VerticalLineIcon></VerticalLineIcon>
+            </n-icon>
+        </div>
+        <div class="icon-block" title="添加图片">
+            <n-icon :size="22">
+                <ImageAddIcon></ImageAddIcon>
+            </n-icon>
+        </div>
         <div class="icon-block icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
             <n-icon :size="22">
                 <UndoIcon></UndoIcon>
@@ -27,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { RedoIcon, UndoIcon } from '@/icons'
+import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon } from '@/assets/icons'
 import type { IDrawState, IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { toolbars as toolBarMenu } from "@/editor/utils";

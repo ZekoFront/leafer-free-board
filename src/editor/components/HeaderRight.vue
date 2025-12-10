@@ -16,7 +16,7 @@
 import { NIcon } from 'naive-ui'
 import { Decimal} from 'decimal.js'
 import { EditorBoard } from '@/editor'
-import { ZoomInIcon, ZoomOutIcon } from '@/icons'
+import { ZoomInIcon, ZoomOutIcon } from '@/assets/icons'
 import { MIN_ZOOM, MAX_ZOOM, DEFAULT_STEP_ZOOM, DEFAULT_ZOOM } from '@/editor/utils'
 
 const { editor } = defineProps({

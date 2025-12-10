@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { PointerEvent, Text, Rect, Group, type IUI, type IPointData } from 'leafer-ui';
 import { EditorBoard } from '..'
-import { RectIcon, RedoIcon, UndoIcon, TextIcon, SelectIcon } from '@/icons'
+import { RectIcon, RedoIcon, UndoIcon, TextIcon, SelectIcon } from '@/assets/icons'
 import type { IToolBar } from '../types'
 
 defineOptions({ name: 'ToolBar' })
