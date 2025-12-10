@@ -8,6 +8,8 @@ export { default as ArrowAngleIcon } from './arrow-angle-icon.svg'
 export { default as MenuLeftIcon } from './menu-left-icon.svg' 
 export { default as LineIcon } from './line-icon.svg'
 export { default as CurveIcon } from './curve-icon.svg'
+export { default as ZoomInIcon } from './zoomin-icon.svg'
+export { default as ZoomOutIcon } from './zoomout-icon.svg'
 
 
  

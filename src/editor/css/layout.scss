@@ -1,3 +1,6 @@
+.cursor {
+    cursor: pointer;
+}
 .leafer-free-board {
     &--root {
         height: 100%;
@@ -15,7 +18,7 @@
         // left: 50%;
         background: #ffffff;
         box-sizing: border-box;
-        padding: 4px;
+        padding: 4px 10px;
         z-index: 3;
         display: grid;
         grid-template-columns: 1fr 2fr 1fr;

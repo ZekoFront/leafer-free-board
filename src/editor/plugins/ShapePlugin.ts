@@ -107,6 +107,9 @@ export class ShapePlugin implements IPluginTempl {
             evt.target.draggable = false
             // 绘制箭头
             if (this.drawMode == 'arrow') {
+                // 按下鼠标拖动开始画线，抬起结束，当缩放平移视图后，仍然可以准确绘制新的线条
+                // 转换事件为 page 坐标 = evt.getPagePoint()
+                // @see https://www.leaferjs.com/ui/guide/advanced/coordinate.html
                 const startPoint = evt.getPagePoint()
                 this.points.push(startPoint)
                 this.element = createShape('arrow', startPoint) as unknown as IUI

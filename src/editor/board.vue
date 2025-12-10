@@ -3,7 +3,7 @@
         <div class="leafer-free-board--header">
             <HeaderLeft :editor="editorBoard"></HeaderLeft>
             <ToolBar :editorBoard="editorBoard"></ToolBar>
-            <div class="right">右边</div>
+            <HeaderRight :editor="editorBoard"></HeaderRight>
         </div>
         <div id="leafer" ref="boardRef" class="leafer-free-board--body"></div>
         <ElementAttributes></ElementAttributes>
@@ -16,6 +16,7 @@ import '@leafer-in/viewport' // 导入视口插件（可选）
 import '@leafer-in/text-editor' // 导入文本编辑插件
 import ElementAttributes from './components/ElementAttributes.vue'
 import HeaderLeft from './components/HeaderLeft.vue'
+import HeaderRight from './components/HeaderRight.vue'
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
 import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin, DeleteHotKeyPlugin } from '@/editor/plugins'
