@@ -125,7 +125,7 @@ class EditorBoard extends EventEmitter {
         return uuidv4();
     }
 
-    public destory() {
+    public destroy() {
         this.history.destroy();
         Object.keys(this.pluginMap).forEach((key) => {
             this.pluginMap[key] && this.pluginMap[key].destroy();

@@ -12,4 +12,9 @@ export class RulerPlugin implements IPluginTempl {
         const ruler = new Ruler(editorBoard.app)
         ruler.enabled = true
     }
+    
+    public destroy () {
+        RulerPlugin.apis = []
+        RulerPlugin.hotkeys = []
+    }
 }

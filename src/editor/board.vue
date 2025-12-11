@@ -134,9 +134,13 @@ onMounted(() => {
     // console.log("内容层元素:",app.tree.children)
 })
 
+onBeforeUnmount(() => {
+    editorBoard.destroy()
+})
+
 
 provide('editorBoard', editorBoard)
-// console.log('leaferjs:', version)
+console.log('leaferjs:', version)
 </script>
 <style lang="scss">
 @use './css/index.scss';

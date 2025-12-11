@@ -17,7 +17,7 @@
                 <VerticalLineIcon></VerticalLineIcon>
             </n-icon>
         </div>
-        <div class="icon-block" title="添加图片">
+        <div class="icon-block" title="添加图片" @click="uploadImage">
             <n-icon :size="22">
                 <ImageAddIcon></ImageAddIcon>
             </n-icon>
@@ -37,8 +37,9 @@
 </template>
 
 <script setup lang="ts">
+import { Image, ImageEvent } from 'leafer-ui'    
 import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon } from '@/assets/icons'
-import type { IDrawState, IToolBar } from '../types'
+import { ExecuteTypeEnum, type IDrawState, type IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { toolbars as toolBarMenu } from "@/editor/utils";
 import { NIcon  } from 'naive-ui';
@@ -56,6 +57,40 @@ const handleClick = (item: IToolBar, index: number) => {
             currentIndex.value = 0
         }
     })
+}
+
+const uploadImage = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'image/*'
+    input.style.display = 'none'
+    document.body.appendChild(input)
+    input.click()
+    input.onchange = (e) => {
+        const target = e.target as HTMLInputElement
+        const file = target.files && target.files[0]
+        if (!file) return
+
+        const localUrl = URL.createObjectURL(file)
+
+        const image = Image.one({  
+            url: localUrl,
+            draggable: true,
+            editable: true,
+            data: {
+                executeType: ExecuteTypeEnum.AddElement
+            }
+        })
+        image.once(ImageEvent.LOADED, function (e: ImageEvent) {
+            console.log('image loaded', e)
+        })
+        image.once(ImageEvent.ERROR, function (e: ImageEvent) { 
+            console.log('image error', e.error)
+        })
+
+        editorBoard.addLeaferElement(image)
+        editorBoard.history.execute(image)
+    }
 }
 
 const printHistory = () => {

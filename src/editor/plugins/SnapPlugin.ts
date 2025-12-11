@@ -12,4 +12,9 @@ export class SnapPlugin implements IPluginTempl {
         const snap = new Snap(editorBoard.app)
         snap.enable(true)
     }
+
+    public destroy () {
+        SnapPlugin.apis = []
+        SnapPlugin.hotkeys = []
+    }
 }

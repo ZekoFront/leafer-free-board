@@ -11,4 +11,9 @@ export class ScrollBarPlugin implements IPluginTempl {
         // 启用滚动插件
         new ScrollBar(editorBoard.app)
     }
+    
+    public destroy () {
+        ScrollBarPlugin.apis = []
+        ScrollBarPlugin.hotkeys = []
+    }
 }
