@@ -63,34 +63,42 @@ const uploadImage = () => {
     const input = document.createElement('input')
     input.type = 'file'
     input.accept = 'image/*'
+    input.multiple = true
     input.style.display = 'none'
     document.body.appendChild(input)
     input.click()
     input.onchange = (e) => {
         const target = e.target as HTMLInputElement
-        const file = target.files && target.files[0]
-        if (!file) return
-
-        const localUrl = URL.createObjectURL(file)
-
-        const image = Image.one({  
-            url: localUrl,
-            draggable: true,
-            editable: true,
-            data: {
-                executeType: ExecuteTypeEnum.AddElement
-            }
-        })
-        image.once(ImageEvent.LOADED, function (e: ImageEvent) {
-            console.log('image loaded', e)
-        })
-        image.once(ImageEvent.ERROR, function (e: ImageEvent) { 
-            console.log('image error', e.error)
-        })
-
-        editorBoard.addLeaferElement(image)
-        editorBoard.history.execute(image)
+        const file = target.files || []
+        if (file?.length === 0) return
+        for(let i = 0; i < file.length; i++) {
+            setImage(file[i] as File, i)
+        }
     }
+}
+
+const setImage = (file: File, index: number) => {
+    let x = 100 + index * 50, y = 100;
+    const localUrl = URL.createObjectURL(file)
+    const image = Image.one({  
+        url: localUrl,
+        x, 
+        y,
+        draggable: true,
+        editable: true,
+        data: {
+            executeType: ExecuteTypeEnum.AddElement
+        }
+    })
+    image.once(ImageEvent.LOADED, function (e: ImageEvent) {
+        console.log('image loaded', e)
+    })
+    image.once(ImageEvent.ERROR, function (e: ImageEvent) { 
+        console.log('image error', e.error)
+    })
+
+    editorBoard.addLeaferElement(image)
+    editorBoard.history.execute(image)
 }
 
 const printHistory = () => {
