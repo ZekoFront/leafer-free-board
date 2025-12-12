@@ -1,18 +1,16 @@
 import { SelectEvent, SelectMode } from "@/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
-import { LeaferEvent, DragEvent, type ILeaf, type IUI } from "leafer-ui";
+import { LeaferEvent, DragEvent, type IUI } from "leafer-ui";
 import { EditorEvent } from "leafer-editor";
-import { cloneDeep, isArray, isNull, isObject } from "lodash-es";
+import { isArray, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../history/interface/ICommand";
 
 class HandlerPlugin implements IPluginTempl {
     static pluginName = 'HandlerPlugin';
     static apis = ['getSelectMode'];
     public selectedMode: SelectMode;
-    public dragElement: ILeaf| null = null;
     private newSelectedElements: IUI[] = []
-    private oldSelectedElements: IUI[] = []
     
     constructor(public editorBoard: EditorBoard) {
         this.selectedMode = SelectMode.EMPTY
@@ -37,33 +35,33 @@ class HandlerPlugin implements IPluginTempl {
     }
 
     private _listenDragStartEvent = (evt:DragEvent) => {
+        // 单个拖拽元素触发
         if (evt.target.id) {
             this.editorBoard.onDragStartElement(evt.target)
-            // 注意：拷贝的数据引用地址变化了，用===比较时永远是false
-            this.dragElement = cloneDeep(evt.target)
-            this.dragStartSnapshot.set(this.dragElement.id || '', { x: this.dragElement.x || 0, y: this.dragElement.y || 0 });
-        } else  {
-            // 多选开始拖拽
-           if (this.oldSelectedElements&&this.oldSelectedElements.length) {
-                this.oldSelectedElements.forEach(node => {
-                    this.dragStartSnapshot.set(node.id || '', { x: node.x || 0, y: node.y || 0 });
-                });
-            }
+        }
+        // 多选开始拖拽
+        else if (this.newSelectedElements&&this.newSelectedElements.length) {
+            // 初始化起始坐标
+            this.newSelectedElements.forEach(el => {
+                if (el.data) {
+                    el.data.oldX = el.x
+                    el.data.oldY = el.y
+                    this.dragStartSnapshot.set(el.id || '', { x: el.data.oldX || 0, y: el.data.oldY || 0 });
+                }
+            })
         }
     }
 
     private _listenDragMoveEvent = (evt:DragEvent) => {
-        if (!this.dragElement) return
-        this.editorBoard.onDragMoveElement(evt)
-        // console.log('移动事件:', this.dragElement)
+        // 单个拖拽元素触发
+        if (this.newSelectedElements.length === 1) {
+            this.editorBoard.onDragMoveElement(evt)
+        }
     }
 
-    private _listenDragEndEvent = (evt:DragEvent) => {
-        // if (!this.dragElement) return
+    private _listenDragEndEvent = () => {
         const moveList: IMoveData[] = [];
-        // 根据选中元素个数来实现不同的拖拽历史记录
-        if (this.selectedMode === SelectMode.MULTIPLE) {
-            if (this.newSelectedElements.length === 0) return
+        if (this.newSelectedElements.length) {
             // 获取批量新坐标
             this.newSelectedElements.forEach(el => {
                 const oldPos = this.dragStartSnapshot.get(el.id || '');
@@ -85,29 +83,7 @@ class HandlerPlugin implements IPluginTempl {
                     }
                 })
             }
-        } else {
-            if (this.dragElement) {
-                const oldPos = this.dragStartSnapshot.get(this.dragElement.id || '');
-                const { x: x1, y: y1 } = evt.target;
-                if (oldPos && (Math.abs((x1 || 0) - oldPos.x) > 0.01 || Math.abs((y1 || 0) - oldPos.y) > 0.01)) {
-                    moveList.push({
-                        id: this.dragElement.id || '',
-                        old: { x: oldPos.x, y: oldPos.y },
-                        new: { x: x1 || 0, y: y1 || 0 }
-                    });
-                }
-                if (moveList.length > 0) {
-                    this.editorBoard.history.execute({
-                        data: {
-                            executeType: ExecuteTypeEnum.MoveElement,
-                            moveList: moveList
-                        }
-                    })
-                }
-            }
-            
         }
-        this.dragElement = null
     }
 
     // evt: LeaferEvent
@@ -116,18 +92,29 @@ class HandlerPlugin implements IPluginTempl {
     }
 
     private _listenSelectEvent = (evt: EditorEvent) => {
-        this.newSelectedElements = evt.value as IUI[];
-        this.oldSelectedElements = cloneDeep(evt.value) as IUI[];
         if (isArray(evt.value)) {
             this.selectedMode = SelectMode.MULTIPLE
             this.editorBoard.emit(SelectEvent.MULTIPLE, evt.editor.target)
+            this._setSelect(evt.value)
         } else if (isObject(evt.value)) {
             this.selectedMode = SelectMode.SINGLE
             this.editorBoard.emit(SelectEvent.SINGLE, evt.editor.target)
+            this._setSelect([evt.value])
         } else if (isNull(evt.value)) {
             this.selectedMode = SelectMode.EMPTY
             this.editorBoard.emit(SelectEvent.EMPTY, evt.editor.target)
         }
+    }
+
+    private _setSelect (list:IUI[] = []) {
+        this.newSelectedElements = list
+        // 初始化起始坐标，每次拖拽时都有不同的旧坐标
+        this.newSelectedElements.forEach(el => {
+            if (el.data) {
+                el.data.oldX = el.x
+                el.data.oldY = el.y
+            }
+        })
     }
 
     protected getSelectMode() {
@@ -136,9 +123,7 @@ class HandlerPlugin implements IPluginTempl {
 
     public destroy () {
         this.selectedMode = SelectMode.EMPTY;
-        this.dragElement = {} as ILeaf;
         this.newSelectedElements = [];
-        this.oldSelectedElements = [];
         this.dragStartSnapshot.clear();
         this._unlistenners()
     }
