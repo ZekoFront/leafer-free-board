@@ -37,6 +37,10 @@ export default defineConfig({
             resolvers: [ElementPlusResolver()]
         })
     ],
+    base: '/leafer-free-board/',
+    build: {
+        outDir: 'dist'
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src')
