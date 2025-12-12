@@ -45,7 +45,7 @@ import { arrowTypes, colorPanel } from '@/editor/utils';
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { NTabs, NTabPane, NColorPicker, NSwitch } from 'naive-ui'
 
-const { selectedMode, isSingle, selectedActive } = useSelectorListen()
+const { isSingle, selectedActive } = useSelectorListen()
 
 const activeName = ref('setting');
 const isArrowBothEnds = ref(false);
