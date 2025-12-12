@@ -122,6 +122,6 @@ const setImage = (file: File, index: number) => {
 
 const printHistory = () => {
     // 添加历史记录
-    console.log('历史记录:', editorBoard.history.state(), editorBoard.app.editor.children)
+    console.log('历史记录:', editorBoard.history.state())
 }
 </script>

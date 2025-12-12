@@ -1,8 +1,8 @@
 import { SelectEvent } from "@/utils";
 import type EditorBoard from "../EditorBoard";
-import type { IPluginTempl } from "../types";
+import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import type { IUI } from "leafer-ui";
-import { debounce } from "lodash-es";
+import { debounce, cloneDeep } from "lodash-es";
 
 export class CopyPlugin implements IPluginTempl {
     static pluginName = 'CopyPlugin';
@@ -20,29 +20,34 @@ export class CopyPlugin implements IPluginTempl {
     }
 
     _onMultiple = (evt:IUI[]) => {
-        this.selectNodes = evt
+        this.selectNodes = cloneDeep(evt)
     }
 
     _onSingle = (evt:IUI) => {
-        this.selectNodes = [evt]
+        this.selectNodes = cloneDeep([evt])
     }
 
-    _copy() {
+    private _copy() {
         if (this.selectNodes.length) {
             this.selectNodes.forEach(node => {
                 const clone = node.clone()
-                clone.set({ x: clone.x || 0 + 50, y: clone.y || 0 + 50 })
+                clone.set({ x: (node.x || 0) + 50, y: (node.y || 0) + 50, id: "" })
+                clone.data && (clone.data.executeType = ExecuteTypeEnum.AddElement)
                 this.copyNodes.push(clone)
             })
         }
-        console.log('copy')
     }
 
-    _paste () {
+    private _paste() {
         if (this.copyNodes.length) {
             this.copyNodes.forEach(node => {
                 this.editorBoard.addLeaferElement(node)
+                this.editorBoard.history.execute(node)
             })
+            // 取消选择
+            // this.editorBoard.app.editor.cancel()
+            // 选择元素
+            this.editorBoard.app.editor.select(this.copyNodes)
             this.copyNodes.length = 0
         }
     }
