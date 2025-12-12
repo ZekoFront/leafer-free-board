@@ -13,7 +13,6 @@
 </template>
 
 <script setup lang="ts">
-import { NIcon } from 'naive-ui'
 import { Decimal} from 'decimal.js'
 import { EditorBoard } from '@/editor'
 import { ZoomInIcon, ZoomOutIcon } from '@/assets/icons'

@@ -43,7 +43,6 @@ defineOptions({ name: 'ElementAttributes' })
 import { Arrow  } from "@leafer-in/arrow";
 import { arrowTypes, colorPanel } from '@/editor/utils';
 import useSelectorListen from '@/hooks/useSelectorListen';
-import { NTabs, NTabPane, NColorPicker, NSwitch } from 'naive-ui'
 
 const { isSingle, selectedActive } = useSelectorListen()
 

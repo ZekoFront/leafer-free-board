@@ -32,20 +32,39 @@
                 <RedoIcon></RedoIcon>
             </n-icon>
         </div>
+        <div class="icon-block icon-block--redo" title="清空画布" @click="handleClear">
+            <n-icon :size="22">
+                <ClearIcon></ClearIcon>
+            </n-icon>
+        </div>
         <button @click="printHistory">打印历史记录</button>
     </div>
 </template>
 
 <script setup lang="ts">
 import { Image, ImageEvent } from 'leafer-ui'    
-import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon } from '@/assets/icons'
+import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon, ClearIcon } from '@/assets/icons'
 import { ExecuteTypeEnum, type IDrawState, type IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { toolbars as toolBarMenu } from "@/editor/utils";
-import { NIcon  } from 'naive-ui';
-defineOptions({ name: 'ToolBar' })
+import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete"
 
 const { editorBoard } = useSelectorListen()
+const { dialog } = useNaiveDiscrete()
+
+const handleClear = () => {
+    dialog.warning({
+        title: '警告',
+        content: '清空画布后无法恢复，确定要清空吗？',
+        positiveText: '确定',
+        negativeText: '取消',
+        draggable: true,
+        onPositiveClick: () => {
+            editorBoard.app.tree.clear()
+        },
+        onNegativeClick: () => {}
+  })
+}
 
 const currentIndex = ref<number>(0)
 const toolbars = shallowRef<IToolBar[]>(toolBarMenu)

@@ -8,7 +8,6 @@
 <script setup lang="ts">
 import type { PropType } from 'vue'
 import { EditorBoard } from '@/editor'
-import { NIcon, NDropdown } from 'naive-ui'
 import { MenuLeftIcon } from '@/assets/icons'
 import { exportOptions } from '@/editor/utils'
 
