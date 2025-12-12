@@ -28,10 +28,16 @@
         width: inherit;
         .center {
             display: flex;
-            align-items: center;
-            border-radius: .5rem;
-            padding: 4px;
-            box-shadow: 0px 0px .9310142993927002px 0px rgba(0, 0, 0, .17), 0px 0px 3.1270833015441895px 0px rgba(0, 0, 0, .08), 0px 7px 14px 0px rgba(0, 0, 0, .05);
+            justify-content: center;
+            &-tool-bar-wrapper {
+                width: fit-content;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: .5rem;
+                padding: 4px;
+                box-shadow: 0px 0px .9310142993927002px 0px rgba(0, 0, 0, .17), 0px 0px 3.1270833015441895px 0px rgba(0, 0, 0, .08), 0px 7px 14px 0px rgba(0, 0, 0, .05);
+            }
             .icon-block {
                 width: 2rem;
                 aspect-ratio: 1 / 1;

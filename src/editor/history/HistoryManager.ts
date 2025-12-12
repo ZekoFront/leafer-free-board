@@ -35,12 +35,17 @@ export class HistoryManager implements IPluginTempl {
 			this.addCommand(command)
 		} else if (element.data.executeType === ExecuteTypeEnum.MoveElement) {
 			// 移动元素命令
+			// const command = new MoveCommand({
+			// 	elementId: element.data.elementId,
+			// 	tag: element.tag||"",
+			// 	editor: this.editorBoard,
+			// 	oldXYValue: element.data.oldXYValue,
+			// 	newXYValue: element.data.newXYValue
+			// })
 			const command = new MoveCommand({
-				elementId: element.data.elementId,
-				tag: element.tag||"",
-				editor: this.editorBoard,
-				oldXYValue: element.data.oldXYValue,
-				newXYValue: element.data.newXYValue
+				moveList: element.data.moveList,
+				tag: element.tag || "",
+				editor: this.editorBoard
 			})
 			this.addCommand(command)
 		}

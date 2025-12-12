@@ -18,7 +18,6 @@ export class AddElementCommand extends BaseCommand {
     constructor(props: IAddElementCommandProps) {
         super(props.element.id||"", props.editorBoard, ExecuteTypeEnum.AddElement)
         this.tag = props.element.tag||""
-        // this.elementProps = this.filterElementProperties(props.element);
         this.elementProps = props.element
         // 命令唯一ID
         this.id = this.editorBoard.generateId();

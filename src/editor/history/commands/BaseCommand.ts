@@ -1,5 +1,4 @@
 // src/history/commands/BaseCommand.ts
-import { type IUIInputData } from "leafer-ui";
 import type { ICommand } from "../interface/ICommand";
 import type EditorBoard from "@/editor/EditorBoard";
 import { ExecuteTypeEnum, type ExecuteTypes } from "@/editor/types";
@@ -28,36 +27,6 @@ export abstract class BaseCommand implements ICommand {
     abstract execute(): void;
     abstract undo(): void;
     abstract redo(): void;
-
-    // 属性过滤
-    public filterElementProperties(element: IUIInputData) {
-        if (!element) return {};
-
-        const properties = {
-            id: element.id,
-            tag: element.tag,
-            x: element.x,
-            y: element.y,
-            width: element.width,
-            height: element.height,
-            rotation: element.rotation,
-            scaleX: element.scaleX,
-            scaleY: element.scaleY,
-            fill: element.fill,
-            padding: element.padding,
-            stroke: element.stroke,
-            opacity: element.opacity,
-            draggable: element.draggable,
-            editable: element.editable,
-            text: element.text,
-            fontSize: element.fontSize,
-            fontFamily: element.fontFamily,
-            cornerRadius: element.cornerRadius,
-            dashPattern: element.dashPattern, // 绘制虚线
-            boxStyle: element.boxStyle,
-        };
-        return properties;
-    }
 
     // 压缩命令数据
     public compress(): void {

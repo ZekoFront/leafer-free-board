@@ -1,4 +1,3 @@
-import type { IPointData } from "leafer-ui";
 import type EditorBoard from "../EditorBoard";
 
 export interface IEditorBoard extends EditorBoard {}
@@ -37,15 +36,6 @@ export enum ExecuteTypeEnum {
   MoveElement = 'move-element',
   BaseCommand = 'base-command',
   MultiDragElement = "multi-movale-element",
-}
-
-export interface IHistoryCommandProps {
-   elementId:string
-   tag: string 
-   editor: EditorBoard
-   oldXYValue: IPointData
-   newXYValue: IPointData
-   desc?: string
 }
 
 type OptionsType = {

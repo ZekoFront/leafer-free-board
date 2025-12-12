@@ -1,43 +1,45 @@
 <template>
     <div class="center">
-        <div 
-            v-for="(item, index) in toolbars" 
-            :key="item.type" 
-            :class="['icon-block', { 'active': currentIndex === index }]" 
-            :id="item.type" :title="item.title"
-            :draggable="item.draggable" 
-            @mousedown="handleClick(item, index)" 
-            @click="handleClick(item, index)">
-            <n-icon :size="22">
-                <component :is="item.icon"></component>
-            </n-icon>
+        <div class="center-tool-bar-wrapper">
+            <div 
+                v-for="(item, index) in toolbars" 
+                :key="item.type" 
+                :class="['icon-block', { 'active': currentIndex === index }]" 
+                :id="item.type" :title="item.title"
+                :draggable="item.draggable" 
+                @mousedown="handleClick(item, index)" 
+                @click="handleClick(item, index)">
+                <n-icon :size="22">
+                    <component :is="item.icon"></component>
+                </n-icon>
+            </div>
+            <div class="icon-block-blank">
+                <n-icon :size="22" color="#b7b7b9">
+                    <VerticalLineIcon></VerticalLineIcon>
+                </n-icon>
+            </div>
+            <div class="icon-block" title="添加图片" @click="uploadImage">
+                <n-icon :size="22">
+                    <ImageAddIcon></ImageAddIcon>
+                </n-icon>
+            </div>
+            <div class="icon-block icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
+                <n-icon :size="22">
+                    <UndoIcon></UndoIcon>
+                </n-icon>
+            </div>
+            <div class="icon-block icon-block--redo" title="重做" @click="editorBoard.history.redo()">
+                <n-icon :size="22">
+                    <RedoIcon></RedoIcon>
+                </n-icon>
+            </div>
+            <div class="icon-block icon-block--redo" title="清空画布" @click="handleClear">
+                <n-icon :size="22">
+                    <ClearIcon></ClearIcon>
+                </n-icon>
+            </div>
+            <button @click="printHistory">打印历史记录</button>
         </div>
-        <div class="icon-block-blank">
-            <n-icon :size="22" color="#b7b7b9">
-                <VerticalLineIcon></VerticalLineIcon>
-            </n-icon>
-        </div>
-        <div class="icon-block" title="添加图片" @click="uploadImage">
-            <n-icon :size="22">
-                <ImageAddIcon></ImageAddIcon>
-            </n-icon>
-        </div>
-        <div class="icon-block icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
-            <n-icon :size="22">
-                <UndoIcon></UndoIcon>
-            </n-icon>
-        </div>
-        <div class="icon-block icon-block--redo" title="重做" @click="editorBoard.history.redo()">
-            <n-icon :size="22">
-                <RedoIcon></RedoIcon>
-            </n-icon>
-        </div>
-        <div class="icon-block icon-block--redo" title="清空画布" @click="handleClear">
-            <n-icon :size="22">
-                <ClearIcon></ClearIcon>
-            </n-icon>
-        </div>
-        <button @click="printHistory">打印历史记录</button>
     </div>
 </template>
 

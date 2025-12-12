@@ -1,49 +1,49 @@
-import { ExecuteTypeEnum, type IHistoryCommandProps } from "@/editor/types";
+import { ExecuteTypeEnum } from "@/editor/types";
 import { BaseCommand } from "./BaseCommand";
-import type { IPointData } from "leafer-ui";
+import type { IMoveData, IMoveCommandProps } from "../interface/ICommand";
 
 export class MoveCommand extends BaseCommand {
     static tag: string
     static desc: string
-    public oldValue: IPointData
-    public newValue: IPointData
-
-    constructor(options: IHistoryCommandProps) {
-        super(options.elementId, options.editor, ExecuteTypeEnum.MoveElement);
-        MoveCommand.desc = options.desc || "拖拽元素命令"
+    // 核心数据：存储多个元素的变更
+    public moveList: IMoveData[] = [];
+    constructor(options: IMoveCommandProps) {
+        super("", options.editor, ExecuteTypeEnum.MoveElement);
+        MoveCommand.desc = options.desc || `移动 ${options.moveList.length} 个元素`;
         MoveCommand.tag = options.tag || ''
-        this.oldValue = options.oldXYValue
-        this.newValue = options.newXYValue
+        this.moveList = options.moveList;
         // 生成唯一ID
         this.id = this.editorBoard.generateId();
     }
 
-    // 重做用旧属性值
+    private updatePosition(type: 'new' | 'old') {
+        this.editorBoard.app.editor.cancel()
+        // 遍历列表，批量更新
+        this.moveList.forEach(item => {
+            // 通过 ID 查找元素
+            const element = this.editorBoard.app.tree.findId(item.id);
+            if (element) {
+                // 根据类型取值
+                const pos = type === 'new' ? item.new : item.old;
+                // LeaferJS 的 set 方法支持部分更新
+                element.set({ x: pos.x, y: pos.y });
+            }
+        });
+    }
+
+    // 重做用新属性值
     execute(): void {
-        // 批量修改待实现，根据批量element来处理...
-        // const element = this.getElement();
-        const element = this.editorBoard.app.tree.findId(this.elementId);
-        if (element) {
-            element.set({
-                x: this.newValue.x,
-                y: this.newValue.y
-            })
-        }
+       this.updatePosition('new');
     }
 
     // 撤回用旧属性值
     undo(): void{
-        // 批量修改待实现，根据批量element来处理...
-        const element = this.editorBoard.app.tree.findId(this.elementId);
-        if (element) {
-            element.set({
-                x: this.oldValue.x,
-                y: this.oldValue.y
-            })
-        }
+        this.updatePosition('old');
     }
+
+    // 重做
     redo(): void {
-        throw new Error("Method not implemented.");
+        this.execute();
     }
 
 }
