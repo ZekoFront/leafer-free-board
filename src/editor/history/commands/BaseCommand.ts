@@ -11,17 +11,23 @@ export abstract class BaseCommand implements ICommand {
     protected compressed: boolean = false;
     protected compressedData?: any;
     public elementId: string;
+    public tag: string;
+    public desc: string;
 
     constructor(
         elementId: string,
         editorBoard: EditorBoard,
-        executeType?: ExecuteTypes
+        executeType?: ExecuteTypes,
+        tag?: string,
+        desc?: string
     ) {
         this.editorBoard = editorBoard;
         this.type = executeType || ExecuteTypeEnum.BaseCommand;
         this.elementId = elementId;
         this.id = this.editorBoard.generateId();
         this.timestamp = Date.now();
+        this.tag = tag || "";
+        this.desc = desc || "";
     }
 
     abstract execute(): void;
@@ -59,7 +65,7 @@ export abstract class BaseCommand implements ICommand {
     }
 
     // 获取元素
-    public getElement() {
-        return this.editorBoard.getById(this.elementId);
+    public getElement(id?: string) {
+        return this.editorBoard.getById(id || this.elementId);
     }
 }

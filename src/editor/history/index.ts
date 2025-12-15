@@ -1,3 +1,4 @@
 export * from './HistoryManager'
-export * from './commands/AddElementCommand'
+export * from './commands/AddCommand'
 export * from './commands/MoveCommand'
+export * from './commands/UpdateAttrCommand'

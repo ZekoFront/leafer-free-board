@@ -6,7 +6,7 @@
             <HeaderRight :editor="editorBoard"></HeaderRight>
         </div>
         <div id="leafer" ref="boardRef" class="leafer-free-board--body"></div>
-        <ElementAttributes></ElementAttributes>
+        <ElementAttributes :editor="editorBoard"></ElementAttributes>
     </div>
 </template>
 <script setup lang="ts">

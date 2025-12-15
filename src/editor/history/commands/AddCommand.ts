@@ -11,14 +11,13 @@ interface IAddElementCommandProps {
 }
 
 // 新增元素命令
-export class AddElementCommand extends BaseCommand {
-    private tag: string
+export class AddCommand extends BaseCommand {
     private elementProps: IUIInputData
-    static desc: string
     constructor(props: IAddElementCommandProps) {
         super(props.element.id||"", props.editorBoard, ExecuteTypeEnum.AddElement)
         this.tag = props.element.tag||""
         this.elementProps = props.element
+        this.desc = props.desc || `添加元素: ${this.tag}`;
         // 命令唯一ID
         this.id = this.editorBoard.generateId();
     }
@@ -36,7 +35,7 @@ export class AddElementCommand extends BaseCommand {
     // 撤销：删除元素
     undo() {
         // 利用编辑器已有方法删除元素
-        const element = this.editorBoard.app.tree.findId(this.elementId);
+        const element = this.getElement(this.elementId);
         if (element) {
             element.remove();
         }

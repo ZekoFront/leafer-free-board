@@ -69,7 +69,7 @@ class EditorBoard extends EventEmitter {
     }
 
     public getById(elementId:string="") {
-        return this.elementMap.get(elementId);
+        return this.app.tree.findId(elementId)||this.elementMap.get(elementId);
     }
 
     // 绑定快捷键

@@ -1,16 +1,14 @@
 import { ExecuteTypeEnum } from "@/editor/types";
 import { BaseCommand } from "./BaseCommand";
-import type { IMoveData, IMoveCommandProps } from "../interface/ICommand";
+import type { IMoveData, IMoveCommandProps } from "../../types";
 
 export class MoveCommand extends BaseCommand {
-    static tag: string
-    static desc: string
     // 核心数据：存储多个元素的变更
     public moveList: IMoveData[] = [];
     constructor(options: IMoveCommandProps) {
         super("", options.editor, ExecuteTypeEnum.MoveElement);
-        MoveCommand.desc = options.desc || `移动 ${options.moveList.length} 个元素`;
-        MoveCommand.tag = options.tag || ''
+        this.desc = options.desc || `移动 ${options.moveList.length} 个元素`;
+        this.tag = options.tag || ''
         this.moveList = options.moveList;
         // 生成唯一ID
         this.id = this.editorBoard.generateId();
@@ -21,7 +19,7 @@ export class MoveCommand extends BaseCommand {
         // 遍历列表，批量更新
         this.moveList.forEach(item => {
             // 通过 ID 查找元素
-            const element = this.editorBoard.app.tree.findId(item.id);
+            const element = this.getElement(item.id);
             if (element) {
                 // 根据类型取值
                 const pos = type === 'new' ? item.new : item.old;

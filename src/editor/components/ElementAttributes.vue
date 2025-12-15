@@ -22,7 +22,7 @@
                     <div class="attribute-item arrow-type">
                         <div class="attribute-item__label">填充颜色</div>
                         <aside class="attribute-item__color-picker-swatches">
-                            <span v-for="(item, index) in colorPanel" :key="index+item" :style="{ background: item }"></span>
+                            <span class="cursor" v-for="(item, index) in colorPanel" :key="index+item" :style="{ background: item }" @click="handleColorClick(item)"></span>
                         </aside>
                         <n-color-picker
                             v-model:value="fillColor"
@@ -41,8 +41,17 @@
 <script setup lang="ts">
 defineOptions({ name: 'ElementAttributes' })
 import { Arrow  } from "@leafer-in/arrow";
+import { EditorBoard } from '@/editor'
 import { arrowTypes, colorPanel } from '@/editor/utils';
 import useSelectorListen from '@/hooks/useSelectorListen';
+import { ExecuteTypeEnum } from "@/editor/types"
+
+const { editor } = defineProps({
+    editor: {
+        type: Object as PropType<EditorBoard>,
+        default: EditorBoard
+    }
+})
 
 const { isSingle, selectedActive } = useSelectorListen()
 
@@ -59,6 +68,21 @@ const handleArrowTypeClick = (type: string) => {
         isArrowBothEnds.value && (selectedActive.value.startArrow = type);
         selectedActive.value.endArrow = type;
     }
+}
+
+const handleColorClick = (color: string) => {
+    //    console.log(color, selectedActive.value)
+    // 保留历史记录
+    editor.history.execute({
+        elementId: selectedActive.value?.id || '',
+        oldAttrs: { fill: selectedActive.value?.fill || '' },
+        newAttrs: { fill: color },
+        tag: selectedActive.value?.tag || '',
+        data: {
+            executeType: ExecuteTypeEnum.UpdateAttribute
+        }
+    })
+    selectedActive.value && (selectedActive.value.fill = color);
 }
 
 watch(() => fillColor.value, (newVal) => {

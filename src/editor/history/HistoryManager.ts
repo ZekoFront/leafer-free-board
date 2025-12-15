@@ -4,7 +4,7 @@ import { isEqual } from 'lodash-es'
 import type { ICommand } from "./interface/ICommand";
 import { ExecuteTypeEnum, type IPluginOption, type IPluginTempl } from '@/editor/types';
 import type { IUIInputData } from 'leafer-ui';
-import { AddElementCommand, MoveCommand } from './index';
+import { AddCommand, MoveCommand, UpdateAttrCommand } from './index';
 import type EditorBoard from '@/editor/EditorBoard';
 
 // 历史记录管理器 - 核心撤销重做逻辑
@@ -31,21 +31,24 @@ export class HistoryManager implements IPluginTempl {
 		// 新增元素命令
 		if (element.data.executeType === ExecuteTypeEnum.AddElement) {
 			element.type = ExecuteTypeEnum.AddElement
-			const command = new AddElementCommand({ element, editorBoard: this.editorBoard, type: ExecuteTypeEnum.AddElement })
+			const command = new AddCommand({ element, editorBoard: this.editorBoard, type: ExecuteTypeEnum.AddElement })
 			this.addCommand(command)
 		} else if (element.data.executeType === ExecuteTypeEnum.MoveElement) {
 			// 移动元素命令
-			// const command = new MoveCommand({
-			// 	elementId: element.data.elementId,
-			// 	tag: element.tag||"",
-			// 	editor: this.editorBoard,
-			// 	oldXYValue: element.data.oldXYValue,
-			// 	newXYValue: element.data.newXYValue
-			// })
 			const command = new MoveCommand({
 				moveList: element.data.moveList,
 				tag: element.tag || "",
 				editor: this.editorBoard
+			})
+			this.addCommand(command)
+		} else if (element.data.executeType === ExecuteTypeEnum.UpdateAttribute) {
+			// 更新元素属性
+			const command = new UpdateAttrCommand({ 
+				elementId: element.elementId, 
+				editor: this.editorBoard, 
+				oldAttrs: element.oldAttrs, 
+				newAttrs: element.newAttrs,
+				tag: element.tag || "" 
 			})
 			this.addCommand(command)
 		}
@@ -115,7 +118,7 @@ export class HistoryManager implements IPluginTempl {
 	redo() {
 		if (this.canRedo()) {
 			const command = this.redoStack.pop() as ICommand
-			command.execute();
+			command.redo();
 			this.undoStack.push(command);
 		}
 	}

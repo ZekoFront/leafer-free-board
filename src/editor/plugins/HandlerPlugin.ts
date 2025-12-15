@@ -4,7 +4,7 @@ import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import { LeaferEvent, DragEvent, type IUI } from "leafer-ui";
 import { EditorEvent } from "leafer-editor";
 import { isArray, isNull, isObject } from "lodash-es";
-import type { IMoveData } from "../history/interface/ICommand";
+import type { IMoveData } from "../types";
 
 class HandlerPlugin implements IPluginTempl {
     static pluginName = 'HandlerPlugin';
@@ -38,6 +38,7 @@ class HandlerPlugin implements IPluginTempl {
         // 单个拖拽元素触发
         if (evt.target.id) {
             this.editorBoard.onDragStartElement(evt.target)
+            this.dragStartSnapshot.set(evt.target.id || '', { x: evt.target.x || 0, y: evt.target.y || 0 });
         }
         // 多选开始拖拽
         else if (this.newSelectedElements&&this.newSelectedElements.length) {
@@ -94,15 +95,15 @@ class HandlerPlugin implements IPluginTempl {
     private _listenSelectEvent = (evt: EditorEvent) => {
         if (isArray(evt.value)) {
             this.selectedMode = SelectMode.MULTIPLE
-            this.editorBoard.emit(SelectEvent.MULTIPLE, evt.editor.target)
+            this.editorBoard.emit(SelectEvent.MULTIPLE, evt.value)
             this._setSelect(evt.value)
         } else if (isObject(evt.value)) {
             this.selectedMode = SelectMode.SINGLE
-            this.editorBoard.emit(SelectEvent.SINGLE, evt.editor.target)
+            this.editorBoard.emit(SelectEvent.SINGLE, evt.value)
             this._setSelect([evt.value])
         } else if (isNull(evt.value)) {
             this.selectedMode = SelectMode.EMPTY
-            this.editorBoard.emit(SelectEvent.EMPTY, evt.editor.target)
+            this.editorBoard.emit(SelectEvent.EMPTY, evt.value)
         }
     }
 
