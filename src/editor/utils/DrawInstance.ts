@@ -38,7 +38,7 @@ export const drawBoxText = (point:IPointData) => {
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         editable: true,
         resizeChildren: true, // 同时 resize 文本
-        strokeWidth: 1,
+        strokeWidth: 0,
         stroke: "#32cd79",
         children: [{
             id: uuidv4(),

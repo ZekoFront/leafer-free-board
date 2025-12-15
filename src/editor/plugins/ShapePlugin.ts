@@ -40,7 +40,6 @@ export class ShapePlugin implements IPluginTempl {
             this.editorBoard.app.editor.config.selector = true
         }
         this.callBack = callBack
-        console.log('激活工具:', type)
     }
 
     private _listenners() {

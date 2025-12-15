@@ -88,9 +88,51 @@
         .attribute-item {
             border-bottom: 1px solid #e5e7eb;
             padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
             &__label {
                 font-size: 0.75rem;
                 font-weight: 700;
+                flex-shrink: 0;
+            }
+            &__font-style {
+                .item__icon {
+                    margin: 0rem .2rem;
+                    border-radius: 0.2rem;
+                    padding: 0.1rem 0rem;
+                    &.active {
+                        background: rgba(24, 160, 88, 0.16);
+                        svg {
+                            path {
+                                fill: #18a058;
+                                stroke: #18a058;
+                                stroke-width: 2px;
+                            }
+                        }
+                    }
+                    &:hover {
+                        background: rgba(24, 160, 88, 0.16);
+                    }
+                }
+            }
+            &__input {
+                margin: 0.5rem 0rem;
+            }
+            &__flex {
+                display: flex;
+                align-items: center;
+                span {
+                    flex-shrink: 0;
+                }
+            }
+            &__zindex {
+                margin-top: 0.5rem;
+                max-height: 300px;
+                overflow-y: auto;
+                .zindex-item {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                }
             }
             &__color-picker-swatches {
                 display: grid;
@@ -98,7 +140,7 @@
                 flex-wrap: wrap;
                 position: relative;
                 grid-template-columns: repeat(auto-fill, 18px);
-                margin: 1rem 0rem;
+                margin: 0.5rem 0rem;
                 span {
                     display: inline-block;
                     width: 18px;
@@ -122,6 +164,20 @@
                         border-color: #32cd79;
                         cursor: pointer;
                     }
+                }
+            }
+            .stroke-color-picker {
+                span {
+                    flex: 0 0 18px;
+                    display: inline-block;
+                    width: 18px;
+                    height: 18px;
+                    margin: 0 0.2rem;
+                    border-radius: 3px;
+                    box-shadow: rgba(0, 0, 0, .15) 0px 0px 0px 1px inset;
+                }
+                .n-color-picker {
+                    flex: 0 0 66px;
                 }
             }
         }

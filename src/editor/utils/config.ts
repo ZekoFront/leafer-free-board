@@ -10,8 +10,10 @@ import {
     squareLineIcon,
     diamondIcon,
     diamondLineIcon,
-    markIcon
+    markIcon,
 } from '@/assets/arrow'
+
+import { BoldIcon, ItalicIcon, UnderlineIcon } from '@/assets/icons'
 
 export const arrowTypes = [
     {
@@ -81,6 +83,45 @@ export const colorPanel = [
     '#90EE90', '#00CED1', '#1E90FF', '#C71585', '#32CD79', '#CCCCCC', '#000000',
     '#808080', '#404040', '#ABCDEF', '#FF4500', '#CC5800', '#FAD000', '#94E094',
     '#00BFBF', '#2680F0', '#C71585', '#FFFFFF', 
+]
+
+export const strokeColorList = [
+    "#1e1e1e",
+    "#e03131",
+    "#2f9e44",
+    "#1971c2",
+    "#f08c00"
+]
+
+export const fontWeightList = [
+    { label: 'normal', value: 'normal' },
+    { label: '100', value: 100 },
+    { label: '200', value: 200 },
+    { label: '300', value: 300 },
+    { label: '400', value: 400 },
+    { label: '500', value: 500 },
+    { label: '600', value: 600 },
+    { label: '700', value: 700 },
+    { label: '800', value: 800 },
+    { label: '900', value: 900 }
+]
+
+export const fontStyleList = [
+    {
+        label: '粗体',
+        value: 'bold',
+        icon: BoldIcon
+    }, 
+    {
+        label: '斜体',
+        value: 'italic',
+        icon: ItalicIcon
+    }, 
+    {
+        label: '下划线',
+        value: 'under',
+        icon: UnderlineIcon
+    }
 ]
 
 export const exportOptions = [
