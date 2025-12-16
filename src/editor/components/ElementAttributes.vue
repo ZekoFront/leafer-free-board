@@ -31,7 +31,7 @@
                             <img class="arrow-item__icon" v-for="item in arrowTypes" :key="item.key" @click="handleArrowTypeClick(item.key)" :src="item.icon" alt="" :title="item.label">
                         </div>
                     </div>
-                    <div class="attribute-item arrow-type">
+                    <div class="attribute-item arrow-type" v-if="['Box','Rect', 'Text'].includes(selectedActive.tag as string)">
                         <div class="attribute-item__label">填充颜色</div>
                         <aside class="attribute-item__color-picker-swatches">
                             <span class="cursor" v-for="(item, index) in colorPanel" :key="index+item" :style="{ background: item }" @click="handleColorClick(item)"></span>

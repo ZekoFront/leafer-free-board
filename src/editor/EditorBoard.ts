@@ -18,11 +18,15 @@ class EditorBoard extends EventEmitter {
     private customEvents: string[] = [];
     // 自定义API
     private customApis: string[] = [];
-    public elementMap = new Map();
+
+    constructor() {
+        super();
+        this.history = new HistoryManager(this, { maxHistorySize: 50 });
+    }
 
     public init(app: App) {
         this.app = app
-        this.history = new HistoryManager(this, { maxHistorySize: 50 })
+        // this.history = new HistoryManager(this, { maxHistorySize: 50 })
         this._initHandlerPlugin()
     }
 
@@ -52,7 +56,6 @@ class EditorBoard extends EventEmitter {
 
         if (!element.id) element.id = this.generateId();
         this.app.tree.add(element);
-        this.elementMap.set(element.id, element);
 
         return element;
     }
@@ -62,14 +65,13 @@ class EditorBoard extends EventEmitter {
         const element = this.getById(elementId);
         if (element && this.app.tree) {
             this.app.tree.remove(element);
-            this.elementMap.delete(elementId);
             return true;
         }
         return false;
     }
 
     public getById(elementId:string="") {
-        return this.app.tree.findId(elementId)||this.elementMap.get(elementId);
+        return this.app.tree.findId(elementId);
     }
 
     // 绑定快捷键
@@ -134,7 +136,6 @@ class EditorBoard extends EventEmitter {
         this.pluginMap = {};
         this.customEvents = [];
         this.customApis = [];
-        this.elementMap = new Map();
         this.dragElement = {} as ILeaf;
         this.history = {} as HistoryManager;
     }

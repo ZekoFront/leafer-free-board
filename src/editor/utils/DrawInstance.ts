@@ -72,3 +72,34 @@ export const drawText = (point:IPointData) => {
         y: point.y
     })
 }
+
+
+export const drawCircleText = (point:IPointData) => {
+    return new Box({
+        name: 'CircleText',
+        x: point.x,
+        y: point.y,
+        height: 100,
+        width: 100,
+        fill: '#32cd79',
+        cornerRadius: 1000,
+        lockRatio: true,
+        textBox: true,
+        hitChildren: true, // false:阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
+        editable: true,
+        resizeChildren: false,
+        overflow: 'hide',
+        children: [{
+            tag: 'Text',
+            x: 6,
+            y: 30,
+            text: '双击编辑',
+            fill: '#ffffff',
+            padding: [10, 20],
+            textAlign: 'left',
+            verticalAlign: 'top',
+            editable: true,
+            draggable: true
+        }]
+    })
+}

@@ -1,5 +1,5 @@
 import { type IPointData, type IUIInputData } from "leafer-ui";
-import { drawArrow, drawBoxText, drawText } from "./DrawInstance";
+import { drawArrow, drawBoxText, drawText, drawCircleText } from "./DrawInstance";
 
 export function createShape(type: string, point:IPointData) {
     let element:IUIInputData;
@@ -12,6 +12,9 @@ export function createShape(type: string, point:IPointData) {
             break;
         case 'arrow':
             element = drawArrow(point)
+            break;
+        case 'circle':
+            element = drawCircleText(point)
             break;
         default:
             element = {} as IUIInputData

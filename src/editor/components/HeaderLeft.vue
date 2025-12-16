@@ -1,9 +1,13 @@
 <template>
-    <n-dropdown trigger="click" :options="exportOptions" :show-arrow="true" @select="handleSelect">
-        <n-icon title="导出" :size="26">
-            <MenuLeftIcon></MenuLeftIcon>
-        </n-icon>
-    </n-dropdown>
+    <div class="left header-left default-shadow__wrapper">
+        <div class="icon-block">
+            <n-dropdown trigger="click" :options="exportOptions" :show-arrow="true" @select="handleSelect">
+                <n-icon class="cursor" title="导出" :size="22">
+                    <MenuLeftIcon></MenuLeftIcon>
+                </n-icon>
+            </n-dropdown>
+        </div>
+    </div>
 </template>
 <script setup lang="ts">
 import type { PropType } from 'vue'
@@ -30,3 +34,13 @@ const handleSelect = (type: string) => {
         
 }
 </script>
+
+<style lang="scss">
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px 12px;
+    width: fit-content;
+}
+</style>

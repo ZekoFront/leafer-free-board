@@ -1,4 +1,3 @@
-// import { CompositeCommand } from './commands/CompositeCommand.js';
 import { isEqual } from 'lodash-es'
 
 import type { ICommand } from "./interface/ICommand";
@@ -15,14 +14,12 @@ export class HistoryManager implements IPluginTempl {
 	private maxHistorySize: number // 历史记录最大数量
 	private undoStack: ICommand[] = [] // 撤销栈
   	private redoStack: ICommand[] = [] // 重做栈
-	// private cleaning: boolean = false // 是否正在清理
 	private currentBatch: ICommand | null = null // 当前批量操作命令
 	constructor(public editorBoard: EditorBoard, options: IPluginOption) {
 		this.maxHistorySize = Number(options.maxHistorySize) || 50;
 		this.undoStack = [];
 		this.redoStack = [];
 		this.currentBatch = null;
-		// this.cleaning = false
 	}
 
 	// 执行命令
@@ -76,6 +73,8 @@ export class HistoryManager implements IPluginTempl {
 		if (this.undoStack.length > this.maxHistorySize) {
 			this.undoStack.shift();
 		}
+
+		this.editorBoard.emit('history:change', this.state());
 	}
 
 	// 开始批量操作
@@ -83,8 +82,7 @@ export class HistoryManager implements IPluginTempl {
 		if (this.currentBatch) {
 			this.endBatch();
 		}
-		// this.currentBatch = new CompositeCommand();
-		console.log('beginBatch', this.currentBatch)
+		// console.log('beginBatch', this.currentBatch)
 	}
 
 	// 结束批量操作
@@ -111,6 +109,7 @@ export class HistoryManager implements IPluginTempl {
 			const command = this.undoStack.pop() as ICommand
 			command.undo()
 			this.redoStack.push(command)
+			this.editorBoard.emit('history:change', this.state());
 		}
 	}
 
@@ -120,6 +119,7 @@ export class HistoryManager implements IPluginTempl {
 			const command = this.redoStack.pop() as ICommand
 			command.redo();
 			this.undoStack.push(command);
+			this.editorBoard.emit('history:change', this.state());
 		}
 	}
 

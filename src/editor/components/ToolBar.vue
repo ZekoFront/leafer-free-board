@@ -1,6 +1,6 @@
 <template>
     <div class="center">
-        <div class="center-tool-bar-wrapper">
+        <div class="center-tool-bar-wrapper default-shadow__wrapper">
             <div 
                 v-for="(item, index) in toolbars" 
                 :key="item.type" 
@@ -23,12 +23,12 @@
                     <ImageAddIcon></ImageAddIcon>
                 </n-icon>
             </div>
-            <div class="icon-block icon-block--undo" title="撤销" @click="editorBoard.history.undo()">
+            <div :class="['icon-block', 'icon-block--undo', {'disabled': !isCanUndo}, { 'active-icon': isCanUndo }]" title="撤销" @click="isCanUndo&&editorBoard.history.undo()">
                 <n-icon :size="22">
                     <UndoIcon></UndoIcon>
                 </n-icon>
             </div>
-            <div class="icon-block icon-block--redo" title="重做" @click="editorBoard.history.redo()">
+            <div :class="['icon-block', 'icon-block--redo', {'disabled': !iscanRedo}, { 'active-icon': iscanRedo }]" title="重做" @click="iscanRedo&&editorBoard.history.redo()">
                 <n-icon :size="22">
                     <RedoIcon></RedoIcon>
                 </n-icon>
@@ -126,4 +126,22 @@ const printHistory = () => {
     // 添加历史记录
     console.log('历史记录:', editorBoard.history.state())
 }
+
+const isCanUndo = ref(false)
+const iscanRedo = ref(false)
+
+const updateHistoryState = (state: any) => {
+    // console.log('历史记录:', state)
+    isCanUndo.value = state.canUndo
+    iscanRedo.value = state.canRedo
+}
+
+onMounted(() => {
+    editorBoard.on('history:change', updateHistoryState)
+})
+
+onUnmounted(() => {
+    // 解绑，防止内存泄漏
+    editorBoard.off('history:change', updateHistoryState)
+})
 </script>

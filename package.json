@@ -11,6 +11,7 @@
   "dependencies": {
     "@leafer-in/arrow": "^1.11.1",
     "@leafer-in/editor": "^1.11.1",
+    "@leafer-in/flow": "^1.11.1",
     "@leafer-in/resize": "^1.11.1",
     "@leafer-in/state": "^1.11.1",
     "@leafer-in/text-editor": "^1.11.1",

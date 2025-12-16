@@ -12,12 +12,13 @@ interface IAddElementCommandProps {
 
 // 新增元素命令
 export class AddCommand extends BaseCommand {
-    private elementProps: IUIInputData
+    private data: IUIInputData
     constructor(props: IAddElementCommandProps) {
         super(props.element.id||"", props.editorBoard, ExecuteTypeEnum.AddElement)
         this.tag = props.element.tag||""
-        this.elementProps = props.element
         this.desc = props.desc || `添加元素: ${this.tag}`;
+        const json = props.element.toJSON();
+        this.data = json
         // 命令唯一ID
         this.id = this.editorBoard.generateId();
     }
@@ -26,8 +27,8 @@ export class AddCommand extends BaseCommand {
     execute() {
         // 利用编辑器已有方法创建并添加元素（保证逻辑一致性）
         // 使用 tag 创建leafer元素@see:https://www.leaferjs.com/ui/guide/basic/display.html#%E4%BD%BF%E7%94%A8-tag
-        if (this.elementProps) {
-            this.editorBoard.app.tree.add(this.elementProps);
+        if (this.data) {
+            this.editorBoard.app.tree.add(this.data);
             // this.editorBoard.addLeaferElement(this.elementProps);
         }
     }
