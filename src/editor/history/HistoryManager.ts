@@ -133,6 +133,13 @@ export class HistoryManager implements IPluginTempl {
 		return this.redoStack.length > 0;
 	}
 
+	// 清空
+	clear() {
+		this.undoStack = [];
+		this.redoStack = [];
+		this.currentBatch = null;
+	}
+
 	// 清空历史记录
 	destroy() {
 		this.undoStack = [];
