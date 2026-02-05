@@ -3,7 +3,7 @@ import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import { LeaferEvent, DragEvent, type IUI, Line, Path } from "leafer-ui";
 import { EditorEvent } from "leafer-editor";
-import { cloneDeep, isArray, isNull, isObject } from "lodash-es";
+import { cloneDeep, isArray, isEqual, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../types";
 
 class HandlerPlugin implements IPluginTempl {
@@ -75,7 +75,7 @@ class HandlerPlugin implements IPluginTempl {
                 this.lineStartSnapshot.set(line.id, {
                     // 注意：数组必须深拷贝 [...array]，否则引用变了历史记录也跟着变
                     points: cloneDeep(newLine.points) as number[],
-                    path: newLine.path as string
+                    path: cloneDeep(newLine.path) as string
                 })
             }
         })
@@ -108,14 +108,16 @@ class HandlerPlugin implements IPluginTempl {
                 this.lineStartSnapshot.forEach((oldState, lineId) => {
                     const currentLine = this.editorBoard.app.tree.findId(lineId);
                     if (!currentLine) return;
+
                     let hasChanged = false;
                     const newState: any = {};
                     const oldStateRecord: any = {};
+
                     // 检查 Line (points 变化)
                     if (currentLine.tag === 'Line' && oldState.points) {
                         const currentPoints = (currentLine as Line).points;
                         // 简单对比数组长度或内容 (这里用 JSON.stringify 简单判断)
-                        if (JSON.stringify(currentPoints) !== JSON.stringify(oldState.points)) {
+                        if (!isEqual(currentPoints, oldState.points)) {
                             hasChanged = true;
                             newState.points = currentPoints; // 引用当前的新 points
                             oldStateRecord.points = oldState.points; // 之前的旧 points
