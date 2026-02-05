@@ -8,7 +8,7 @@ import { createShape } from "../utils/creatShape";
 
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
-    static apis = ['setToolbarActive', 'onDragMoveElement', 'onDragStartElement'];
+    static apis = ['setToolbarActive', 'onDragMoveElement', 'onDragStartElement', 'getShapePluginRelatedLines'];
     static hotkeys: string[]= [];
     static events = ['testEvent'];
     public toolbars = toolbars;
@@ -117,7 +117,7 @@ export class ShapePlugin implements IPluginTempl {
             else if (this.drawMode == 'line') {
                 this._tempElement(evt)
             } 
-            // 绘制直线
+            // 绘制曲线
             else if (this.drawMode == 'curve') {
                 this._tempElement(evt)
             }
@@ -147,11 +147,6 @@ export class ShapePlugin implements IPluginTempl {
         }
     }
     private _onUpPointer = (_evt:PointerEvent) => {
-        if (this.element && this.element.data) {
-            this.element.data.executeType = ExecuteTypeEnum.AddElement
-            this.editorBoard.history.execute(this.element)
-        }
-        
         this.editorBoard.app.editor.config.selector = true
         this.editorBoard.app.cursor = 'default'
 
@@ -162,7 +157,14 @@ export class ShapePlugin implements IPluginTempl {
             if (endRect && endRect !== this.startRect) {
                 this._createConnection(this.startRect, endRect as IUIInputData)
             }
+            // 删除辅助线
             this.element&&this.element.remove()
+        }
+
+        // 绘制普通箭头元素
+        else if (this.drawMode == 'arrow' && this.element && this.element.data) {
+            this.element.data.executeType = ExecuteTypeEnum.AddElement
+            this.editorBoard.history.execute(this.element)
         }
 
         this.element = null
@@ -231,7 +233,7 @@ export class ShapePlugin implements IPluginTempl {
             // 放到最底层
             // this.editorBoard.app.tree.addAt(path, 0) 
         } else if (this.drawMode == 'line') {
-            // 创建直线
+            // 创建连接箭头直线
             line = new Line({
                 editable: true,
                 stroke: '#555', strokeWidth: 2, dashPattern: [0, 0],
@@ -242,7 +244,11 @@ export class ShapePlugin implements IPluginTempl {
         }
 
         if (line) {
+            line.data && (line.data.executeType = ExecuteTypeEnum.AddElement)
+            // 添加元素到画布
             this.editorBoard.addLeaferElement(line)
+            // 添加历史记录
+            this.editorBoard.history.execute(line)
             this.connections.push({ from: startRect, to: endRect, line: line })
         }
     }
@@ -333,10 +339,12 @@ export class ShapePlugin implements IPluginTempl {
         return `M ${p0.x} ${p0.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${p3.x} ${p3.y}`;
     }
 
+    // 拖拽开始选中元素
     public onDragStartElement (ele: IUIInputData) {
         this.draggingNode = ele
     }
 
+    // 拖拽移动更新相关连接线
     public onDragMoveElement () {
         // 绘制模式下不触发更新
         if (this.drawMode || !this.draggingNode) return
@@ -344,6 +352,7 @@ export class ShapePlugin implements IPluginTempl {
         this._updateRelatedLines(this.draggingNode)
     }
 
+    // 更新相关连接线
     private _updateRelatedLines(movingRect:IUIInputData) {
         this.connections.forEach(conn => {
             if (isEqual(conn.from, movingRect) || isEqual(conn.to, movingRect)) {
@@ -359,6 +368,15 @@ export class ShapePlugin implements IPluginTempl {
                 }
             }
         })
+    }
+
+    // 暴露给 HandlerPlugin 使用，获取某个元素关联的所有线条
+    public getShapePluginRelatedLines(node: IUIInputData): IUI[] {
+        // 过滤出与 node 相关的连接 (from 或 to 是 node)
+        // 并返回其中的 line 对象
+        return this.connections
+            .filter(conn => isEqual(conn.from, node) || isEqual(conn.to, node))
+            .map(conn => conn.line as IUI);
     }
 
     public destroy () {

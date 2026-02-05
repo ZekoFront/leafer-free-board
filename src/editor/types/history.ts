@@ -14,14 +14,16 @@ export interface IHistoryCommandProps {
 
 export interface IMoveData {
     id: string
-    old: {
-        x: number
-        y: number
-    }
-    new: {
-        x: number
-        y: number
-    }
+    // old: {
+    //     x: number
+    //     y: number
+    // }
+    // new: {
+    //     x: number
+    //     y: number
+    // }
+    old: Record<string, any>; 
+    new: Record<string, any>;
 }
 
 export type ExecuteTypes = 'add-element' | 'delete-element' | 'update-attribute' | 'move-element' | 'multi-movale-element';

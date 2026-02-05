@@ -2,6 +2,7 @@ import { ExecuteTypeEnum } from "@/editor/types";
 import type { IUpdateAttrCommandProps } from "../../types";
 import { BaseCommand } from "./BaseCommand";
 
+// 更新属性命令
 export class UpdateAttrCommand extends BaseCommand {
     // 存储变更前后的属性键值对
     // 例如: { fill: "#FF0000", width: 100 }

@@ -2,6 +2,7 @@ import { ExecuteTypeEnum } from "@/editor/types";
 import { BaseCommand } from "./BaseCommand";
 import type { IMoveData, IMoveCommandProps } from "../../types";
 
+// 移动单个元素命令
 export class MoveCommand extends BaseCommand {
     // 核心数据：存储多个元素的变更
     public moveList: IMoveData[] = [];
@@ -22,9 +23,13 @@ export class MoveCommand extends BaseCommand {
             const element = this.getElement(item.id);
             if (element) {
                 // 根据类型取值
-                const pos = type === 'new' ? item.new : item.old;
+                // const pos = type === 'new' ? item.new : item.old;
                 // LeaferJS 的 set 方法支持部分更新
-                element.set({ x: pos.x, y: pos.y });
+                // element.set({ x: pos.x, y: pos.y });
+                const props = type === 'new' ? item.new : item.old;
+                // LeaferJS 的 element.set() 支持传入 Partial<IUIInputData>
+                // 这样无论是 x/y 变化，还是 points/path 变化，都能统一处理
+                element.set(props);
             }
         });
     }

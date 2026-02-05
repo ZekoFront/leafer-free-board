@@ -5,4 +5,5 @@ export enum ExecuteTypeEnum {
     MoveElement = 'move-element',
     BaseCommand = 'base-command',
     MultiDragElement = "multi-movale-element",
+    CompoundCommand = 'compound-command',
 }

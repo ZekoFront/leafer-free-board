@@ -1,9 +1,9 @@
 import { SelectEvent, SelectMode } from "@/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
-import { LeaferEvent, DragEvent, type IUI } from "leafer-ui";
+import { LeaferEvent, DragEvent, type IUI, Line, Path } from "leafer-ui";
 import { EditorEvent } from "leafer-editor";
-import { isArray, isNull, isObject } from "lodash-es";
+import { cloneDeep, isArray, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../types";
 
 class HandlerPlugin implements IPluginTempl {
@@ -11,6 +11,8 @@ class HandlerPlugin implements IPluginTempl {
     static apis = ['getSelectMode'];
     public selectedMode: SelectMode;
     private newSelectedElements: IUI[] = []
+    // Key: 线条ID, Value: 线条的关键属性 (points 或 path)
+    private lineStartSnapshot: Map<string, { points?: number[], path?: string }> = new Map();
     
     constructor(public editorBoard: EditorBoard) {
         this.selectedMode = SelectMode.EMPTY
@@ -51,6 +53,32 @@ class HandlerPlugin implements IPluginTempl {
                 }
             })
         }
+
+        // 清空旧快照
+        this.lineStartSnapshot.clear();
+
+        // 收集所有被拖拽元素关联的线条
+        const targets = this.newSelectedElements.length ? this.newSelectedElements : [evt.target];
+        // 使用 Set 去重
+        const relatedLines = new Set<IUI>(); 
+
+        targets.forEach(target => {
+            const lines = this.editorBoard.getShapePluginRelatedLines(target)
+            lines.forEach((line: IUI) => relatedLines.add(line))
+        })
+
+        // 记录线条初始状态
+        relatedLines.forEach(line => {
+            // 存在id才添加
+            if (line && line.id) {
+                const newLine:Line = line as Line;
+                this.lineStartSnapshot.set(line.id, {
+                    // 注意：数组必须深拷贝 [...array]，否则引用变了历史记录也跟着变
+                    points: cloneDeep(newLine.points) as number[],
+                    path: newLine.path as string
+                })
+            }
+        })
     }
 
     private _listenDragMoveEvent = (evt:DragEvent) => {
@@ -74,6 +102,47 @@ class HandlerPlugin implements IPluginTempl {
                     });
                 }
             });
+
+            // 检查关联线条变化
+            if (this.lineStartSnapshot.size > 0) {
+                this.lineStartSnapshot.forEach((oldState, lineId) => {
+                    const currentLine = this.editorBoard.app.tree.findId(lineId);
+                    if (!currentLine) return;
+                    let hasChanged = false;
+                    const newState: any = {};
+                    const oldStateRecord: any = {};
+                    // 检查 Line (points 变化)
+                    if (currentLine.tag === 'Line' && oldState.points) {
+                        const currentPoints = (currentLine as Line).points;
+                        // 简单对比数组长度或内容 (这里用 JSON.stringify 简单判断)
+                        if (JSON.stringify(currentPoints) !== JSON.stringify(oldState.points)) {
+                            hasChanged = true;
+                            newState.points = currentPoints; // 引用当前的新 points
+                            oldStateRecord.points = oldState.points; // 之前的旧 points
+                        }
+                    } 
+                    // 检查 Path (path 字符串变化)
+                    else if (currentLine.tag === 'Path' && oldState.path) {
+                        const currentPath = (currentLine as Path).path;
+                        if (currentPath !== oldState.path) {
+                            hasChanged = true;
+                            newState.path = currentPath;
+                            oldStateRecord.path = oldState.path;
+                        }
+                    }
+
+                    if (hasChanged) {
+                        moveList.push({
+                            id: lineId,
+                            old: oldStateRecord,
+                            new: newState
+                        });
+                    }
+                })
+
+                // 清理快照
+                this.lineStartSnapshot.clear();
+            }
 
             // 添加操作记录
             if (moveList.length > 0) {
