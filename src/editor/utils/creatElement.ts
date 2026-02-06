@@ -133,6 +133,7 @@ export const drawCircleText = (point: IPointData):IUI => {
         y: 10,
         textWrap: 'break', 
         dragBounds: 'parent', // 限制元素拖动范围
+        padding: [15 , 5],
         boxStyle: {
             // fill: 'blue',
             // strokeWidth: 1,
@@ -143,7 +144,7 @@ export const drawCircleText = (point: IPointData):IUI => {
     })
 
     const group = new Group({
-        name: 'CircleText',
+        name: 'GroupCircleText',
         editable: true,
         x: point.x,
         y: point.y,

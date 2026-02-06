@@ -1,4 +1,4 @@
-import { Line, Path, PointerEvent, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
+import { Line, Path, PointerEvent, type ILeaf, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
 import { isEqual } from 'lodash-es'
 import type EditorBoard from "../EditorBoard";
@@ -153,11 +153,20 @@ export class ShapePlugin implements IPluginTempl {
         // 绘制最终线段，替换虚线
         if (['line', 'curve'].includes(this.drawMode)&&this.startRect) {
             const dropResult = this.editorBoard.app.tree.pick({ x: _evt.x, y: _evt.y })
-            console.log('dropResult:', dropResult)
+            // console.log('dropResult:', dropResult.target.parent?.tag)
             const endRect = dropResult.target
-            if (endRect && endRect !== this.startRect) {
-                this._createConnection(this.startRect, endRect as IUIInputData)
+            if (endRect) {
+                // 兼容分组元素连线
+                const group = endRect.parent
+                if (group?.tag === 'Group' && group !== this.startRect) {
+                    this._createConnection(this.startRect, group as IUIInputData)
+                } else if (endRect !== this.startRect){
+                    this._createConnection(this.startRect, endRect as IUIInputData)
+                }
             }
+            // if (endRect && endRect !== this.startRect) {
+            //     this._createConnection(this.startRect, endRect as IUIInputData)
+            // }
             // 删除辅助线
             this.element&&this.element.remove()
         }
