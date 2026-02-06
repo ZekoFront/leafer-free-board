@@ -153,6 +153,7 @@ export class ShapePlugin implements IPluginTempl {
         // 绘制最终线段，替换虚线
         if (['line', 'curve'].includes(this.drawMode)&&this.startRect) {
             const dropResult = this.editorBoard.app.tree.pick({ x: _evt.x, y: _evt.y })
+            console.log('dropResult:', dropResult)
             const endRect = dropResult.target
             if (endRect && endRect !== this.startRect) {
                 this._createConnection(this.startRect, endRect as IUIInputData)

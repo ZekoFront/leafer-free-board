@@ -110,13 +110,12 @@ export const drawCircleText = (point: IPointData):IUI => {
     const PADDING = 20; 
 
     const circle = new Ellipse({
-        name: 'CircleText',
         editable: false,
         width: 150,
         height: 150,
         x: 0,
         y: 0,
-        fill: defaultOptions.fill
+        fill: defaultOptions.fill,
     })
 
     const text = new Text({
@@ -133,6 +132,7 @@ export const drawCircleText = (point: IPointData):IUI => {
         x: 10, 
         y: 10,
         textWrap: 'break', 
+        dragBounds: 'parent', // 限制元素拖动范围
         boxStyle: {
             // fill: 'blue',
             // strokeWidth: 1,
@@ -143,11 +143,13 @@ export const drawCircleText = (point: IPointData):IUI => {
     })
 
     const group = new Group({
+        name: 'CircleText',
         editable: true,
         x: point.x,
         y: point.y,
         width: 150,
         height: 150,
+        fill: 'rgba(0,0,0,0)',
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         children: [circle, text],
     })
