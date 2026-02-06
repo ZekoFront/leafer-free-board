@@ -33,6 +33,11 @@
                     <RedoIcon></RedoIcon>
                 </n-icon>
             </div>
+            <div :class="['icon-block', 'icon-block--redo', { 'disabled': !selectedMode },{ 'active-icon': selectedMode }]" title="删除" @click="handleDelete">
+                <n-icon>
+                    <DeleteIcon/>
+                </n-icon>
+            </div>
             <div class="icon-block icon-block--redo" title="清空画布" @click="handleClear">
                 <n-icon :size="22">
                     <ClearIcon></ClearIcon>
@@ -45,14 +50,26 @@
 
 <script setup lang="ts">
 import { Image, ImageEvent } from 'leafer-ui'    
-import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon, ClearIcon } from '@/assets/icons'
+import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon, ClearIcon, DeleteIcon } from '@/assets/icons'
 import { ExecuteTypeEnum, type IDrawState, type IToolBar } from '../types'
 import useSelectorListen from '@/hooks/useSelectorListen';
 import { toolbars as toolBarMenu } from "@/editor/utils";
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete"
 
-const { editorBoard } = useSelectorListen()
+const { editorBoard, selectedMode } = useSelectorListen()
 const { dialog } = useNaiveDiscrete()
+
+const currentIndex = ref<number>(0)
+const toolbars = shallowRef<IToolBar[]>(toolBarMenu)
+
+const handleClick = (item: IToolBar, index: number) => {
+    currentIndex.value = index
+    editorBoard.setToolbarActive(item.type, (state?:IDrawState) => {
+        if (state?.type === item.type) {
+            currentIndex.value = 0
+        }
+    })
+}
 
 const handleClear = () => {
     dialog.warning({
@@ -68,16 +85,8 @@ const handleClear = () => {
   })
 }
 
-const currentIndex = ref<number>(0)
-const toolbars = shallowRef<IToolBar[]>(toolBarMenu)
-
-const handleClick = (item: IToolBar, index: number) => {
-    currentIndex.value = index
-    editorBoard.setToolbarActive(item.type, (state?:IDrawState) => {
-        if (state?.type === item.type) {
-            currentIndex.value = 0
-        }
-    })
+const handleDelete = () => {
+    editorBoard.deleteNode()
 }
 
 const uploadImage = () => {

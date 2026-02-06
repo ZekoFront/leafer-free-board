@@ -228,6 +228,8 @@ export class ShapePlugin implements IPluginTempl {
                 path: pathData,
                 stroke: '#555',
                 strokeWidth: 2,
+                editable: true,
+                draggable: false,
                 // endArrow: 'arrow' // 箭头
             })
             // 放到最底层

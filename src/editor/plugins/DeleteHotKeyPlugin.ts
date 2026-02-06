@@ -6,7 +6,7 @@ import { debounce } from "lodash-es";
 
 export class DeleteHotKeyPlugin implements IPluginTempl {
     static pluginName = 'DeleteHotKeyPlugin';
-    static apis = ['del'];
+    static apis = ['deleteNode'];
     hotkeys: string[]= ['backspace', 'delete'];
     private selectNodes: IUI[] = []
     constructor(public editorBoard: EditorBoard) {
@@ -25,14 +25,16 @@ export class DeleteHotKeyPlugin implements IPluginTempl {
     _onSingle = (evt:IUI) => {
         this.selectNodes = [evt]
     }
-    del() {
+
+    deleteNode() {
+        this.editorBoard.app.editor.cancel()
         if (this.selectNodes.length) {
             this.selectNodes.forEach(node => { node.remove() })
         }
     }
 
     private _delDebounced = debounce(() => {
-        this.del()
+        this.deleteNode()
     }, 200, { leading: true, trailing: false })
 
 
