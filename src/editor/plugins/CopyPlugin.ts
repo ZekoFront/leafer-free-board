@@ -44,8 +44,7 @@ export class CopyPlugin implements IPluginTempl {
                 this.editorBoard.addLeaferElement(node)
                 this.editorBoard.history.execute(node)
             })
-            // 取消选择
-            // this.editorBoard.app.editor.cancel()
+            
             // 选择元素
             this.editorBoard.app.editor.select(this.copyNodes)
             this.copyNodes.length = 0

@@ -3,12 +3,11 @@ import { Arrow } from "@leafer-in/arrow";
 import { isEqual } from 'lodash-es'
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IDrawState, type IPluginTempl, type IPointItem } from "../types";
-import { toolbars } from "../utils";
-import { createShape } from "../utils/creatShape";
+import { toolbars, createElement } from "../utils";
 
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
-    static apis = ['setToolbarActive', 'onDragMoveElement', 'onDragStartElement', 'getShapePluginRelatedLines'];
+    static apis = ['setToolbarActive', 'onDragMoveElement', 'onDragStartElement','onDragEndEvent', 'getShapePluginRelatedLines'];
     static hotkeys: string[]= [];
     static events = ['testEvent'];
     public toolbars = toolbars;
@@ -31,6 +30,7 @@ export class ShapePlugin implements IPluginTempl {
 
     protected setToolbarActive(type: string, callBack:(state?:IDrawState)=>void) {
         this.drawMode = type
+        this.editorBoard.cancelSelected()
         // 需要手动拖拽绘制的图形
         if (['arrow', 'line', 'curve'].includes(type)) {
             this.editorBoard.app.cursor = 'crosshair'
@@ -111,7 +111,7 @@ export class ShapePlugin implements IPluginTempl {
                 // @see https://www.leaferjs.com/ui/guide/advanced/coordinate.html
                 const startPoint = evt.getPagePoint()
                 this.points.push(startPoint)
-                this.element = createShape('arrow', startPoint) as unknown as IUI
+                this.element = createElement('arrow', startPoint) as unknown as IUI
             } 
             // 绘制直线
             else if (this.drawMode == 'line') {
@@ -205,7 +205,7 @@ export class ShapePlugin implements IPluginTempl {
             // 浏览器原生事件的 client 坐标 转 应用的 page 坐标
             const point = this.editorBoard.app.getPagePointByClient(e)
             // 根据拖拽类型生成图形
-            const shape = createShape(type, point)
+            const shape = createElement(type, point)
             if (shape) {
                 shape.data&&(shape.data.executeType = ExecuteTypeEnum.AddElement)
                 // console.log('生成图形:', shape)
@@ -352,6 +352,10 @@ export class ShapePlugin implements IPluginTempl {
         if (this.drawMode || !this.draggingNode) return
         if (this.connections.length === 0) return
         this._updateRelatedLines(this.draggingNode)
+    }
+
+    public onDragEndEvent () {
+        this.draggingNode = null
     }
 
     // 更新相关连接线

@@ -27,7 +27,7 @@ export class DeleteHotKeyPlugin implements IPluginTempl {
     }
 
     deleteNode() {
-        this.editorBoard.app.editor.cancel()
+        this.editorBoard.cancelSelected()
         if (this.selectNodes.length) {
             this.selectNodes.forEach(node => { node.remove() })
         }

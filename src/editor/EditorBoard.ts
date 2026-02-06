@@ -127,6 +127,11 @@ class EditorBoard extends EventEmitter {
         return uuidv4();
     }
 
+    // 取消选择状态
+    public cancelSelected () {
+        this.app.editor.cancel()
+    }
+
     public destroy() {
         this.history.destroy();
         Object.keys(this.pluginMap).forEach((key) => {

@@ -16,7 +16,7 @@ export class MoveCommand extends BaseCommand {
     }
 
     private updatePosition(type: 'new' | 'old') {
-        this.editorBoard.app.editor.cancel()
+        this.editorBoard.cancelSelected()
         // 遍历列表，批量更新
         this.moveList.forEach(item => {
             // 通过 ID 查找元素

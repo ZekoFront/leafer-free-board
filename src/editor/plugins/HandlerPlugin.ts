@@ -89,6 +89,7 @@ class HandlerPlugin implements IPluginTempl {
     }
 
     private _listenDragEndEvent = () => {
+        this.editorBoard.onDragEndEvent()
         const moveList: IMoveData[] = [];
         if (this.newSelectedElements.length) {
             // 获取批量新坐标

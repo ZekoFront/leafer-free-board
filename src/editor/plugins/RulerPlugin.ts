@@ -9,7 +9,7 @@ export class RulerPlugin implements IPluginTempl {
 
     constructor(editorBoard: EditorBoard) {
         // 实例化标尺插件
-        const ruler = new Ruler(editorBoard.app)
+        const ruler = new Ruler(editorBoard.app as any)
         ruler.enabled = true
     }
     
