@@ -1,5 +1,5 @@
 import type { IToolBar } from "@/editor/types";
-import { ArrowAngleIcon, CircleIcon, CurveIcon, LineIcon, RectIcon, SelectIcon, TextIcon } from "@/assets/icons";
+import { ArrowAngleIcon, CircleIcon, CurveIcon, LineIcon, RectIcon, SelectIcon, TextIcon, DiamondIcon } from "@/assets/icons";
 
 export const toolbars: IToolBar[] = [
     {
@@ -18,6 +18,12 @@ export const toolbars: IToolBar[] = [
         icon: CircleIcon,
         title: '圆形',
         type: 'circle',
+        draggable: true
+    },
+    {
+        icon: DiamondIcon,
+        title: '菱形',
+        type: 'diamond',
         draggable: true
     },
     {

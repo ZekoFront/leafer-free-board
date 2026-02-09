@@ -19,7 +19,15 @@ import HeaderLeft from './components/HeaderLeft.vue'
 import HeaderRight from './components/HeaderRight.vue'
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
-import { SnapPlugin, RulerPlugin, ScrollBarPlugin, ShapePlugin, DeleteHotKeyPlugin, CopyPlugin } from '@/editor/plugins'
+import { 
+    SnapPlugin, 
+    RulerPlugin, 
+    ScrollBarPlugin, 
+    ShapePlugin, 
+    DeleteHotKeyPlugin, 
+    CopyPlugin, 
+    DotMatrixPlugin 
+} from '@/editor/plugins'
 import { EditorBoard } from '@/editor'
 import ToolBar from './components/ToolBar.vue'
 import { ExecuteTypeEnum } from './types';
@@ -53,7 +61,7 @@ onMounted(() => {
         sky: {},  // 添加 sky 层
         fill: '#ffffff', // 背景色 
         // wheel: { zoomMode: true, preventDefault: true }, // 全局鼠标滚动缩放元素
-        touch: { preventDefault: true }, // 阻止移动端默认触摸屏滑动页面事件
+        touch: { preventDefault: false }, // 阻止移动端默认触摸屏滑动页面事件
         pointer: { preventDefaultMenu: true } // 阻止浏览器默认菜单事件
     })
     // 初始化leafer应用
@@ -62,6 +70,7 @@ onMounted(() => {
     editorBoard.use(SnapPlugin)
     editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin)
+    editorBoard.use(DotMatrixPlugin)
     editorBoard.use(DeleteHotKeyPlugin)
     editorBoard.use(CopyPlugin)
     editorBoard.use(ShapePlugin)
@@ -115,24 +124,7 @@ onMounted(() => {
     text.on(DragEvent.DRAG, () => {
         const rect2Bounds = new Bounds(rect.worldBoxBounds)  
         text.fill = rect2Bounds.hit(text.worldBoxBounds) ? 'blue' : '#FFE04B' // 碰撞则显示蓝色边框
-    }) 
-
-    // rect.on(PointerEvent.ENTER, onEnter)
-    // rect.on(PointerEvent.LEAVE, onLeave)
-
-    // function onEnter(e: PointerEvent) {
-    //     if (e.current) {
-    //         (e.current as Rect).fill = '#FFE04B'
-    //     }
-    // }
-
-    // function onLeave(e: PointerEvent) {
-    //     if (e.current) {
-    //          (e.current as Rect).fill = '#32cd79'
-    //     }
-    // }
-        
-    // console.log("内容层元素:",app.tree.children)
+    })
 })
 
 onBeforeUnmount(() => {

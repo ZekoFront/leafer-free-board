@@ -228,13 +228,15 @@ export class ShapePlugin implements IPluginTempl {
     private _onDropLeafer = (e:DragEvent) => {
         if (e.dataTransfer) {
             const type = e.dataTransfer.getData("type")
+            // 如果没有指定类型则不能创建图形
+            if (!type) return;
+
             // 浏览器原生事件的 client 坐标 转 应用的 page 坐标
             const point = this.editorBoard.app.getPagePointByClient(e)
             // 根据拖拽类型生成图形
             const shape = createElement(type, point)
             if (shape) {
                 shape.data&&(shape.data.executeType = ExecuteTypeEnum.AddElement)
-                // console.log('生成图形:', shape)
                 const res = this.editorBoard.addLeaferElement(shape)
                 res && this.editorBoard.history.execute(shape)
             }

@@ -1,5 +1,5 @@
 import { Arrow } from "@leafer-in/arrow";
-import { Box, Ellipse, Group, Text, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
+import { Box, Ellipse, Group, Polygon, Text, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
 import { v4 as uuidv4 } from 'uuid';
 
 export function createElement(type: string, point:IPointData) {
@@ -17,6 +17,9 @@ export function createElement(type: string, point:IPointData) {
         case 'circle':
             element = drawCircleText(point)
             break;
+        case 'diamond':
+            element = drawDiamondText(point)
+            break;
         default:
             element = {} as IUIInputData
             console.error('Unsupported shape type: ' + type)
@@ -32,12 +35,13 @@ const defaultOptions = {
     stroke: '#13ad8cff',
     fontColor: '#FFFFFF',
     cornerRadius: 10,
+    strokeWidth: 1,
     opacity: 0.7,
     text: '双击编辑',
 }
 
 // 绘制箭头
-export const drawArrow = (point:IPointData) => {
+export const drawArrow = (point:IPointData):IUI => {
     return new Arrow({
         name: 'Arrow',
         curve: true,
@@ -54,7 +58,7 @@ export const drawArrow = (point:IPointData) => {
 }
 
 // 绘制矩形文本
-export const drawBoxText = (point:IPointData) => {
+export const drawBoxText = (point:IPointData):IUI => {
     return new Box({
         name: 'BoxText',
         x: point.x,
@@ -83,7 +87,7 @@ export const drawBoxText = (point:IPointData) => {
 }
 
 // 绘制文本
-export const drawText = (point:IPointData) => {
+export const drawText = (point:IPointData):IUI => {
     return new Text({
         name: 'Text',
         fill: '#333333',
@@ -117,7 +121,7 @@ export const drawCircleText = (point: IPointData):IUI => {
         draggable: false,
         editable: true,
         text: defaultOptions.text,
-        fill: '#ffffff',
+        fill: defaultOptions.fontColor,
         fontSize: 12,
         fontWeight: 'bold',
         textAlign: 'center',
@@ -148,6 +152,46 @@ export const drawCircleText = (point: IPointData):IUI => {
         fill: 'rgba(0,0,0,0)',
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         children: [circle, text],
+    })
+
+    return group
+}
+
+// 创建菱形文本
+export const drawDiamondText = (point: IPointData):IUI => {
+    const diamond = new Polygon({
+        width: 150,
+        height: 150,
+        sides: 4,
+        cornerRadius: 10,
+        fill: '#32cd79'
+    })
+
+    const text = new Text({
+        draggable: false,
+        editable: true,
+        text: defaultOptions.text,
+        fill: defaultOptions.fontColor,
+        fontSize: 12,
+        fontWeight: 'bold',
+        textAlign: 'center',
+        verticalAlign: 'middle',
+        width: 130,
+        height: 130,
+        x: 10,
+        y: 10,
+        textWrap: 'break', 
+        dragBounds: 'parent', // 限制元素拖动范围
+    })
+
+    const group = new Group({
+        editable: true,
+        x: point.x,
+        y: point.y,
+        width: 150,
+        height: 150,
+        hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
+        children: [diamond, text],
     })
 
     return group

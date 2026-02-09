@@ -41,6 +41,15 @@
                             :swatches="colorPanel"
                         />
                     </div>
+                    <div class="attribute-item" v-if="['Box'].includes(selectedActive.tag as string)">
+                        <div class="attribute-item__label">内边距</div>
+                        <div class="attribute-item__flex">
+                            <span>上下&nbsp;</span>
+                            <n-input-number v-model:value="padding[0]" clearable :on-update:value="(val) => handlePaddingChange(val, 0)"/>
+                            <span>&nbsp;左右&nbsp;</span>
+                            <n-input-number v-model:value="padding[1]" clearable :on-update:value="(val) => handlePaddingChange(val, 1)"/>
+                        </div>
+                    </div>
                     <div class="attribute-item">
                         <div class="attribute-item__label">描边</div>
                         <aside class="attribute-item__flex stroke-color-picker">
@@ -105,6 +114,7 @@ const fillColor = ref('#32cd79');
 const strokeColor = ref('#2080F0');
 const strokeWidth = ref(0);
 const dashPattern = ref([0, 0]);
+const padding = ref([0, 0]);
 const zIndex = ref(0);
 const fontWeight = ref('normal');
 const fontStyles = ref<string[]>([]);
@@ -157,6 +167,16 @@ const handleZIndexChange = (value: number|null) => {
     if (selectedActive.value) {
         setRecord('zIndex', selectedActive.value?.zIndex || 0, value);
         selectedActive.value.zIndex = value || 0;
+    }
+}
+
+const handlePaddingChange = (value: number|null, type: number) => {
+    padding.value[type] = value || 0;
+    if (selectedActive.value && selectedActive.value.tag === 'Box') {
+        setRecord('padding', selectedActive.value?.padding || [0, 0], padding.value);
+        if (selectedActive.value.children && selectedActive.value.children[0]) {
+            selectedActive.value.children[0].padding = padding.value;
+        }
     }
 }
 
@@ -216,6 +236,12 @@ watchEffect(() => {
         dashPattern.value = selectedActive.value.dashPattern as number[] || [0, 0];
         zIndex.value = selectedActive.value.zIndex || 0;
         fontWeight.value = selectedActive.value.fontWeight as string || 'normal';
+        // 矩形文本元素生效
+        if (selectedActive.value.tag === 'Box') {
+            if (selectedActive.value.children && selectedActive.value.children[0]) {
+                padding.value = selectedActive.value.children[0].padding as number[] || [0, 0];
+            }
+        }
     }
 })
 </script>
