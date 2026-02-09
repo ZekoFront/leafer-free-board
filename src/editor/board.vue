@@ -65,7 +65,7 @@ onMounted(() => {
     editorBoard.use(DeleteHotKeyPlugin)
     editorBoard.use(CopyPlugin)
     editorBoard.use(ShapePlugin)
-    console.log('editorBoard:',editorBoard)
+    // console.log('editorBoard:',editorBoard)
     const text = Text.one({
         id: editorBoard.generateId(),
         text: 'Action is the proper fruit of knowledge.',

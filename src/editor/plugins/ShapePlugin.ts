@@ -1,9 +1,10 @@
-import { Line, Path, PointerEvent, type ILeaf, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
+import { Line, Path, PointerEvent, type IPointData, type IUI, type IUIInputData } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
-import { isEqual } from 'lodash-es'
+import { isEqual, throttle } from 'lodash-es'
 import type EditorBoard from "../EditorBoard";
-import { ExecuteTypeEnum, type IDrawState, type IPluginTempl, type IPointItem } from "../types";
-import { toolbars, createElement } from "../utils";
+import { ExecuteTypeEnum, type IDrawState, type IPluginTempl } from "../types";
+import { toolbars, createElement, getBezierPathString, getBestConnectionByWorldBoxBounds } from "../utils";
+import { EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
 
 export class ShapePlugin implements IPluginTempl {
     static pluginName = 'ShapePlugin';
@@ -62,6 +63,8 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.app.on(PointerEvent.DOWN, this._onDownPointer)
         this.editorBoard.app.on(PointerEvent.MOVE, this._onMovePointer)
         this.editorBoard.app.on(PointerEvent.UP, this._onUpPointer)
+        this.editorBoard.app.editor.on(EditorScaleEvent.SCALE, this._onTransformEvent)
+        this.editorBoard.app.editor.on(EditorRotateEvent.ROTATE, this._onTransformEvent)
     }
 
     private _onDragLeaferOver = (evt:DragEvent) => {
@@ -82,6 +85,22 @@ export class ShapePlugin implements IPluginTempl {
         this.editorBoard.app.off(PointerEvent.DOWN, this._onDownPointer)
         this.editorBoard.app.off(PointerEvent.MOVE, this._onMovePointer)
         this.editorBoard.app.off(PointerEvent.UP, this._onUpPointer)
+        this.editorBoard.app.editor.off(EditorScaleEvent.SCALE, this._onTransformEvent)
+        this.editorBoard.app.editor.off(EditorRotateEvent.ROTATE, this._onTransformEvent)
+    }
+
+    // 创建节流版本的更新函数
+    private _updateRelatedLinesThrottled = throttle((target: IUIInputData[]) => {
+        if (target.length === 0) return
+        target.forEach(item => {
+            this._updateRelatedLines(item);
+        });
+    }, 16, { leading: true, trailing: true });
+
+    // 当元素发生缩放或旋转时触发
+    private _onTransformEvent = () => {
+        // 获取当前编辑器选中的所有元素列表
+        this._updateRelatedLinesThrottled(this.editorBoard.app.editor.list);
     }
 
     private _tempElement (evt:PointerEvent) {
@@ -153,7 +172,6 @@ export class ShapePlugin implements IPluginTempl {
         // 绘制最终线段，替换虚线
         if (['line', 'curve'].includes(this.drawMode)&&this.startRect) {
             const dropResult = this.editorBoard.app.tree.pick({ x: _evt.x, y: _evt.y })
-            // console.log('dropResult:', dropResult.target.parent?.tag)
             const endRect = dropResult.target
             if (endRect) {
                 // 兼容分组元素连线
@@ -164,9 +182,7 @@ export class ShapePlugin implements IPluginTempl {
                     this._createConnection(this.startRect, endRect as IUIInputData)
                 }
             }
-            // if (endRect && endRect !== this.startRect) {
-            //     this._createConnection(this.startRect, endRect as IUIInputData)
-            // }
+           
             // 删除辅助线
             this.element&&this.element.remove()
         }
@@ -229,11 +245,11 @@ export class ShapePlugin implements IPluginTempl {
     
     private _createConnection(startRect: IUIInputData| null, endRect: IUIInputData) {
         // 计算点和方向
-        const { p0, p3 } = this._getBestConnection(startRect || ({} as IUIInputData), endRect)
+        const { p0, p3 } = getBestConnectionByWorldBoxBounds(startRect || ({} as IUIInputData), endRect)
         let line: IUI|null = null;
         if (this.drawMode == 'curve') {
             // 生成贝塞尔路径数据
-            const pathData = this._getBezierPathString(p0, p3)
+            const pathData = getBezierPathString(p0, p3)
             line = new Path({
                 path: pathData,
                 stroke: '#555',
@@ -265,92 +281,6 @@ export class ShapePlugin implements IPluginTempl {
         }
     }
 
-    // 获取两个矩形连接的最近点
-    // dirX: 1: 表示“向右走”，控制点会加到当前点的右边，把线拉出去。
-    // dirY: -1: 表示“向上走”，控制点会减去 Y 值，把线向上提。
-    private _getBestConnection(elA: IUIInputData, elB: IUIInputData) {
-        const rectA = this._getRectBounds(elA)
-        const rectB = this._getRectBounds(elB)
-        // 计算中心点
-        const cxA = (rectA.left || 0) + (rectA.width || 0) / 2;
-        const cyA = (rectA.top || 0) + (rectA.height || 0) / 2;
-        const cxB = (rectB.left || 0) + (rectB.width || 0) / 2;
-        const cyB = (rectB.top || 0) + (rectB.height || 0) / 2;
-
-        const dx = cxB - cxA;
-        const dy = cyB - cyA;
-
-        // 结果容器
-        let p0:IPointItem = { x: 0, y: 0, dirX: 0, dirY: 0 }, p3:IPointItem = { x: 0, y: 0, dirX: 0, dirY: 0 };
-
-        // 1. 横向距离 > 纵向距离：左右连接模式
-        if (Math.abs(dx) > Math.abs(dy)) {
-            if (dx > 0) {
-                // [情况1] B 在 A 右边
-                // p0: A的右点 (方向向右: 1, 0)
-                // p3: B的左点 (方向向左: -1, 0)
-                p0 = { x: rectA.right, y: cyA, dirX: 1,  dirY: 0 };
-                p3 = { x: rectB.left || 0, y: cyB, dirX: -1, dirY: 0 };
-            } else {
-                // [情况2] B 在 A 左边
-                // p0: A的左点 (方向向左: -1, 0)
-                // p3: B的右点 (方向向右: 1, 0)
-                p0 = { x: rectA.left || 0, y: cyA, dirX: -1, dirY: 0 };
-                p3 = { x: rectB.right, y: cyB, dirX: 1,  dirY: 0 };
-            }
-        } 
-        // 2. 纵向连接模式
-        else {
-            if (dy > 0) {
-                // [情况3] B 在 A 下面
-                // p0: A的下点 (方向向下: 0, 1)
-                // p3: B的上点 (方向向上: 0, -1)
-                p0 = { x: cxA, y: rectA.bottom, dirX: 0, dirY: 1 };
-                p3 = { x: cxB, y: rectB.top || 0,    dirX: 0, dirY: -1 };
-            } else {
-                // [情况4] B 在 A 上面
-                // p0: A的上点 (方向向上: 0, -1)
-                // p3: B的下点 (方向向下: 0, 1)
-                p0 = { x: cxA, y: rectA.top || 0,    dirX: 0, dirY: -1 };
-                p3 = { x: cxB, y: rectB.bottom, dirX: 0, dirY: 1 };
-            }
-        }
-
-        return { p0, p3 };
-    }
-
-    private _getRectBounds(rect: IUIInputData) {
-        return {
-            top: rect.y,
-            bottom: (rect.y || 0) + (rect.height || 0),
-            left: rect.x,
-            right: (rect.x || 0) + (rect.width || 0),
-            width: rect.width,
-            height: rect.height
-        }
-    }
-
-    private _getBezierPathString(p0: IPointItem, p3: IPointItem) {
-        // 动态计算控制力度：距离越远，控制臂越长，曲线越平滑
-        const dist = Math.hypot(p3.x - p0.x, p3.y - p0.y);
-        const controlDist = Math.min(dist * 0.5, 100); // 限制最大弯曲程度
-
-        // cp1: 起点的控制点 (顺着 dir 方向延伸)
-        const cp1 = {
-            x: p0.x + p0.dirX * controlDist,
-            y: p0.y + p0.dirY * controlDist
-        };
-
-        // cp2: 终点的控制点 (顺着 dir 方向延伸)
-        const cp2 = {
-            x: p3.x + p3.dirX * controlDist,
-            y: p3.y + p3.dirY * controlDist
-        };
-
-        // 生成 SVG Path 命令: M 起点 C 控制点1 控制点2 终点
-        return `M ${p0.x} ${p0.y} C ${cp1.x} ${cp1.y} ${cp2.x} ${cp2.y} ${p3.x} ${p3.y}`;
-    }
-
     // 拖拽开始选中元素
     public onDragStartElement (ele: IUIInputData) {
         this.draggingNode = ele
@@ -361,7 +291,7 @@ export class ShapePlugin implements IPluginTempl {
         // 绘制模式下不触发更新
         if (this.drawMode || !this.draggingNode) return
         if (this.connections.length === 0) return
-        this._updateRelatedLines(this.draggingNode)
+        this._updateRelatedLinesThrottled([this.draggingNode]);
     }
 
     public onDragEndEvent () {
@@ -373,10 +303,10 @@ export class ShapePlugin implements IPluginTempl {
         this.connections.forEach(conn => {
             if (isEqual(conn.from, movingRect) || isEqual(conn.to, movingRect)) {
                 // 重新计算最佳连接点 (p0, p3 及其方向)
-                const { p0, p3 } = this._getBestConnection(conn.from, conn.to)
+                const { p0, p3 } = getBestConnectionByWorldBoxBounds(conn.from, conn.to)
                 if (conn.line.tag == 'Path') {
                     // 更新曲线
-                    const newPathData = this._getBezierPathString(p0, p3)
+                    const newPathData = getBezierPathString(p0, p3)
                     conn.line.path = newPathData
                 } else if (conn.line.tag == 'Line') {
                     // 更新直线
@@ -399,5 +329,7 @@ export class ShapePlugin implements IPluginTempl {
         this._unListenners()
         this.dragHandlers.clear()
         this.connections.length = 0
+        // 防止组件销毁后，还有一个挂起的 throttle 回调试图去更新已经不存在的图形
+        this._updateRelatedLinesThrottled.cancel();
     }
 }
