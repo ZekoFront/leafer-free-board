@@ -2,9 +2,9 @@ import { SelectEvent, SelectMode } from "@/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import { LeaferEvent, DragEvent, type IUI, Line, Path } from "leafer-ui";
-import { EditorEvent } from "leafer-editor";
 import { cloneDeep, isArray, isEqual, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../types";
+import { EditorEvent } from "@leafer-in/editor";
 
 class HandlerPlugin implements IPluginTempl {
     static pluginName = 'HandlerPlugin';

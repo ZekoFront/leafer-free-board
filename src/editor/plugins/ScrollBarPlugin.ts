@@ -1,4 +1,4 @@
-import { ScrollBar } from "leafer-editor";
+import { ScrollBar } from "@leafer-in/scroll";
 import type EditorBoard from "../EditorBoard";
 import type { IPluginTempl } from "../types";
 

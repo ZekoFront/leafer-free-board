@@ -19,6 +19,7 @@ import HeaderLeft from './components/HeaderLeft.vue'
 import HeaderRight from './components/HeaderRight.vue'
 import "@leafer-in/find" // 导入查早元素插件
 import '@leafer-in/export' // 引入导出元素插件
+import '@leafer-in/view' // 导入视图控制插件
 import { 
     SnapPlugin, 
     RulerPlugin, 
@@ -68,7 +69,7 @@ onMounted(() => {
     editorBoard.init(app)
     // 初始化插件
     editorBoard.use(SnapPlugin)
-    editorBoard.use(RulerPlugin)
+    // editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin)
     editorBoard.use(DotMatrixPlugin)
     editorBoard.use(DeleteHotKeyPlugin)
@@ -76,6 +77,7 @@ onMounted(() => {
     editorBoard.use(ShapePlugin)
     // console.log('editorBoard:',editorBoard)
     const text = Text.one({
+        tag: 'Text',
         id: editorBoard.generateId(),
         text: 'Action is the proper fruit of knowledge.',
         editable: true, 
