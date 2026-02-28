@@ -1,5 +1,5 @@
 import type { IUIInputData } from 'leafer-ui'
-import { BaseCommand } from './BaseCommand.js'
+import { BaseCommand } from './BaseCommand'
 import type EditorBoard from '@/editor/EditorBoard'
 import { ExecuteTypeEnum } from '@/editor/types'
 
@@ -17,19 +17,29 @@ export class AddCommand extends BaseCommand {
         super(props.element.id||"", props.editorBoard, ExecuteTypeEnum.AddElement)
         this.tag = props.element.tag||""
         this.desc = props.desc || `添加元素: ${this.tag}`;
-        const json = props.element.toJSON();
-        this.data = json
-        // 命令唯一ID
+        this.data = props.element.toJSON();
         this.id = this.editorBoard.generateId();
+    }
+
+    protected getCustomData() {
+        return this.data;
+    }
+
+    protected setCustomData(data: any): void {
+        this.data = data;
     }
 
     // 执行（重做）：添加元素
     execute() {
+        // 执行前确保数据已解压
+        if (this.compressed) {
+            this.decompress();
+        }
+        
         // 利用编辑器已有方法创建并添加元素（保证逻辑一致性）
         // 使用 tag 创建leafer元素@see:https://www.leaferjs.com/ui/guide/basic/display.html#%E4%BD%BF%E7%94%A8-tag
         if (this.data) {
             this.editorBoard.app.tree.add(this.data);
-            // this.editorBoard.addLeaferElement(this.elementProps);
         }
     }
 
@@ -40,20 +50,9 @@ export class AddCommand extends BaseCommand {
         if (element) {
             element.remove();
         }
-        // this.editorBoard.removeLeaferElement(this.elementId);
     }
 
     redo(): void {
         this.execute()
-    }
-
-    // 验证命令有效性
-    isValid(): boolean {
-        if (!this.elementId) {
-            console.error('AddElementCommand isValid elementId is empty:', this)
-            return false
-        }
-        const isOk = this.elementId && this.tag;
-        return Boolean(isOk)
     }
 }

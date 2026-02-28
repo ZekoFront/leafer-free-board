@@ -41,7 +41,7 @@
                             :swatches="colorPanel"
                         />
                     </div>
-                    <div class="attribute-item" v-if="['Box'].includes(selectedActive.tag as string)">
+                    <div class="attribute-item" v-if="['Box', 'Text'].includes(selectedActive.tag as string)">
                         <div class="attribute-item__label">内边距</div>
                         <div class="attribute-item__flex">
                             <span>上下&nbsp;</span>
@@ -50,26 +50,28 @@
                             <n-input-number v-model:value="padding[1]" clearable :on-update:value="(val) => handlePaddingChange(val, 1)"/>
                         </div>
                     </div>
-                    <div class="attribute-item">
-                        <div class="attribute-item__label">描边</div>
-                        <aside class="attribute-item__flex stroke-color-picker">
-                            <span class="cursor" v-for="(item, index) in strokeColorList" :key="index+item" :style="{ background: item }" @click="handleStrokeColor(item)"></span>
-                            <n-color-picker style="flex: 1;" v-model:value="strokeColor" :swatches="colorPanel" />
-                        </aside>
-                    </div>
-                    <div class="attribute-item">
-                        <div class="attribute-item__label">描边宽度</div>
-                        <n-input-number class="attribute-item__input" v-model:value="strokeWidth" clearable :on-update:value="handleStrokeWidthChange"/>
-                    </div>
-                    <div class="attribute-item">
-                        <div class="attribute-item__label">描边样式</div>
-                        <div class="attribute-item__flex">
-                            <span>段长&nbsp;</span>
-                            <n-input-number v-model:value="dashPattern[0]" clearable :on-update:value="handleDashPatternChange0"/>
-                            <span>&nbsp;段间隔&nbsp;</span>
-                            <n-input-number v-model:value="dashPattern[1]" clearable :on-update:value="handleDashPatternChange1"/>
+                    <template v-if="['Line', 'Path'].includes(selectedActive.tag as string)">
+                        <div class="attribute-item">
+                            <div class="attribute-item__label">描边</div>
+                            <aside class="attribute-item__flex stroke-color-picker">
+                                <span class="cursor" v-for="(item, index) in strokeColorList" :key="index+item" :style="{ background: item }" @click="handleStrokeColor(item)"></span>
+                                <n-color-picker style="flex: 1;" v-model:value="strokeColor" :swatches="colorPanel" />
+                            </aside>
                         </div>
-                    </div>
+                        <div class="attribute-item">
+                            <div class="attribute-item__label">描边宽度</div>
+                            <n-input-number class="attribute-item__input" v-model:value="strokeWidth" clearable :on-update:value="handleStrokeWidthChange"/>
+                        </div>
+                        <div class="attribute-item">
+                            <div class="attribute-item__label">描边样式</div>
+                            <div class="attribute-item__flex">
+                                <span>段长&nbsp;</span>
+                                <n-input-number v-model:value="dashPattern[0]" clearable :on-update:value="handleDashPatternChange0"/>
+                                <span>&nbsp;段间隔&nbsp;</span>
+                                <n-input-number v-model:value="dashPattern[1]" clearable :on-update:value="handleDashPatternChange1"/>
+                            </div>
+                        </div>
+                    </template>
                     <div class="attribute-item">
                         <div class="attribute-item__label">层级</div>
                         <n-input-number class="attribute-item__input" v-model:value="zIndex" clearable :on-update:value="handleZIndexChange"/>
@@ -177,6 +179,9 @@ const handlePaddingChange = (value: number|null, type: number) => {
         if (selectedActive.value.children && selectedActive.value.children[0]) {
             selectedActive.value.children[0].padding = padding.value;
         }
+    } else if (selectedActive.value && selectedActive.value.tag === 'Text') {
+        setRecord('padding', selectedActive.value?.padding || [0, 0], padding.value);
+        selectedActive.value.padding = padding.value;
     }
 }
 

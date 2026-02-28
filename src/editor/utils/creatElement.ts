@@ -78,7 +78,7 @@ export const drawBoxText = (point:IPointData):IUI => {
             text: 'Welcome to LeaferJS',
             fill: defaultOptions.fontColor,
             fontSize: 16,
-            padding: [16, 20],
+            padding: [5, 8],
             textAlign: 'left',
             verticalAlign: 'top',
             hittable: false // false表示无法被点击/拾取，true表示可以被点击/拾取

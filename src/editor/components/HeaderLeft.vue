@@ -16,7 +16,6 @@ import { MenuLeftIcon } from '@/assets/icons'
 import { exportOptions } from '@/editor/utils'
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete"
 import type { IUIInputData } from 'leafer-ui'
-import { Path, Rect, Text } from 'leafer-ui'
 
 const { message } = useNaiveDiscrete()
 
@@ -29,48 +28,7 @@ const props = defineProps({
 
 const handleSelect = (type: string) => {
     if (type === 'importJson') {
-       const input = document.createElement('input')
-        input.type = 'file'
-        input.accept = '.json, application/json'
-        // 只能单选
-        input.multiple = false
-        input.style.display = 'none'
-        document.body.appendChild(input)
-        input.click()
-        input.onchange = (e) => {
-            try {
-                const target = e.target as HTMLInputElement
-                if (!target.files?.length) return
-                const reader = new FileReader()
-                reader.onload = (evt) => {
-                    const jsonStr = evt.target?.result
-                    const jsonData = JSON.parse(jsonStr as string)
-                    // 导入之前清空画布
-                    props.editor.app.tree.clear()
-                    console.log(jsonData, 'JSON 数据')
-                    props.editor.history.clear()
-                    if (jsonData) {
-                        jsonData.children.forEach((child: any) => {
-                            let newChild:IUIInputData = {} as IUIInputData
-                            if (child.tag === 'Text') {
-                                newChild = Text.one({...child })
-                            } else if (child.tag === 'Path') {
-                                newChild = Path.one({...child })
-                            } else if (child.tag === 'Rect') {
-                                newChild = Rect.one({...child })
-                            }
-                            props.editor.addLeaferElement(newChild)
-                            props.editor.history.execute(newChild)
-                        })
-                    }
-                    message.success('JSON 导入成功')
-                }
-                reader.readAsText(target.files[0] as File)
-            } catch (error) {
-                console.error('JSON 解析失败或格式错误:', error)
-                message.error('JSON 解析失败或格式错误:'+JSON.stringify(error))
-            }
-        }
+        importJsonToCanvas()
     } else {
         props.editor.app.tree.syncExport(
             `free-board.${type}`, 
@@ -78,6 +36,57 @@ const handleSelect = (type: string) => {
         )
     }
         
+}
+
+const importJsonToCanvas = () => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.json, application/json'
+    input.multiple = false
+    input.style.display = 'none'
+    document.body.appendChild(input)
+    input.click()
+    // 核心处理逻辑
+    input.onchange = (e) => {
+        const target = e.target as HTMLInputElement
+        if (!target.files?.length) {
+            input.remove()
+            return
+        }
+
+        const reader = new FileReader()
+        reader.onload = (evt) => {
+            try {
+                const jsonStr = evt.target?.result as string
+                if (!jsonStr) throw new Error('文件内容为空')
+
+                const jsonData = JSON.parse(jsonStr)
+                props.editor.history.clear()
+                props.editor.app.tree.clear()
+                if (jsonData.children && Array.isArray(jsonData.children)) {
+                    props.editor.app.tree.add(jsonData.children as IUIInputData[])
+                }
+                message.success(`导入文件内容成功`)
+            } catch (error) {
+                console.error('导入出错:', error)
+                message.error('导入失败: ' + (error instanceof Error ? error.message : '格式错误'))
+            } finally {
+                // 确保在读取完成后移除 input
+                input.remove()
+            }
+        }
+
+        reader.onerror = () => {
+            message.error('文件读取发生错误')
+            input.remove()
+        }
+
+        reader.readAsText(target.files[0] as File)
+    }
+
+    input.oncancel = () => {
+        input.remove()
+    }
 }
 </script>
 

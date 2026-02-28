@@ -19,6 +19,22 @@ export class UpdateAttrCommand extends BaseCommand {
         this.desc = props.desc || `修改元素属性: ${keys}`;
     }
 
+    // 重写 compress 方法, 直接 return，阻断父类的压缩逻辑，防止数据被置空
+    public override compress(): void {
+        return
+    }
+
+    // 重写 decompress 方法, 对应地，也不需要解压
+    public override decompress(): void {
+        return
+    }
+
+    protected getCustomData() {
+        return null;
+    }
+    protected setCustomData(): void {
+    }
+
     execute(): void {
         const element = this.getElement()
         if (element) {

@@ -15,6 +15,14 @@ export class MoveCommand extends BaseCommand {
         this.id = this.editorBoard.generateId();
     }
 
+    protected getCustomData() {
+        return this.moveList;
+    }
+
+    protected setCustomData(data: any): void {
+        this.moveList = data;
+    }
+
     private updatePosition(type: 'new' | 'old') {
         this.editorBoard.cancelSelected()
         // 遍历列表，批量更新

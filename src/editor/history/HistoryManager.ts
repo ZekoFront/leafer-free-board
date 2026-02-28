@@ -1,5 +1,4 @@
 import { isEqual } from 'lodash-es'
-
 import type { ICommand } from "./interface/ICommand";
 import { ExecuteTypeEnum, type IPluginOption, type IPluginTempl } from '@/editor/types';
 import type { IUIInputData } from 'leafer-ui';
@@ -14,12 +13,10 @@ export class HistoryManager implements IPluginTempl {
 	private maxHistorySize: number // 历史记录最大数量
 	private undoStack: ICommand[] = [] // 撤销栈
   	private redoStack: ICommand[] = [] // 重做栈
-	private currentBatch: ICommand | null = null // 当前批量操作命令
 	constructor(public editorBoard: EditorBoard, options: IPluginOption) {
 		this.maxHistorySize = Number(options.maxHistorySize) || 50;
 		this.undoStack = [];
 		this.redoStack = [];
-		this.currentBatch = null;
 	}
 
 	// 执行命令
@@ -53,9 +50,6 @@ export class HistoryManager implements IPluginTempl {
 
 	// 通用命令
 	private addCommand(command: ICommand) {
-		// 单独执行命令
-		if (command.isValid && !command.isValid()) return;
-
 		// 存入命令也需要对比是否存在同样的命令，有只存储一个即可，保证命令唯一性
 		const isExied = this.undoStack.some(el => {
 			return isEqual(el, command)
@@ -63,6 +57,7 @@ export class HistoryManager implements IPluginTempl {
 
 		// 新命令
 		if (!isExied) {
+			command.compress();
 			this.undoStack.push(command);
 		}
 		
@@ -77,29 +72,6 @@ export class HistoryManager implements IPluginTempl {
 		this.editorBoard.emit('history:change', this.state());
 	}
 
-	// 开始批量操作
-	beginBatch() {
-		if (this.currentBatch) {
-			this.endBatch();
-		}
-		// console.log('beginBatch', this.currentBatch)
-	}
-
-	// 结束批量操作
-	endBatch() {
-		// if (this.currentBatch && !this.currentBatch.isEmpty()) {
-		// 	const batch = this.currentBatch;
-		// 	batch.execute();
-		// 	this.undoStack.push(batch);
-		// 	this.redoStack = [];
-
-		// 	if (this.undoStack.length > this.maxHistorySize) {
-		// 		this.undoStack.shift();
-		// 	}
-		// }
-		// this.currentBatch = null;
-	}
-
 	// 撤销
 	undo() {
 		if (this.canUndo()) {
@@ -107,6 +79,7 @@ export class HistoryManager implements IPluginTempl {
 			// 如果撤回命令为空，则不进行任何操作
 			if (this.undoStack.length === 0) return;
 			const command = this.undoStack.pop() as ICommand
+			command.decompress(); 
 			command.undo()
 			this.redoStack.push(command)
 			this.editorBoard.emit('history:change', this.state());
@@ -117,6 +90,7 @@ export class HistoryManager implements IPluginTempl {
 	redo() {
 		if (this.canRedo()) {
 			const command = this.redoStack.pop() as ICommand
+			command.decompress();
 			command.redo();
 			this.undoStack.push(command);
 			this.editorBoard.emit('history:change', this.state());
@@ -137,14 +111,12 @@ export class HistoryManager implements IPluginTempl {
 	clear() {
 		this.undoStack = [];
 		this.redoStack = [];
-		this.currentBatch = null;
 	}
 
 	// 清空历史记录
 	destroy() {
 		this.undoStack = [];
 		this.redoStack = [];
-		this.currentBatch = null;
 	}
 
 	// 获取历史记录信息（用于UI显示）

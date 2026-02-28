@@ -12,9 +12,9 @@ export interface ICommand {
     /** 克隆命令 */
     // clone?(): ICommand
     /** 压缩命令数据 */
-    compress?(): void
+    compress(): void
     /** 恢复命令数据 */
-    decompress?(): void
+    decompress(): void
     /** 校验命令是否有效 */
     isValid?(): boolean
 }

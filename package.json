@@ -34,6 +34,7 @@
     "leafer-x-dot-matrix": "^1.0.2",
     "leafer-x-easy-snap": "^1.11.0",
     "lodash-es": "^4.17.21",
+    "lz-string": "^1.5.0",
     "naive-ui": "^2.43.2",
     "pinia": "^3.0.3",
     "unplugin-auto-import": "^20.2.0",
