@@ -1,4 +1,4 @@
-import type { EditorBoard } from "@/editor"
+import type { EditorBoard } from "@/editor";
 
 export interface IEditorBoard extends EditorBoard {}
 

@@ -4,12 +4,11 @@
 </template>
 
 <script setup lang="ts">
-import { useMouse } from '@/hooks/userMouse';
-import useSelectorListen from '@/hooks/useSelectorListen';
+import { useMouse } from "@/hooks/userMouse";
+import useSelectorListen from "@/hooks/useSelectorListen";
 
 // const editorBoard:any = inject('editorBoard')
 
-const { x, y } = useMouse()
-const { selectedMode, isSingle } = useSelectorListen()
-
+const { x, y } = useMouse();
+const { selectedMode, isSingle } = useSelectorListen();
 </script>

@@ -1,6 +1,4 @@
-import EditorBoard from "./EditorBoard"
+import EditorBoard from "./EditorBoard";
 
-export type EditorBoardType = EditorBoard
-export {
-    EditorBoard
-}
+export type EditorBoardType = EditorBoard;
+export { EditorBoard };

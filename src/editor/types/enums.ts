@@ -1,9 +1,9 @@
 export enum ExecuteTypeEnum {
-    AddElement = 'add-element',
-    DeleteElement = 'delete-element',
-    UpdateAttribute = 'update-attribute',
-    MoveElement = 'move-element',
-    BaseCommand = 'base-command',
+    AddElement = "add-element",
+    DeleteElement = "delete-element",
+    UpdateAttribute = "update-attribute",
+    MoveElement = "move-element",
+    BaseCommand = "base-command",
     MultiDragElement = "multi-movale-element",
-    CompoundCommand = 'compound-command',
+    CompoundCommand = "compound-command",
 }

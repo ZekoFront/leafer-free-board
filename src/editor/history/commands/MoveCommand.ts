@@ -9,7 +9,7 @@ export class MoveCommand extends BaseCommand {
     constructor(options: IMoveCommandProps) {
         super("", options.editor, ExecuteTypeEnum.MoveElement);
         this.desc = options.desc || `移动 ${options.moveList.length} 个元素`;
-        this.tag = options.tag || ''
+        this.tag = options.tag || "";
         this.moveList = options.moveList;
         // 生成唯一ID
         this.id = this.editorBoard.generateId();
@@ -23,10 +23,10 @@ export class MoveCommand extends BaseCommand {
         this.moveList = data;
     }
 
-    private updatePosition(type: 'new' | 'old') {
-        this.editorBoard.cancelSelected()
+    private updatePosition(type: "new" | "old") {
+        this.editorBoard.cancelSelected();
         // 遍历列表，批量更新
-        this.moveList.forEach(item => {
+        this.moveList.forEach((item) => {
             // 通过 ID 查找元素
             const element = this.getElement(item.id);
             if (element) {
@@ -34,7 +34,7 @@ export class MoveCommand extends BaseCommand {
                 // const pos = type === 'new' ? item.new : item.old;
                 // LeaferJS 的 set 方法支持部分更新
                 // element.set({ x: pos.x, y: pos.y });
-                const props = type === 'new' ? item.new : item.old;
+                const props = type === "new" ? item.new : item.old;
                 // LeaferJS 的 element.set() 支持传入 Partial<IUIInputData>
                 // 这样无论是 x/y 变化，还是 points/path 变化，都能统一处理
                 element.set(props);
@@ -44,17 +44,16 @@ export class MoveCommand extends BaseCommand {
 
     // 重做用新属性值
     execute(): void {
-       this.updatePosition('new');
+        this.updatePosition("new");
     }
 
     // 撤回用旧属性值
-    undo(): void{
-        this.updatePosition('old');
+    undo(): void {
+        this.updatePosition("old");
     }
 
     // 重做
     redo(): void {
         this.execute();
     }
-
 }

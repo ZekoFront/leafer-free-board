@@ -1,14 +1,16 @@
 <template>
     <div class="center">
         <div class="center-tool-bar-wrapper default-shadow__wrapper">
-            <div 
-                v-for="(item, index) in toolbars" 
-                :key="item.type" 
-                :class="['icon-block', { 'active': currentIndex === index }]" 
-                :id="item.type" :title="item.title"
-                :draggable="item.draggable" 
-                @mousedown="handleClick(item, index)" 
-                @click="handleClick(item, index)">
+            <div
+                v-for="(item, index) in toolbars"
+                :key="item.type"
+                :class="['icon-block', { active: currentIndex === index }]"
+                :id="item.type"
+                :title="item.title"
+                :draggable="item.draggable"
+                @mousedown="handleClick(item, index)"
+                @click="handleClick(item, index)"
+            >
                 <n-icon :size="22">
                     <component :is="item.icon"></component>
                 </n-icon>
@@ -23,22 +25,53 @@
                     <ImageAddIcon></ImageAddIcon>
                 </n-icon>
             </div>
-            <div :class="['icon-block', 'icon-block--undo', {'disabled': !isCanUndo}, { 'active-icon': isCanUndo }]" title="撤销" @click="isCanUndo&&editorBoard.history.undo()">
+            <div
+                :class="[
+                    'icon-block',
+                    'icon-block--undo',
+                    { disabled: !isCanUndo },
+                    { 'active-icon': isCanUndo },
+                ]"
+                title="撤销"
+                @click="isCanUndo && editorBoard.history.undo()"
+            >
                 <n-icon :size="22">
                     <UndoIcon></UndoIcon>
                 </n-icon>
             </div>
-            <div :class="['icon-block', 'icon-block--redo', {'disabled': !iscanRedo}, { 'active-icon': iscanRedo }]" title="重做" @click="iscanRedo&&editorBoard.history.redo()">
+            <div
+                :class="[
+                    'icon-block',
+                    'icon-block--redo',
+                    { disabled: !iscanRedo },
+                    { 'active-icon': iscanRedo },
+                ]"
+                title="重做"
+                @click="iscanRedo && editorBoard.history.redo()"
+            >
                 <n-icon :size="22">
                     <RedoIcon></RedoIcon>
                 </n-icon>
             </div>
-            <div :class="['icon-block', 'icon-block--redo', { 'disabled': !selectedMode },{ 'active-icon': selectedMode }]" title="删除" @click="handleDelete">
+            <div
+                :class="[
+                    'icon-block',
+                    'icon-block--redo',
+                    { disabled: !selectedMode },
+                    { 'active-icon': selectedMode },
+                ]"
+                title="删除"
+                @click="handleDelete"
+            >
                 <n-icon>
-                    <DeleteIcon/>
+                    <DeleteIcon />
                 </n-icon>
             </div>
-            <div class="icon-block icon-block--redo" title="清空画布" @click="handleClear">
+            <div
+                class="icon-block icon-block--redo"
+                title="清空画布"
+                @click="handleClear"
+            >
                 <n-icon :size="22">
                     <ClearIcon></ClearIcon>
                 </n-icon>
@@ -49,108 +82,116 @@
 </template>
 
 <script setup lang="ts">
-import { Image, ImageEvent } from 'leafer-ui'    
-import { RedoIcon, UndoIcon, VerticalLineIcon, ImageAddIcon, ClearIcon, DeleteIcon } from '@/assets/icons'
-import { ExecuteTypeEnum, type IDrawState, type IToolBar } from '../types'
-import useSelectorListen from '@/hooks/useSelectorListen';
+import { Image, ImageEvent } from "leafer-ui";
+import {
+    RedoIcon,
+    UndoIcon,
+    VerticalLineIcon,
+    ImageAddIcon,
+    ClearIcon,
+    DeleteIcon,
+} from "@/assets/icons";
+import { ExecuteTypeEnum, type IDrawState, type IToolBar } from "../types";
+import useSelectorListen from "@/hooks/useSelectorListen";
 import { toolbars as toolBarMenu } from "@/editor/utils";
-import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete"
+import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
 
-const { editorBoard, selectedMode } = useSelectorListen()
-const { dialog } = useNaiveDiscrete()
+const { editorBoard, selectedMode } = useSelectorListen();
+const { dialog } = useNaiveDiscrete();
 
-const currentIndex = ref<number>(0)
-const toolbars = shallowRef<IToolBar[]>(toolBarMenu)
+const currentIndex = ref<number>(0);
+const toolbars = shallowRef<IToolBar[]>(toolBarMenu);
 
 const handleClick = (item: IToolBar, index: number) => {
-    currentIndex.value = index
-    editorBoard.setToolbarActive(item.type, (state?:IDrawState) => {
+    currentIndex.value = index;
+    editorBoard.setToolbarActive(item.type, (state?: IDrawState) => {
         if (state?.type === item.type) {
-            currentIndex.value = 0
+            currentIndex.value = 0;
         }
-    })
-}
+    });
+};
 
 const handleClear = () => {
     dialog.warning({
-        title: '警告',
-        content: '清空画布后无法恢复，确定要清空吗？',
-        positiveText: '确定',
-        negativeText: '取消',
+        title: "警告",
+        content: "清空画布后无法恢复，确定要清空吗？",
+        positiveText: "确定",
+        negativeText: "取消",
         draggable: true,
         onPositiveClick: () => {
-            editorBoard.app.tree.clear()
+            editorBoard.app.tree.clear();
         },
-        onNegativeClick: () => {}
-  })
-}
+        onNegativeClick: () => {},
+    });
+};
 
 const handleDelete = () => {
-    editorBoard.deleteNode()
-}
+    editorBoard.deleteNode();
+};
 
 const uploadImage = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
-    input.multiple = true
-    input.style.display = 'none'
-    document.body.appendChild(input)
-    input.click()
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.style.display = "none";
+    document.body.appendChild(input);
+    input.click();
     input.onchange = (e) => {
-        const target = e.target as HTMLInputElement
-        const file = target.files || []
-        if (file?.length === 0) return
-        for(let i = 0; i < file.length; i++) {
-            setImage(file[i] as File, i)
+        const target = e.target as HTMLInputElement;
+        const file = target.files || [];
+        if (file?.length === 0) return;
+        for (let i = 0; i < file.length; i++) {
+            setImage(file[i] as File, i);
         }
-    }
-}
+    };
+};
 
 const setImage = (file: File, index: number) => {
-    let x = 100 + index * 50, y = 100;
-    const localUrl = URL.createObjectURL(file)
-    const image = Image.one({  
+    let x = 100 + index * 50,
+        y = 100;
+    const localUrl = URL.createObjectURL(file);
+    const image = Image.one({
         url: localUrl,
-        x, 
+        x,
         y,
         draggable: true,
         editable: true,
         data: {
-            executeType: ExecuteTypeEnum.AddElement
-        }
-    })
+            executeType: ExecuteTypeEnum.AddElement,
+        },
+    });
     image.once(ImageEvent.LOADED, function (e: ImageEvent) {
-        console.log('image loaded', e)
-    })
-    image.once(ImageEvent.ERROR, function (e: ImageEvent) { 
-        console.log('image error', e.error)
-    })
+        console.log("image loaded", e);
+    });
+    image.once(ImageEvent.ERROR, function (e: ImageEvent) {
+        console.log("image error", e.error);
+    });
 
-    editorBoard.addLeaferElement(image)
-    editorBoard.history.execute(image)
-}
+    editorBoard.addLeaferElement(image);
+    editorBoard.history.execute(image);
+};
 
 const printHistory = () => {
     // 添加历史记录
-    console.log('历史记录:', editorBoard.history.state())
-}
+    console.log("历史记录:", editorBoard.history.state());
+};
 
-const isCanUndo = ref(false)
-const iscanRedo = ref(false)
+const isCanUndo = ref(false);
+const iscanRedo = ref(false);
 
 const updateHistoryState = (state: any) => {
     // console.log('历史记录:', state)
-    isCanUndo.value = state.canUndo
-    iscanRedo.value = state.canRedo
-}
+    isCanUndo.value = state.canUndo;
+    iscanRedo.value = state.canRedo;
+};
 
 onMounted(() => {
-    editorBoard.on('history:change', updateHistoryState)
-})
+    editorBoard.on("history:change", updateHistoryState);
+});
 
 onUnmounted(() => {
     // 解绑，防止内存泄漏
-    editorBoard.off('history:change', updateHistoryState)
-})
+    editorBoard.off("history:change", updateHistoryState);
+});
 </script>

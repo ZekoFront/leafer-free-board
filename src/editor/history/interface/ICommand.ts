@@ -1,10 +1,10 @@
 export interface ICommand {
     /** 执行命令 */
-    execute(): void
+    execute(): void;
     /** 撤销命令 */
-    undo(): void
+    undo(): void;
     /** 重做命令 */
-    redo(): void
+    redo(): void;
     /** 获取命令标识 */
     // get id(): string
     /** 获取命令类型 */
@@ -12,9 +12,9 @@ export interface ICommand {
     /** 克隆命令 */
     // clone?(): ICommand
     /** 压缩命令数据 */
-    compress(): void
+    compress(): void;
     /** 恢复命令数据 */
-    decompress(): void
+    decompress(): void;
     /** 校验命令是否有效 */
-    isValid?(): boolean
+    isValid?(): boolean;
 }

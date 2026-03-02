@@ -1,21 +1,25 @@
-import type { IUIInputData } from 'leafer-ui'
-import { BaseCommand } from './BaseCommand'
-import type EditorBoard from '@/editor/EditorBoard'
-import { ExecuteTypeEnum } from '@/editor/types'
+import type { IUIInputData } from "leafer-ui";
+import { BaseCommand } from "./BaseCommand";
+import type EditorBoard from "@/editor/EditorBoard";
+import { ExecuteTypeEnum } from "@/editor/types";
 
 interface IAddElementCommandProps {
-    element: IUIInputData
-    editorBoard: EditorBoard
-    type?: string
-    desc?: string
+    element: IUIInputData;
+    editorBoard: EditorBoard;
+    type?: string;
+    desc?: string;
 }
 
 // 新增元素命令
 export class AddCommand extends BaseCommand {
-    private data: IUIInputData
+    private data: IUIInputData;
     constructor(props: IAddElementCommandProps) {
-        super(props.element.id||"", props.editorBoard, ExecuteTypeEnum.AddElement)
-        this.tag = props.element.tag||""
+        super(
+            props.element.id || "",
+            props.editorBoard,
+            ExecuteTypeEnum.AddElement,
+        );
+        this.tag = props.element.tag || "";
         this.desc = props.desc || `添加元素: ${this.tag}`;
         this.data = props.element.toJSON();
         this.id = this.editorBoard.generateId();
@@ -35,7 +39,7 @@ export class AddCommand extends BaseCommand {
         if (this.compressed) {
             this.decompress();
         }
-        
+
         // 利用编辑器已有方法创建并添加元素（保证逻辑一致性）
         // 使用 tag 创建leafer元素@see:https://www.leaferjs.com/ui/guide/basic/display.html#%E4%BD%BF%E7%94%A8-tag
         if (this.data) {
@@ -53,6 +57,6 @@ export class AddCommand extends BaseCommand {
     }
 
     redo(): void {
-        this.execute()
+        this.execute();
     }
 }

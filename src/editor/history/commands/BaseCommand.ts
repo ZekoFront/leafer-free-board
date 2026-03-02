@@ -19,7 +19,7 @@ export abstract class BaseCommand implements ICommand {
         editorBoard: EditorBoard,
         executeType?: ExecuteTypes,
         tag?: string,
-        desc?: string
+        desc?: string,
     ) {
         this.editorBoard = editorBoard;
         this.type = executeType || ExecuteTypeEnum.BaseCommand;
@@ -44,20 +44,19 @@ export abstract class BaseCommand implements ICommand {
         try {
             // 获取子类数据
             const dataToSave = this.getCustomData();
-            
+
             // 序列化并压缩 (如果不用 lz-string，直接用 JSON.stringify)
             const jsonString = JSON.stringify(dataToSave);
             this.compressedData = LZString.compressToUTF16(jsonString);
-            
+
             // 标记为已压缩
             this.compressed = true;
 
             // 通知子类清理内存（置空原始对象）
             // 注意：我们只清理数据，不清理 editorBoard 引用
-            this.setCustomData(null); 
-            
+            this.setCustomData(null);
         } catch (e) {
-            console.error('Command Compress Failed:', e);
+            console.error("Command Compress Failed:", e);
         }
     }
 
@@ -67,10 +66,12 @@ export abstract class BaseCommand implements ICommand {
 
         try {
             // 解压 (如果不用 lz-string，直接用 JSON.parse)
-            const jsonString = LZString.decompressFromUTF16(this.compressedData);
+            const jsonString = LZString.decompressFromUTF16(
+                this.compressedData,
+            );
             if (jsonString) {
                 const data = JSON.parse(jsonString);
-                
+
                 // 恢复数据到子类
                 this.setCustomData(data);
             }
@@ -79,7 +80,7 @@ export abstract class BaseCommand implements ICommand {
             this.compressedData = undefined;
             this.compressed = false;
         } catch (e) {
-            console.error('Command Decompress Failed:', e);
+            console.error("Command Decompress Failed:", e);
         }
     }
 

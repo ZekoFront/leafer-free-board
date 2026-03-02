@@ -1,8 +1,12 @@
 import { EventEmitter } from "events";
-import { App, type ILeaf, type IUI, type IUIInputData } from "leafer-ui"
-import { type IPluginClass, type IPluginOption, type IPluginTempl } from "./types"
+import { App, type ILeaf, type IUI, type IUIInputData } from "leafer-ui";
+import {
+    type IPluginClass,
+    type IPluginOption,
+    type IPluginTempl,
+} from "./types";
 import hotkeys from "hotkeys-js";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { HistoryManager } from "./history";
 import HandlerPlugin from "./plugins/HandlerPlugin";
 
@@ -25,9 +29,9 @@ class EditorBoard extends EventEmitter {
     }
 
     public init(app: App) {
-        this.app = app
+        this.app = app;
         // this.history = new HistoryManager(this, { maxHistorySize: 50 })
-        this._initHandlerPlugin()
+        this._initHandlerPlugin();
     }
 
     // EditorBoard核心业务处理插件
@@ -39,7 +43,10 @@ class EditorBoard extends EventEmitter {
     public use(plugin: IPluginTempl, options?: IPluginOption) {
         if (this._checkPlugin(plugin) && this.app) {
             this._saveCustomAttr(plugin);
-            const pluginRunTime = new (plugin as IPluginClass)(this, options || {});
+            const pluginRunTime = new (plugin as IPluginClass)(
+                this,
+                options || {},
+            );
             // 添加插件名称
             pluginRunTime.pluginName = plugin.pluginName;
             this.pluginMap[plugin.pluginName] = pluginRunTime;
@@ -51,7 +58,7 @@ class EditorBoard extends EventEmitter {
 
     public addLeaferElement(element: IUIInputData) {
         if (!this.app.tree) {
-            throw new Error('Editor not initialized');
+            throw new Error("Editor not initialized");
         }
 
         if (!element.id) element.id = this.generateId();
@@ -60,8 +67,7 @@ class EditorBoard extends EventEmitter {
         return element;
     }
 
-    
-    public removeLeaferElement(elementId:string="") {
+    public removeLeaferElement(elementId: string = "") {
         const element = this.getById(elementId);
         if (element && this.app.tree) {
             this.app.tree.remove(element);
@@ -70,7 +76,7 @@ class EditorBoard extends EventEmitter {
         return false;
     }
 
-    public getById(elementId:string="") {
+    public getById(elementId: string = "") {
         return this.app.tree.findId(elementId);
     }
 
@@ -90,7 +96,9 @@ class EditorBoard extends EventEmitter {
         apis.forEach((apiName: string) => {
             this[apiName] = function () {
                 // eslint-disable-next-line prefer-rest-params
-                return pluginRunTime[apiName].apply(pluginRunTime, [...arguments]);
+                return pluginRunTime[apiName].apply(pluginRunTime, [
+                    ...arguments,
+                ]);
             };
         });
     }
@@ -107,29 +115,29 @@ class EditorBoard extends EventEmitter {
         const { pluginName, events = [], apis = [] } = plugin;
         //名称检查
         if (this.pluginMap[pluginName]) {
-            throw new Error(pluginName + '插件重复初始化');
+            throw new Error(pluginName + "插件重复初始化");
         }
         events.forEach((eventName: string) => {
             if (this.customEvents.find((info) => info === eventName)) {
-                throw new Error(pluginName + '插件中' + eventName + '重复');
+                throw new Error(pluginName + "插件中" + eventName + "重复");
             }
         });
 
         apis.forEach((apiName: string) => {
             if (this.customApis.find((info) => info === apiName)) {
-                throw new Error(pluginName + '插件中' + apiName + '重复');
+                throw new Error(pluginName + "插件中" + apiName + "重复");
             }
         });
         return true;
     }
 
-    public generateId () {
+    public generateId() {
         return uuidv4();
     }
 
     // 取消选择状态
-    public cancelSelected () {
-        this.app.editor.cancel()
+    public cancelSelected() {
+        this.app.editor.cancel();
     }
 
     public destroy() {
@@ -137,7 +145,7 @@ class EditorBoard extends EventEmitter {
         Object.keys(this.pluginMap).forEach((key) => {
             this.pluginMap[key] && this.pluginMap[key].destroy();
         });
-        this.app.destroy()
+        this.app.destroy();
         this.pluginMap = {};
         this.customEvents = [];
         this.customApis = [];
@@ -152,4 +160,4 @@ class EditorBoard extends EventEmitter {
     }
 }
 
-export default EditorBoard
+export default EditorBoard;

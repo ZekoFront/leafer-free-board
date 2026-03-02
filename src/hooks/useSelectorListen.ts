@@ -1,7 +1,7 @@
 import type EditorBoard from "@/editor/EditorBoard";
 import { SelectMode, SelectEvent } from "@/utils";
 import type { IUI } from "leafer-editor";
-import type { IUIInputData } from 'leafer-ui';
+import type { IUIInputData } from "leafer-ui";
 
 export interface Selector {
     selectedMode: (typeof SelectMode)[keyof typeof SelectMode];
@@ -14,17 +14,19 @@ export interface Selector {
 
 export default function useSelectorListen() {
     // 注入editorBoard并校验存在性
-    const editorBoard = inject('editorBoard') as EditorBoard;
+    const editorBoard = inject("editorBoard") as EditorBoard;
     if (!editorBoard) {
-        throw new Error('useSelectorListen 依赖 "editorBoard"，请通过 provide 注入');
+        throw new Error(
+            'useSelectorListen 依赖 "editorBoard"，请通过 provide 注入',
+        );
     }
 
     const selectedActive = ref<IUIInputData | null>(null);
     const state = reactive<Selector>({
         selectedMode: SelectMode.EMPTY,
-        selectedId: '',
+        selectedId: "",
         selectedIds: [],
-        seletcedType: '',
+        seletcedType: "",
         editorBoard: editorBoard,
     });
 
@@ -34,27 +36,29 @@ export default function useSelectorListen() {
         state.selectedIds = [value.id];
         selectedActive.value = value;
         state.seletcedType = value.tag;
-    }
+    };
 
     const selectMultiple = (value: IUI[]) => {
-        const target = value
+        const target = value;
         state.selectedMode = SelectMode.MULTIPLE;
-        state.selectedId = '';
+        state.selectedId = "";
         state.selectedIds = target.map((item: IUI) => item.id);
-        state.seletcedType = '';
+        state.seletcedType = "";
         selectedActive.value = null;
-    }
+    };
 
     const selectEmpty = () => {
         state.selectedMode = SelectMode.EMPTY;
-        state.selectedId = '';
+        state.selectedId = "";
         state.selectedIds = [];
         selectedActive.value = null;
-        state.seletcedType = '';
-    }
+        state.seletcedType = "";
+    };
 
     const isSingle = computed(() => state.selectedMode === SelectMode.SINGLE);
-    const isMultiple = computed(() => state.selectedMode === SelectMode.MULTIPLE);
+    const isMultiple = computed(
+        () => state.selectedMode === SelectMode.MULTIPLE,
+    );
     const selectedModes = computed(() => state.selectedMode);
 
     onMounted(() => {
@@ -75,5 +79,5 @@ export default function useSelectorListen() {
         isMultiple,
         selectedMode: selectedModes,
         selectedActive,
-    }
+    };
 }

@@ -7,21 +7,20 @@ import { createDiscreteApi } from "naive-ui";
  */
 
 export const useNaiveDiscrete = () => {
-    const { 
-        message, 
-        dialog, 
-        notification, 
-        loadingBar,
-        modal 
-    } = createDiscreteApi(
-            ["message", "dialog", "notification", "loadingBar", 'modal']
-        );
-    
+    const { message, dialog, notification, loadingBar, modal } =
+        createDiscreteApi([
+            "message",
+            "dialog",
+            "notification",
+            "loadingBar",
+            "modal",
+        ]);
+
     return {
         message,
         dialog,
         notification,
         loadingBar,
-        modal
-    }
-}
+        modal,
+    };
+};

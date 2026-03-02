@@ -2,8 +2,11 @@
     cursor: pointer;
 }
 .default-shadow__wrapper {
-    border-radius: .5rem;
-    box-shadow: 0px 0px .9310142993927002px 0px rgba(0, 0, 0, .17), 0px 0px 3.1270833015441895px 0px rgba(0, 0, 0, .08), 0px 7px 14px 0px rgba(0, 0, 0, .05);
+    border-radius: 0.5rem;
+    box-shadow:
+        0px 0px 0.9310142993927002px 0px rgba(0, 0, 0, 0.17),
+        0px 0px 3.1270833015441895px 0px rgba(0, 0, 0, 0.08),
+        0px 7px 14px 0px rgba(0, 0, 0, 0.05);
 }
 .leafer-free-board {
     &--root {
@@ -48,13 +51,15 @@
                     }
                 }
             }
-            &--undo, &--redo {
+            &--undo,
+            &--redo {
                 &.disabled {
                     opacity: 0.5;
                     cursor: not-allowed;
                 }
             }
-            &--undo:hover, &--redo:hover {
+            &--undo:hover,
+            &--redo:hover {
                 background: #ffffff;
             }
             &:hover {
@@ -104,7 +109,7 @@
             }
             &__font-style {
                 .item__icon {
-                    margin: 0rem .2rem;
+                    margin: 0rem 0.2rem;
                     border-radius: 0.2rem;
                     padding: 0.1rem 0rem;
                     &.active {
@@ -154,7 +159,7 @@
                     width: 18px;
                     height: 18px;
                     border-radius: 3px;
-                    box-shadow: rgba(0, 0, 0, .15) 0px 0px 0px 1px inset;
+                    box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;
                 }
             }
             &__options {
@@ -182,7 +187,7 @@
                     height: 18px;
                     margin: 0 0.2rem;
                     border-radius: 3px;
-                    box-shadow: rgba(0, 0, 0, .15) 0px 0px 0px 1px inset;
+                    box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 0px 1px inset;
                 }
                 .n-color-picker {
                     flex: 0 0 66px;
@@ -192,10 +197,12 @@
     }
 }
 
-.fade-attr-enter-active, .fade-attr-leave-active {
+.fade-attr-enter-active,
+.fade-attr-leave-active {
     transition: all 0.3s ease;
 }
-.fade-attr-enter-from, .fade-attr-leave-to {
+.fade-attr-enter-from,
+.fade-attr-leave-to {
     opacity: 0;
     transform: translateX(10px);
 }

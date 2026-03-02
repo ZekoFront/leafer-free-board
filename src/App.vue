@@ -1,9 +1,8 @@
 <template>
-<div ref="boardRef" style="height: calc(100vh - 5px);width: 100%;">
-    <LeaferFreeBoard />
-</div>
+    <div ref="boardRef" style="height: calc(100vh - 5px); width: 100%">
+        <LeaferFreeBoard />
+    </div>
 </template>
 <script setup lang="ts">
-import LeaferFreeBoard from '@/editor/board.vue';
-
+import LeaferFreeBoard from "@/editor/board.vue";
 </script>

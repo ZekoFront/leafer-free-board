@@ -1,7 +1,7 @@
 export enum SelectMode {
-    EMPTY = '',
-    SINGLE = 'single',
-    MULTIPLE = 'multiple',
+    EMPTY = "",
+    SINGLE = "single",
+    MULTIPLE = "multiple",
 }
 
 export enum SelectEvent {
