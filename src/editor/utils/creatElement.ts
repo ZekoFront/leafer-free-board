@@ -121,8 +121,8 @@ export const drawText = (point: IPointData): IUI => {
 export const drawCircleText = (point: IPointData): IUI => {
     const circle = new Ellipse({
         editable: false,
-        width: 150,
-        height: 150,
+        width: 100,
+        height: 100,
         x: 0,
         y: 0,
         fill: defaultOptions.fill,
@@ -137,8 +137,8 @@ export const drawCircleText = (point: IPointData): IUI => {
         fontWeight: "bold",
         textAlign: "center",
         verticalAlign: "middle",
-        width: 130,
-        height: 130,
+        width: 80,
+        height: 80,
         x: 10,
         y: 10,
         textWrap: "break",
@@ -157,8 +157,8 @@ export const drawCircleText = (point: IPointData): IUI => {
         editable: true,
         x: point.x,
         y: point.y,
-        width: 150,
-        height: 150,
+        width: 100,
+        height: 100,
         fill: "rgba(0,0,0,0)",
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         children: [circle, text],
@@ -170,8 +170,8 @@ export const drawCircleText = (point: IPointData): IUI => {
 // 创建菱形文本
 export const drawDiamondText = (point: IPointData): IUI => {
     const diamond = new Polygon({
-        width: 150,
-        height: 150,
+        width: 100,
+        height: 100,
         sides: 4,
         cornerRadius: 10,
         fill: "#32cd79",
@@ -186,8 +186,8 @@ export const drawDiamondText = (point: IPointData): IUI => {
         fontWeight: "bold",
         textAlign: "center",
         verticalAlign: "middle",
-        width: 130,
-        height: 130,
+        width: 80,
+        height: 80,
         x: 10,
         y: 10,
         textWrap: "break",
@@ -198,8 +198,8 @@ export const drawDiamondText = (point: IPointData): IUI => {
         editable: true,
         x: point.x,
         y: point.y,
-        width: 150,
-        height: 150,
+        width: 100,
+        height: 100,
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         children: [diamond, text],
     });
