@@ -11,40 +11,50 @@
                 :on-update:value="handleClick"
             >
                 <n-tab-pane name="setting" tab="设置">
-                    <div
-                        class="attribute-item"
-                        v-if="selectedActive.tag === 'Text'"
-                    >
-                        <div class="attribute-item__label">字体样式</div>
-                        <aside class="attribute-item__flex">
-                            <div
-                                class="attribute-item__label"
-                                style="font-weight: normal"
-                            >
-                                大小&nbsp;
+                    <template v-if="selectedActive.tag === 'Text'">
+                        <div class="attribute-item">
+                            <div class="attribute-item__label">字体样式</div>
+                            <aside class="attribute-item__flex">
+                                <div
+                                    class="attribute-item__label"
+                                    style="font-weight: normal"
+                                >
+                                    大小&nbsp;
+                                </div>
+                                <n-input-number
+                                    class="attribute-item__input"
+                                    v-model:value="selectedActive.fontSize"
+                                    :on-update:value="handleFontSizeChange"
+                                />
+                            </aside>
+                            <div class="attribute-item__font-style">
+                                <n-icon
+                                    :class="[
+                                        'item__icon cursor',
+                                        { active: fontStyles.includes(item.value) },
+                                    ]"
+                                    :size="22"
+                                    v-for="item in fontStyleList"
+                                    :key="item.value"
+                                    :title="item.label"
+                                    @click="handleFontStyleIcon(item.value)"
+                                >
+                                    <component :is="item.icon"></component>
+                                </n-icon>
                             </div>
-                            <n-input-number
-                                class="attribute-item__input"
-                                v-model:value="selectedActive.fontSize"
-                                :on-update:value="handleFontSizeChange"
-                            />
-                        </aside>
-                        <div class="attribute-item__font-style">
-                            <n-icon
-                                :class="[
-                                    'item__icon cursor',
-                                    { active: fontStyles.includes(item.value) },
-                                ]"
-                                :size="22"
-                                v-for="item in fontStyleList"
-                                :key="item.value"
-                                :title="item.label"
-                                @click="handleFontStyleIcon(item.value)"
-                            >
-                                <component :is="item.icon"></component>
-                            </n-icon>
                         </div>
-                    </div>
+                        <div class="attribute-item">
+                            <div class="attribute-item__label">文本内容</div>
+                            <n-input
+                                class="attribute-item__input"
+                                v-model:value="textContent"
+                                clearable
+                                :placeholder="selectedActive.placeholder || ''"
+                                :on-blur="handleTextChange"
+                                :on-update:value="handleTextUpdate"
+                            />
+                        </div>
+                    </template>
                     <div
                         class="attribute-item arrow-type"
                         v-if="selectedActive.tag === 'Arrow'"
@@ -235,6 +245,7 @@ const padding = ref([0, 0]);
 const zIndex = ref(0);
 const fontWeight = ref("normal");
 const fontStyles = ref<string[]>([]);
+const textContent = ref("");
 
 const handleClick = (val: string) => {
     activeName.value = val;
@@ -244,6 +255,19 @@ const handleArrowTypeClick = (type: string) => {
     if (selectedActive.value instanceof Arrow) {
         isArrowBothEnds.value && (selectedActive.value.startArrow = type);
         selectedActive.value.endArrow = type;
+    }
+};
+
+const handleTextChange = (e: FocusEvent) => {
+    const textVal = (e.target as HTMLInputElement).value;
+    if (selectedActive.value) {
+        setRecord("text", selectedActive.value?.text || "", textVal);
+        selectedActive.value.text = textContent.value;
+    }
+};
+const handleTextUpdate = (value: string) => {
+    if (selectedActive.value) {
+        selectedActive.value.text = value;
     }
 };
 
@@ -366,6 +390,7 @@ const setRecord = (key: string, oldValue: any, newValue: any) => {
 
 watchEffect(() => {
     if (selectedActive.value) {
+        textContent.value = selectedActive.value.text as string || "";
         fillColor.value = (selectedActive.value.fill as string) || "";
         strokeColor.value = (selectedActive.value.stroke as string) || "";
         strokeWidth.value = Number(selectedActive.value.strokeWidth) || 0;
