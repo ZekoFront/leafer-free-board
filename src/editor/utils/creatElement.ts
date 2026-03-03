@@ -120,7 +120,7 @@ export const drawText = (point: IPointData): IUI => {
     });
 };
 
-// 绘制圆形文本
+// 绘制圆形文本 
 export const drawCircleText = (point: IPointData): IUI => {
     const circle = new Ellipse({
         editable: false,
