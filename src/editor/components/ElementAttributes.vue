@@ -192,7 +192,7 @@
                             :on-update:value="handleZIndexChange"
                         />
                     </div>
-                    <div class="attribute-item">
+                    <div class="attribute-item" v-if="selectedActive.id">
                         <div class="attribute-item__label">操作</div>
                         <div class="attribute-item__operation">
                             <n-icon title="删除" class="cursor" @click="handleAction('del')"><DeleteIcon/></n-icon>
