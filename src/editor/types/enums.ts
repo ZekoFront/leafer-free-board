@@ -1,4 +1,5 @@
 export enum ExecuteTypeEnum {
+    Paste = "paste-element",
     AddElement = "add-element",
     DeleteElement = "delete-element",
     UpdateAttribute = "update-attribute",

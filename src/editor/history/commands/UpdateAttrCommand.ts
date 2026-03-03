@@ -15,7 +15,7 @@ export class UpdateAttrCommand extends BaseCommand {
         this.newAttrs = props.newAttrs;
 
         this.tag = props.tag || "";
-        const keys = Object.keys(props.newAttrs).join(", ");
+        const keys = Object.keys(props.newAttrs).join(",");
         this.desc = props.desc || `修改元素属性: ${keys}`;
     }
 

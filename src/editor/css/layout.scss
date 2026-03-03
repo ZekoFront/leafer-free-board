@@ -107,6 +107,15 @@
                 font-weight: 700;
                 flex-shrink: 0;
             }
+            &__operation {
+                padding-top: 0.5rem;
+                .n-icon {
+                    background-color: #EBF4FF;
+                    padding: 0.5rem;
+                    border-radius: 0.2rem;
+                    margin-right: 0.5rem;
+                }
+            }
             &__font-style {
                 .item__icon {
                     margin: 0rem 0.2rem;

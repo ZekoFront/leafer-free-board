@@ -192,6 +192,13 @@
                             :on-update:value="handleZIndexChange"
                         />
                     </div>
+                    <div class="attribute-item">
+                        <div class="attribute-item__label">操作</div>
+                        <div class="attribute-item__operation">
+                            <n-icon title="删除" class="cursor" @click="handleAction('del')"><DeleteIcon/></n-icon>
+                            <n-icon title="复制" class="cursor" @click="handleAction('copy')"><CopyIcon/></n-icon>
+                        </div>
+                    </div>
                 </n-tab-pane>
                 <n-tab-pane name="layer" tab="图层">
                     <div class="attribute-item">
@@ -225,6 +232,10 @@ import {
 } from "@/editor/utils";
 import useSelectorListen from "@/hooks/useSelectorListen";
 import { ExecuteTypeEnum } from "@/editor/types";
+import {
+    DeleteIcon,
+    CopyIcon,
+} from "@/assets/icons";
 
 const { editor } = defineProps({
     editor: {
@@ -246,6 +257,15 @@ const zIndex = ref(0);
 const fontWeight = ref("normal");
 const fontStyles = ref<string[]>([]);
 const textContent = ref("");
+
+
+const handleAction = (type: string = 'del') => {
+    if (type === 'del') {
+        editor.deleteNode()
+    } else if (type === 'copy') {
+        editor.copyNode()
+    }
+}
 
 const handleClick = (val: string) => {
     activeName.value = val;
@@ -398,8 +418,7 @@ watchEffect(() => {
             0, 0,
         ];
         zIndex.value = selectedActive.value.zIndex || 0;
-        fontWeight.value =
-            (selectedActive.value.fontWeight as string) || "normal";
+        fontWeight.value = (selectedActive.value.fontWeight as string) || "normal";
         // 矩形文本元素生效
         if (selectedActive.value.tag === "Box") {
             if (

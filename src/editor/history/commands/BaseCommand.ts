@@ -1,6 +1,7 @@
 import type { ICommand } from "../interface/ICommand";
 import type EditorBoard from "@/editor/EditorBoard";
 import { ExecuteTypeEnum, type ExecuteTypes } from "@/editor/types";
+import type { IUI, IUIInputData } from "leafer-ui";
 import LZString from "lz-string";
 
 export abstract class BaseCommand implements ICommand {
@@ -85,7 +86,7 @@ export abstract class BaseCommand implements ICommand {
     }
 
     // 获取元素
-    public getElement(id?: string) {
-        return this.editorBoard.getById(id || this.elementId);
+    public getElement(id?: string): IUIInputData | IUI {
+        return this.editorBoard.getById(id || this.elementId) as IUIInputData | IUI;
     }
 }

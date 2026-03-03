@@ -25,6 +25,7 @@ export interface IMoveData {
 }
 
 export type ExecuteTypes =
+    | "paste-element"
     | "add-element"
     | "delete-element"
     | "update-attribute"

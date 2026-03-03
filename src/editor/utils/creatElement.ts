@@ -29,6 +29,9 @@ export function createElement(type: string, point: IPointData) {
         case "diamond":
             element = drawDiamondText(point);
             break;
+        case "ellipse":
+            element = drawEllipseText(point);
+            break;
         default:
             element = {} as IUIInputData;
             console.error("Unsupported shape type: " + type);
@@ -159,6 +162,56 @@ export const drawCircleText = (point: IPointData): IUI => {
         y: point.y,
         width: 100,
         height: 100,
+        fill: "rgba(0,0,0,0)",
+        hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
+        children: [circle, text],
+    });
+
+    return group;
+};
+
+// 绘制椭圆文本
+export const drawEllipseText = (point: IPointData): IUI => {
+    const circle = new Ellipse({
+        editable: false,
+        width: 100,
+        height: 50,
+        x: 0,
+        y: 0,
+        fill: defaultOptions.fill,
+    });
+
+    const text = new Text({
+        draggable: false,
+        editable: true,
+        text: defaultOptions.text,
+        fill: defaultOptions.fontColor,
+        fontSize: 12,
+        fontWeight: "bold",
+        textAlign: "center",
+        verticalAlign: "middle",
+        width: 80,
+        height: 30,
+        x: 10,
+        y: 10,
+        textWrap: "break",
+        dragBounds: "parent", // 限制元素拖动范围
+        padding: [15, 5],
+        boxStyle: {
+            // fill: 'blue',
+            // strokeWidth: 1,
+            // stroke: '#333'
+            padding: 6,
+        },
+    });
+
+    const group = new Group({
+        name: "GroupEllipseText",
+        editable: true,
+        x: point.x,
+        y: point.y,
+        width: 100,
+        height: 50,
         fill: "rgba(0,0,0,0)",
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         children: [circle, text],

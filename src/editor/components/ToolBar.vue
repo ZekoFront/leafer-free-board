@@ -54,20 +54,6 @@
                 </n-icon>
             </div>
             <div
-                :class="[
-                    'icon-block',
-                    'icon-block--redo',
-                    { disabled: !selectedMode },
-                    { 'active-icon': selectedMode },
-                ]"
-                title="删除"
-                @click="handleDelete"
-            >
-                <n-icon>
-                    <DeleteIcon />
-                </n-icon>
-            </div>
-            <div
                 class="icon-block icon-block--redo"
                 title="清空画布"
                 @click="handleClear"
@@ -89,14 +75,13 @@ import {
     VerticalLineIcon,
     ImageAddIcon,
     ClearIcon,
-    DeleteIcon,
 } from "@/assets/icons";
 import { ExecuteTypeEnum, type IDrawState, type IToolBar } from "../types";
 import useSelectorListen from "@/hooks/useSelectorListen";
 import { toolbars as toolBarMenu } from "@/editor/utils";
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
 
-const { editorBoard, selectedMode } = useSelectorListen();
+const { editorBoard } = useSelectorListen();
 const { dialog } = useNaiveDiscrete();
 
 const currentIndex = ref<number>(0);
@@ -123,10 +108,6 @@ const handleClear = () => {
         },
         onNegativeClick: () => {},
     });
-};
-
-const handleDelete = () => {
-    editorBoard.deleteNode();
 };
 
 const uploadImage = () => {

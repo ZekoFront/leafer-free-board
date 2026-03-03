@@ -8,6 +8,7 @@ import {
     SelectIcon,
     TextIcon,
     DiamondIcon,
+    EllipseIcon
 } from "@/assets/icons";
 
 export const toolbars: IToolBar[] = [
@@ -27,6 +28,12 @@ export const toolbars: IToolBar[] = [
         icon: CircleIcon,
         title: "圆形",
         type: "circle",
+        draggable: true,
+    },
+    {
+        icon: EllipseIcon,
+        title: "椭圆",
+        type: "ellipse",
         draggable: true,
     },
     {

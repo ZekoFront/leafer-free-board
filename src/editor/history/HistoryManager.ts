@@ -6,7 +6,7 @@ import {
     type IPluginTempl,
 } from "@/editor/types";
 import type { IUIInputData } from "leafer-ui";
-import { AddCommand, MoveCommand, UpdateAttrCommand } from "./index";
+import { AddCommand, DeleteCommand, MoveCommand, PasteCommand, UpdateAttrCommand } from "./index";
 import type EditorBoard from "@/editor/EditorBoard";
 
 // 历史记录管理器 - 核心撤销重做逻辑
@@ -29,36 +29,45 @@ export class HistoryManager implements IPluginTempl {
     // 执行命令
     execute(element: IUIInputData) {
         if (!element || !element.data) return;
+
+        let command: ICommand = {} as ICommand;
         // 新增元素命令
         if (element.data.executeType === ExecuteTypeEnum.AddElement) {
             element.type = ExecuteTypeEnum.AddElement;
-            const command = new AddCommand({
+            command = new AddCommand({
                 element,
-                editorBoard: this.editorBoard,
-                type: ExecuteTypeEnum.AddElement,
+                editorBoard: this.editorBoard
             });
-            this.addCommand(command);
+            
         } else if (element.data.executeType === ExecuteTypeEnum.MoveElement) {
             // 移动元素命令
-            const command = new MoveCommand({
+            command = new MoveCommand({
                 moveList: element.data.moveList,
                 tag: element.tag || "",
                 editor: this.editorBoard,
             });
-            this.addCommand(command);
-        } else if (
-            element.data.executeType === ExecuteTypeEnum.UpdateAttribute
-        ) {
+        } else if (element.data.executeType === ExecuteTypeEnum.UpdateAttribute) {
             // 更新元素属性
-            const command = new UpdateAttrCommand({
+            command = new UpdateAttrCommand({
                 elementId: element.elementId,
                 editor: this.editorBoard,
                 oldAttrs: element.oldAttrs,
                 newAttrs: element.newAttrs,
                 tag: element.tag || "",
             });
-            this.addCommand(command);
+        } else if (element.data.executeType === ExecuteTypeEnum.DeleteElement) {
+            command = new DeleteCommand({
+                elementIds: element.elementIds,
+                editorBoard: this.editorBoard
+            });
+        } else if (element.data.executeType === ExecuteTypeEnum.Paste) {
+            command = new PasteCommand({
+                elementIds: element.elementIds,
+                editorBoard: this.editorBoard
+            });
         }
+
+        this.addCommand(command);
     }
 
     // 通用命令

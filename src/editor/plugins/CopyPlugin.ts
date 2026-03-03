@@ -6,7 +6,7 @@ import { debounce, cloneDeep } from "lodash-es";
 
 export class CopyPlugin implements IPluginTempl {
     static pluginName = "CopyPlugin";
-    static apis = [];
+    static apis = ['copyNode'];
     hotkeys: string[] = ["ctrl+c", "ctrl+v"];
     private selectNodes: IUI[] = [];
     private copyNodes: IUI[] = [];
@@ -34,7 +34,7 @@ export class CopyPlugin implements IPluginTempl {
                 clone.set({
                     x: (node.x || 0) + 50,
                     y: (node.y || 0) + 50,
-                    id: "",
+                    id: this.editorBoard.generateId(),
                 });
                 clone.data &&
                     (clone.data.executeType = ExecuteTypeEnum.AddElement);
@@ -47,13 +47,28 @@ export class CopyPlugin implements IPluginTempl {
         if (this.copyNodes.length) {
             this.copyNodes.forEach((node) => {
                 this.editorBoard.addLeaferElement(node);
-                this.editorBoard.history.execute(node);
+                // this.editorBoard.history.execute(node);
             });
 
             // 选择元素
             this.editorBoard.app.editor.select(this.copyNodes);
+
+            // 添加历史记录
+            this.editorBoard.history.execute({
+                elementIds: this.copyNodes.map((node) => node.id),
+                editorBoard: this.editorBoard,
+                data: {
+                    executeType: ExecuteTypeEnum.Paste,
+                },
+            });
+
             this.copyNodes.length = 0;
         }
+    }
+
+    copyNode() {
+        this._copyDebounced();
+        this._pasteDebounced();
     }
 
     private _copyDebounced = debounce(
