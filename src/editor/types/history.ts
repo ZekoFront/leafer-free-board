@@ -47,4 +47,5 @@ export interface IUpdateAttrCommandProps {
     newAttrs: Record<string, any>;
     tag?: string;
     desc?: string;
+    childId?: string;
 }

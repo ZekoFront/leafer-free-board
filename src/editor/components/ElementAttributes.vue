@@ -82,7 +82,7 @@
                     <div
                         class="attribute-item arrow-type"
                         v-if="
-                            ['Box', 'Rect', 'Text'].includes(
+                            ['Box', 'Rect', 'Text', 'Group'].includes(
                                 selectedActive.tag as string,
                             )
                         "
@@ -94,7 +94,7 @@
                                 v-for="(item, index) in colorPanel"
                                 :key="index + item"
                                 :style="{ background: item }"
-                                @click="handleColorClick(item)"
+                                @click="handleFillColor(item)"
                             ></span>
                         </aside>
                         <n-color-picker
@@ -390,12 +390,20 @@ const handleStrokeWidthChange = (value: number | null) => {
     }
 };
 
-const handleColorClick = (color: string) => {
-    setRecord("fill", selectedActive.value?.fill || "", color);
-    selectedActive.value && (selectedActive.value.fill = color);
+const handleFillColor = (color: string) => {
+    // 区分分组和普通单元素
+    if (selectedActive.value?.tag === "Group") {
+        if (selectedActive.value?.children && selectedActive.value.children[0]) {
+            setRecord("fill", selectedActive.value?.children[0].fill || "", color, selectedActive.value?.children[0].id);
+            selectedActive.value.children[0].fill = color;
+        }
+    } else {
+        setRecord("fill", selectedActive.value?.fill || "", color);
+        selectedActive.value && (selectedActive.value.fill = color);
+    }
 };
 
-const setRecord = (key: string, oldValue: any, newValue: any) => {
+const setRecord = (key: string, oldValue: any, newValue: any, childId?: string) => {
     // 保留历史记录
     editor.history.execute({
         elementId: selectedActive.value?.id || "",
@@ -403,6 +411,7 @@ const setRecord = (key: string, oldValue: any, newValue: any) => {
         newAttrs: { [key]: newValue },
         tag: selectedActive.value?.tag || "",
         data: {
+            childId: childId || "",
             executeType: ExecuteTypeEnum.UpdateAttribute,
         },
     });

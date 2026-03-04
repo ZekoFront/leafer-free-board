@@ -129,6 +129,7 @@ export const drawCircleText = (point: IPointData): IUI => {
         x: 0,
         y: 0,
         fill: defaultOptions.fill,
+        id: uuidv4(),
     });
 
     const text = new Text({
@@ -179,6 +180,7 @@ export const drawEllipseText = (point: IPointData): IUI => {
         x: 0,
         y: 0,
         fill: defaultOptions.fill,
+        id: uuidv4(),
     });
 
     const text = new Text({
@@ -228,6 +230,7 @@ export const drawDiamondText = (point: IPointData): IUI => {
         sides: 4,
         cornerRadius: 10,
         fill: "#32cd79",
+        id: uuidv4(),
     });
 
     const text = new Text({

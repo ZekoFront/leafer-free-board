@@ -54,6 +54,7 @@ export class HistoryManager implements IPluginTempl {
                 oldAttrs: element.oldAttrs,
                 newAttrs: element.newAttrs,
                 tag: element.tag || "",
+                childId: element.data.childId || "",
             });
         } else if (element.data.executeType === ExecuteTypeEnum.DeleteElement) {
             command = new DeleteCommand({

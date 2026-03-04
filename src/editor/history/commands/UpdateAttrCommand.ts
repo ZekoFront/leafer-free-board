@@ -10,7 +10,7 @@ export class UpdateAttrCommand extends BaseCommand {
     public newAttrs: Record<string, any>;
 
     constructor(props: IUpdateAttrCommandProps) {
-        super(props.elementId, props.editor, ExecuteTypeEnum.UpdateAttribute);
+        super(props.elementId, props.editor, ExecuteTypeEnum.UpdateAttribute, props.childId);
         this.oldAttrs = props.oldAttrs;
         this.newAttrs = props.newAttrs;
 
@@ -34,18 +34,27 @@ export class UpdateAttrCommand extends BaseCommand {
     }
     protected setCustomData(): void {}
 
-    execute(): void {
+    private getTargetElement() {
         const element = this.getElement();
-        if (element) {
-            element.set(this.newAttrs);
+        if (!element) return null;
+
+        if (this.childId && element.tag === "Group" && element.children) {
+            const child = element.children.find(c => c.id === this.childId);
+            return child || null;
         }
+
+        return element;
+    }
+
+    execute(): void {
+        const target = this.getTargetElement();
+        if (target) target.set(this.newAttrs);
+        
     }
 
     undo(): void {
-        const element = this.getElement();
-        if (element) {
-            element.set(this.oldAttrs);
-        }
+        const target = this.getTargetElement();
+        if (target) target.set(this.oldAttrs);
     }
 
     redo(): void {

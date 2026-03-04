@@ -12,23 +12,22 @@ export abstract class BaseCommand implements ICommand {
     protected compressed: boolean = false;
     protected compressedData?: string;
     public elementId: string;
-    public tag: string;
-    public desc: string;
+    public tag: string = "";
+    public desc: string = "";
+    public childId: string;
 
     constructor(
         elementId: string,
         editorBoard: EditorBoard,
         executeType?: ExecuteTypes,
-        tag?: string,
-        desc?: string,
+        childId?: string,
     ) {
         this.editorBoard = editorBoard;
         this.type = executeType || ExecuteTypeEnum.BaseCommand;
         this.elementId = elementId;
         this.id = this.editorBoard.generateId();
         this.timestamp = Date.now();
-        this.tag = tag || "";
-        this.desc = desc || "";
+        this.childId = childId || "";
     }
 
     abstract execute(): void;
