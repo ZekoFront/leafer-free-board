@@ -71,7 +71,7 @@ onMounted(() => {
     editorBoard.use(SnapPlugin);
     editorBoard.use(RulerPlugin)
     editorBoard.use(ScrollBarPlugin);
-    // editorBoard.use(DotMatrixPlugin); // 网格插件
+    editorBoard.use(DotMatrixPlugin); // 网格插件
     editorBoard.use(DeleteHotKeyPlugin);
     editorBoard.use(CopyPlugin);
     editorBoard.use(ShapePlugin);

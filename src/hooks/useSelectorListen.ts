@@ -1,7 +1,6 @@
 import type EditorBoard from "@/editor/EditorBoard";
 import { SelectMode, SelectEvent } from "@/utils";
-import type { IUI } from "leafer-editor";
-import type { IUIInputData } from "leafer-ui";
+import type { IUI, IUIInputData } from "leafer-ui";
 
 export interface Selector {
     selectedMode: (typeof SelectMode)[keyof typeof SelectMode];
