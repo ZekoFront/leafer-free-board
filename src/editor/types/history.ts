@@ -47,6 +47,8 @@ export interface ISerializedConnection {
     fromId: string;
     toId: string;
     lineId: string;
+    labelId?: string;
+    labelText?: string;
 }
 
 /** 序列化的历史命令 */

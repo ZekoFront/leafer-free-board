@@ -1,6 +1,7 @@
 import {
     Line,
     Path,
+    Text,
     PointerEvent,
     type IPointData,
     type IUI,
@@ -15,8 +16,21 @@ import {
     createElement,
     getBezierPathString,
     getBestConnectionByWorldBoxBounds,
+    getLineMidpoint,
+    getBezierMidpoint,
+    enforceMinGap,
+    HistoryEvent,
 } from "../utils";
 import { EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
+
+interface IConnection {
+    from: IUIInputData;
+    to: IUIInputData;
+    line: IUI;
+    label: IUI | null;
+}
+
+const MIN_LABEL_GAP = 50;
 
 export class ShapePlugin implements IPluginTempl {
     static pluginName = "ShapePlugin";
@@ -26,8 +40,10 @@ export class ShapePlugin implements IPluginTempl {
         "onDragStartElement",
         "onDragEndEvent",
         "getShapePluginRelatedLines",
+        "getShapePluginRelatedLabels",
         "getSerializableConnections",
         "restoreConnections",
+        "updateConnectionLabel",
     ];
     static hotkeys: string[] = [];
     static events = ["testEvent"];
@@ -42,7 +58,7 @@ export class ShapePlugin implements IPluginTempl {
     // 处理拖拽生成图形
     private leafer: HTMLDivElement | undefined;
     public startRect: IUIInputData | null = null;
-    private connections: IUIInputData[] = [];
+    private connections: IConnection[] = [];
     // 初始化一个空函数作为默认值
     private callBack: (state: IDrawState) => void = () => {};
     constructor(public editorBoard: EditorBoard) {
@@ -95,6 +111,7 @@ export class ShapePlugin implements IPluginTempl {
             EditorRotateEvent.ROTATE,
             this._onTransformEvent,
         );
+        this.editorBoard.on(HistoryEvent.CHANGE, this._onHistoryChange);
     }
 
     private _onDragLeaferOver = (evt: DragEvent) => {
@@ -124,6 +141,7 @@ export class ShapePlugin implements IPluginTempl {
             EditorRotateEvent.ROTATE,
             this._onTransformEvent,
         );
+        this.editorBoard.off(HistoryEvent.CHANGE, this._onHistoryChange);
     }
 
     // 创建节流版本的更新函数
@@ -144,9 +162,13 @@ export class ShapePlugin implements IPluginTempl {
         this._updateRelatedLinesThrottled(this.editorBoard.app.editor.list);
     };
 
+    private _isConnectionLabel(el: any): boolean {
+        return !!el?.data?.isConnectionLabel;
+    }
+
     private _tempElement(evt: PointerEvent) {
-        // 绘制连线，允许有id的元素进行连线
-        if (evt.target && evt.target.id) {
+        // 绘制连线，允许有id的元素进行连线（排除连接标签）
+        if (evt.target && evt.target.id && !this._isConnectionLabel(evt.target)) {
             this.startRect = evt.target as IUIInputData;
             this.startRect.x;
             const centerPoint: IPointData = {
@@ -237,7 +259,11 @@ export class ShapePlugin implements IPluginTempl {
                 x: _evt.x,
                 y: _evt.y,
             });
-            const endRect = dropResult.target;
+            let endRect = dropResult.target;
+            // 排除连接标签作为连线目标
+            if (endRect && this._isConnectionLabel(endRect as IUIInputData)) {
+                endRect = null as any;
+            }
             if (endRect) {
                 // 兼容分组元素连线
                 const group = endRect.parent;
@@ -322,14 +348,17 @@ export class ShapePlugin implements IPluginTempl {
         startRect: IUIInputData | null,
         endRect: IUIInputData,
     ) {
-        const { p0, p3 } = getBestConnectionByWorldBoxBounds(
+        let { p0, p3 } = getBestConnectionByWorldBoxBounds(
             startRect || ({} as IUIInputData),
             endRect,
             this.editorBoard.app,
         );
+
+        // 保留标签最小间距
+        ({ p0, p3 } = enforceMinGap(p0, p3, MIN_LABEL_GAP));
+
         let line: IUI | null = null;
         if (this.drawMode == "curve") {
-            // 生成贝塞尔路径数据
             const pathData = getBezierPathString(p0, p3);
             line = new Path({
                 path: pathData,
@@ -337,12 +366,9 @@ export class ShapePlugin implements IPluginTempl {
                 strokeWidth: 2,
                 editable: true,
                 draggable: false,
-                endArrow: 'arrow' // 箭头
+                endArrow: 'arrow',
             });
-            // 放到最底层
-            // this.editorBoard.app.tree.addAt(path, 0)
         } else if (this.drawMode == "line") {
-            // 创建连接箭头直线
             line = new Line({
                 editable: true,
                 stroke: "#555",
@@ -350,15 +376,58 @@ export class ShapePlugin implements IPluginTempl {
                 dashPattern: [0, 0],
                 points: [p0.x, p0.y, p3.x, p3.y],
                 draggable: false,
-                endArrow: "arrow", // 箭头
+                endArrow: "arrow",
             });
         }
 
         if (line) {
             this.editorBoard.addLeaferElement(line);
             this.editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: line });
-            this.connections.push({ from: startRect, to: endRect, line: line });
+
+            const isCurve = this.drawMode === "curve";
+            const mid = isCurve ? getBezierMidpoint(p0, p3) : getLineMidpoint(p0, p3);
+            const label = this._createLabel(mid.x, mid.y);
+            this.editorBoard.addLeaferElement(label);
+
+            this.connections.push({
+                from: startRect as IUIInputData,
+                to: endRect,
+                line: line,
+                label: label,
+            });
         }
+    }
+
+    private _createLabel(midX: number, midY: number): IUI {
+        return new Text({
+            id: this.editorBoard.generateId(),
+            name: "ConnectionLabel",
+            text: "",
+            placeholder: "",
+            fontSize: 12,
+            editable: true,
+            draggable: false,
+            textAlign: "center",
+            verticalAlign: "middle",
+            around: "center",
+            x: midX,
+            y: midY,
+            width: 40,
+            height: 20,
+            padding: [2, 6],
+            boxStyle: {
+                fill: "transparent",
+                stroke: "transparent",
+                strokeWidth: 1,
+                cornerRadius: 4,
+            },
+            data: { isConnectionLabel: true },
+        }) as unknown as IUI;
+    }
+
+    private _updateLabelPosition(label: IUI, midX: number, midY: number) {
+        label.x = midX;
+        label.y = midY;
     }
 
     // 拖拽开始选中元素
@@ -378,24 +447,32 @@ export class ShapePlugin implements IPluginTempl {
         this.draggingNode = null;
     }
 
-    // 更新相关连接线
     private _updateRelatedLines(movingRect: IUIInputData) {
         const movingId = movingRect.id;
         this.connections.forEach((conn) => {
             if (conn.from?.id === movingId || conn.to?.id === movingId) {
-                // 重新计算最佳连接点 (p0, p3 及其方向)
-                const { p0, p3 } = getBestConnectionByWorldBoxBounds(
+                let { p0, p3 } = getBestConnectionByWorldBoxBounds(
                     conn.from,
                     conn.to,
                     this.editorBoard.app,
                 );
-                if (conn.line.tag == "Path") {
-                    // 更新曲线
-                    const newPathData = getBezierPathString(p0, p3);
-                    conn.line.path = newPathData;
-                } else if (conn.line.tag == "Line") {
-                    // 更新直线
-                    conn.line.points = [p0.x, p0.y, p3.x, p3.y];
+
+                if (conn.label) {
+                    ({ p0, p3 } = enforceMinGap(p0, p3, MIN_LABEL_GAP));
+                }
+
+                const isCurve = conn.line.tag === "Path";
+                if (isCurve) {
+                    conn.line.path = getBezierPathString(p0, p3);
+                } else if (conn.line.tag === "Line") {
+                    (conn.line as Line).points = [p0.x, p0.y, p3.x, p3.y];
+                }
+
+                if (conn.label) {
+                    const mid = isCurve
+                        ? getBezierMidpoint(p0, p3)
+                        : getLineMidpoint(p0, p3);
+                    this._updateLabelPosition(conn.label, mid.x, mid.y);
                 }
             }
         });
@@ -409,6 +486,45 @@ export class ShapePlugin implements IPluginTempl {
             .map((conn) => conn.line as IUI);
     }
 
+    // 暴露给 HandlerPlugin 使用，获取某个元素关联的所有标签
+    public getShapePluginRelatedLabels(node: IUIInputData): IUI[] {
+        const nodeId = node.id;
+        return this.connections
+            .filter((conn) => conn.from?.id === nodeId || conn.to?.id === nodeId)
+            .filter((conn) => conn.label !== null)
+            .map((conn) => conn.label as IUI);
+    }
+
+    /** 通过线段 id 更新对应标签文字 */
+    public updateConnectionLabel(lineId: string, text: string) {
+        const conn = this.connections.find((c) => c.line?.id === lineId);
+        if (conn?.label) {
+            (conn.label as Text).text = text;
+        }
+    }
+
+    /**
+     * 历史变更后同步标签可见性：
+     * 线被撤销 → 隐藏标签；线被重做 → 恢复标签
+     */
+    private _onHistoryChange = () => {
+        queueMicrotask(() => this._syncConnectionLabels());
+    };
+
+    private _syncConnectionLabels() {
+        this.connections.forEach((conn) => {
+            if (!conn.label) return;
+            const lineInTree = !!this.editorBoard.getById(conn.line?.id as string);
+            const labelInTree = !!this.editorBoard.getById(conn.label.id as string);
+            if (!lineInTree && labelInTree) {
+                try { conn.label.remove(); } catch { /* already removed */ }
+            }
+            if (lineInTree && !labelInTree) {
+                try { this.editorBoard.app.tree.add(conn.label); } catch { /* re-add failed */ }
+            }
+        });
+    }
+
     public getSerializableConnections(): ISerializedConnection[] {
         return this.connections
             .filter((conn) => conn.from?.id && conn.to?.id && conn.line?.id)
@@ -416,6 +532,8 @@ export class ShapePlugin implements IPluginTempl {
                 fromId: conn.from.id as string,
                 toId: conn.to.id as string,
                 lineId: conn.line.id as string,
+                labelId: (conn.label?.id as string) || undefined,
+                labelText: (conn.label as any)?.text || undefined,
             }));
     }
 
@@ -426,7 +544,24 @@ export class ShapePlugin implements IPluginTempl {
             const to = this.editorBoard.getById(item.toId);
             const line = this.editorBoard.getById(item.lineId);
             if (from && to && line) {
-                this.connections.push({ from, to, line } as any);
+                let label: IUI | null = null;
+                if (item.labelId) {
+                    label = this.editorBoard.getById(item.labelId) as IUI | null;
+                }
+                if (!label && line) {
+                    const { p0, p3 } = getBestConnectionByWorldBoxBounds(from, to, this.editorBoard.app);
+                    const isCurve = (line as IUI).tag === "Path";
+                    const mid = isCurve ? getBezierMidpoint(p0, p3) : getLineMidpoint(p0, p3);
+                    label = this._createLabel(mid.x, mid.y);
+                    if (item.labelText) (label as any).text = item.labelText;
+                    this.editorBoard.addLeaferElement(label);
+                }
+                this.connections.push({
+                    from: from as IUIInputData,
+                    to: to as IUIInputData,
+                    line: line as IUI,
+                    label,
+                });
             }
         });
     }
@@ -434,6 +569,9 @@ export class ShapePlugin implements IPluginTempl {
     public destroy() {
         this._unListenners();
         this.dragHandlers.clear();
+        this.connections.forEach((conn) => {
+            try { conn.label?.remove(); } catch { /* ignore */ }
+        });
         this.connections.length = 0;
         this._updateRelatedLinesThrottled.cancel();
     }

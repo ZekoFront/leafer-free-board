@@ -41,8 +41,18 @@ export function createElement(type: string, point: IPointData) {
     return element;
 }
 
+interface IDefaultOptionsType {
+    fill?: string;
+    stroke?: string;
+    fontColor?: string;
+    cornerRadius?: number;
+    strokeWidth?: number;
+    opacity?: number;
+    text?: string;
+}
+
 // 绘制元素的公共选项
-const defaultOptions = {
+const defaultOptions:IDefaultOptionsType = {
     fill: "#32cd79",
     stroke: "#13ad8cff",
     fontColor: "#FFFFFF",
@@ -70,12 +80,12 @@ export const drawArrow = (point: IPointData): IUI => {
 };
 
 // 绘制矩形文本
-export const drawBoxText = (point: IPointData): IUI => {
+export const drawBoxText = (point: IPointData, opt?:IDefaultOptionsType): IUI => {
     return new Box({
         name: "BoxText",
         x: point.x,
         y: point.y,
-        fill: defaultOptions.fill,
+        fill: opt?.fill || defaultOptions.fill,
         cornerRadius: 5,
         textBox: true,
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
@@ -88,8 +98,8 @@ export const drawBoxText = (point: IPointData): IUI => {
                 id: uuidv4(),
                 tag: "Text",
                 textWrap: "break",
-                text: "Welcome to LeaferJS",
-                fill: defaultOptions.fontColor,
+                text: opt?.text||"Welcome to LeaferJS",
+                fill: opt?.fontColor||defaultOptions.fontColor,
                 fontSize: 16,
                 padding: [5, 8],
                 textAlign: "left",

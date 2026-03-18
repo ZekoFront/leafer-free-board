@@ -10,7 +10,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { App, Text, version } from "leafer-ui";
+import { App, Text, version, type IUI } from "leafer-ui";
 import "@leafer-in/editor";
 import "@leafer-in/viewport";
 import "@leafer-in/text-editor";
@@ -33,7 +33,7 @@ import { EditorBoard } from "@/editor";
 import ToolBar from "./components/ToolBar.vue";
 import { ExecuteTypeEnum } from "./types";
 import { useBoardStore } from "./stores/useBoardStore";
-import { HistoryEvent } from "@/editor/utils";
+import { HistoryEvent, drawBoxText } from "@/editor/utils";
 import { debounce } from "lodash-es";
 
 const boardRef = useTemplateRef<HTMLDivElement>("boardRef");
@@ -52,30 +52,7 @@ const autoSave = debounce(() => {
 }, 1000);
 
 function initDefaultElements() {
-    const text = Text.one(
-        {
-            tag: "Text",
-            id: editorBoard.generateId(),
-            text: "knowledge is power.",
-            editable: true,
-            fill: "#FFE04B",
-            fontSize: 16,
-            draggable: true,
-            padding: 6,
-            textAlign: "center",
-            cornerRadius: 5,
-            boxStyle: {
-                stroke: "#32cd79",
-                strokeWidth: 2,
-                cornerRadius: 5,
-                fill: "#ffffff",
-            },
-        },
-        100,
-        100,
-        80,
-        80
-    );
+    const text = drawBoxText({ x: 100, y: 100 }, { fontColor: "#FFFFFF" });
     editorBoard.addLeaferElement(text);
     editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: text });
 }

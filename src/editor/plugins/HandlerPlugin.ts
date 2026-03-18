@@ -16,6 +16,9 @@ class HandlerPlugin implements IPluginTempl {
         string,
         { points?: number[]; path?: string }
     > = new Map();
+    // Key: 标签ID, Value: 标签的起始位置
+    private labelStartSnapshot: Map<string, { x: number; y: number }> =
+        new Map();
 
     constructor(public editorBoard: EditorBoard) {
         this.selectedMode = SelectMode.EMPTY;
@@ -78,28 +81,39 @@ class HandlerPlugin implements IPluginTempl {
 
         // 清空旧快照
         this.lineStartSnapshot.clear();
+        this.labelStartSnapshot.clear();
 
-        // 收集所有被拖拽元素关联的线条
+        // 收集所有被拖拽元素关联的线条和标签
         const targets = this.newSelectedElements.length
             ? this.newSelectedElements
             : [evt.target];
-        // 使用 Set 去重
         const relatedLines = new Set<IUI>();
+        const relatedLabels = new Set<IUI>();
 
         targets.forEach((target) => {
             const lines = this.editorBoard.getShapePluginRelatedLines(target);
             lines.forEach((line: IUI) => relatedLines.add(line));
+            const labels = this.editorBoard.getShapePluginRelatedLabels(target);
+            labels.forEach((label: IUI) => relatedLabels.add(label));
         });
 
         // 记录线条初始状态
         relatedLines.forEach((line) => {
-            // 存在id才添加
             if (line && line.id) {
                 const newLine: Line = line as Line;
                 this.lineStartSnapshot.set(line.id, {
-                    // 注意：数组必须深拷贝 [...array]，否则引用变了历史记录也跟着变
                     points: cloneDeep(newLine.points) as number[],
                     path: cloneDeep(newLine.path) as string,
+                });
+            }
+        });
+
+        // 记录标签初始位置
+        relatedLabels.forEach((label) => {
+            if (label && label.id) {
+                this.labelStartSnapshot.set(label.id, {
+                    x: label.x || 0,
+                    y: label.y || 0,
                 });
             }
         });
@@ -176,6 +190,30 @@ class HandlerPlugin implements IPluginTempl {
                 this.lineStartSnapshot.clear();
             }
 
+            // 检查关联标签位置变化
+            if (this.labelStartSnapshot.size > 0) {
+                this.labelStartSnapshot.forEach((oldPos, labelId) => {
+                    const currentLabel =
+                        this.editorBoard.app.tree.findId(labelId);
+                    if (!currentLabel) return;
+
+                    if (
+                        Math.abs((currentLabel.x || 0) - oldPos.x) > 0.01 ||
+                        Math.abs((currentLabel.y || 0) - oldPos.y) > 0.01
+                    ) {
+                        moveList.push({
+                            id: labelId,
+                            old: { x: oldPos.x, y: oldPos.y },
+                            new: {
+                                x: currentLabel.x || 0,
+                                y: currentLabel.y || 0,
+                            },
+                        });
+                    }
+                });
+                this.labelStartSnapshot.clear();
+            }
+
             // 添加操作记录
             if (moveList.length > 0) {
                 this.editorBoard.history.execute({
@@ -225,6 +263,8 @@ class HandlerPlugin implements IPluginTempl {
         this.selectedMode = SelectMode.EMPTY;
         this.newSelectedElements = [];
         this.dragStartSnapshot.clear();
+        this.lineStartSnapshot.clear();
+        this.labelStartSnapshot.clear();
         this._unlistenners();
     }
 }
