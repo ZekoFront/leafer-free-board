@@ -3,10 +3,12 @@ import type { ICommand } from "./interface/ICommand";
 import {
     ExecuteTypeEnum,
     type HistoryAction,
+    type ISerializedCommand,
     type IPluginOption,
     type IPluginTempl,
 } from "@/editor/types";
 import { AddCommand, DeleteCommand, MoveCommand, PasteCommand, UpdateAttrCommand } from "./index";
+import { BaseCommand } from "./commands/BaseCommand";
 import type EditorBoard from "@/editor/EditorBoard";
 import { HistoryEvent } from "@/editor/utils";
 
@@ -152,7 +154,6 @@ export class HistoryManager implements IPluginTempl {
         this.redoStack = [];
     }
 
-    // 获取历史记录信息（用于UI显示）
     state() {
         return {
             undoStack: this.undoStack,
@@ -162,5 +163,98 @@ export class HistoryManager implements IPluginTempl {
             canUndo: this.canUndo(),
             canRedo: this.canRedo(),
         };
+    }
+
+    saveState(): { undoStack: ISerializedCommand[]; redoStack: ISerializedCommand[] } {
+        return {
+            undoStack: this.undoStack.map((cmd) => this._serializeCommand(cmd)),
+            redoStack: this.redoStack.map((cmd) => this._serializeCommand(cmd)),
+        };
+    }
+
+    restoreState(data: { undoStack: ISerializedCommand[]; redoStack: ISerializedCommand[] }) {
+        this.undoStack = data.undoStack
+            .map((s) => this._deserializeCommand(s))
+            .filter(Boolean) as ICommand[];
+        this.redoStack = data.redoStack
+            .map((s) => this._deserializeCommand(s))
+            .filter(Boolean) as ICommand[];
+        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
+    }
+
+    private _serializeCommand(cmd: ICommand): ISerializedCommand {
+        const base = cmd as BaseCommand;
+        const result: ISerializedCommand = {
+            type: base.type,
+            id: base.id,
+            elementId: base.elementId,
+            tag: base.tag,
+            desc: base.desc,
+            childId: base.childId,
+            customData: base.serializeCustomData(),
+        };
+
+        if (base.type === ExecuteTypeEnum.UpdateAttribute) {
+            const uCmd = cmd as UpdateAttrCommand;
+            result.oldAttrs = uCmd.oldAttrs;
+            result.newAttrs = uCmd.newAttrs;
+        }
+
+        if (base.type === ExecuteTypeEnum.DeleteElement || base.type === ExecuteTypeEnum.Paste) {
+            result.targetIds = (cmd as any).targetIds;
+        }
+
+        return result;
+    }
+
+    private _deserializeCommand(data: ISerializedCommand): ICommand | null {
+        try {
+            let cmd: BaseCommand;
+
+            switch (data.type) {
+                case ExecuteTypeEnum.AddElement:
+                    cmd = Object.create(AddCommand.prototype);
+                    break;
+                case ExecuteTypeEnum.MoveElement:
+                    cmd = Object.create(MoveCommand.prototype);
+                    break;
+                case ExecuteTypeEnum.UpdateAttribute:
+                    cmd = Object.create(UpdateAttrCommand.prototype);
+                    (cmd as any).oldAttrs = data.oldAttrs;
+                    (cmd as any).newAttrs = data.newAttrs;
+                    break;
+                case ExecuteTypeEnum.DeleteElement:
+                    cmd = Object.create(DeleteCommand.prototype);
+                    (cmd as any).targetIds = data.targetIds || [];
+                    (cmd as any).items = [];
+                    break;
+                case ExecuteTypeEnum.Paste:
+                    cmd = Object.create(PasteCommand.prototype);
+                    (cmd as any).targetIds = data.targetIds || [];
+                    (cmd as any).dataList = [];
+                    break;
+                default:
+                    return null;
+            }
+
+            (cmd as any).editorBoard = this.editorBoard;
+            cmd.type = data.type;
+            cmd.id = data.id;
+            cmd.elementId = data.elementId;
+            cmd.tag = data.tag;
+            cmd.desc = data.desc;
+            cmd.childId = data.childId;
+            (cmd as any).timestamp = Date.now();
+            (cmd as any).compressed = false;
+
+            if (data.customData != null) {
+                cmd.restoreCustomData(data.customData);
+            }
+
+            return cmd;
+        } catch (err) {
+            console.error("[HistoryManager] 反序列化命令失败:", err);
+            return null;
+        }
     }
 }

@@ -42,6 +42,39 @@ export interface IUpdateAttrCommandProps {
     childId?: string;
 }
 
+/** 序列化的连线数据 */
+export interface ISerializedConnection {
+    fromId: string;
+    toId: string;
+    lineId: string;
+}
+
+/** 序列化的历史命令 */
+export interface ISerializedCommand {
+    type: string;
+    id: string;
+    elementId: string;
+    tag: string;
+    desc: string;
+    childId: string;
+    customData: any;
+    oldAttrs?: Record<string, any>;
+    newAttrs?: Record<string, any>;
+    targetIds?: string[];
+}
+
+/** 画板完整快照 */
+export interface IBoardSnapshot {
+    canvas: any[];
+    connections: ISerializedConnection[];
+    history: {
+        undoStack: ISerializedCommand[];
+        redoStack: ISerializedCommand[];
+    };
+    version: number;
+    timestamp: number;
+}
+
 /** execute() 的判别联合参数类型，按 executeType 区分 */
 export type HistoryAction =
     | {

@@ -4,6 +4,8 @@ import {
     type IPluginClass,
     type IPluginOption,
     type IPluginTempl,
+    type IBoardSnapshot,
+    type ISerializedConnection,
 } from "./types";
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from "uuid";
@@ -145,6 +147,33 @@ class EditorBoard extends EventEmitter {
     // 取消选择状态
     public cancelSelected() {
         this.app.editor.cancel();
+    }
+
+    public saveBoard(): IBoardSnapshot {
+        const canvas = this.app.tree.children?.map((child: any) => child.toJSON()) || [];
+        const connections: ISerializedConnection[] =
+            typeof this.getSerializableConnections === "function"
+                ? this.getSerializableConnections()
+                : [];
+        const history = this.history.saveState();
+        return { canvas, connections, history, version: 1, timestamp: Date.now() };
+    }
+
+    public loadBoard(snapshot: IBoardSnapshot) {
+        this.app.tree.clear();
+        this.history.clear();
+
+        snapshot.canvas.forEach((data: any) => {
+            this.app.tree.add(data);
+        });
+
+        if (snapshot.connections?.length && typeof this.restoreConnections === "function") {
+            this.restoreConnections(snapshot.connections);
+        }
+
+        if (snapshot.history) {
+            this.history.restoreState(snapshot.history);
+        }
     }
 
     public destroy() {

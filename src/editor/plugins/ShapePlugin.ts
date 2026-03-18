@@ -9,7 +9,7 @@ import {
 import { Arrow } from "@leafer-in/arrow";
 import { throttle } from "lodash-es";
 import type EditorBoard from "../EditorBoard";
-import { ExecuteTypeEnum, type IDrawState, type IPluginTempl } from "../types";
+import { ExecuteTypeEnum, type IDrawState, type IPluginTempl, type ISerializedConnection } from "../types";
 import {
     toolbars,
     createElement,
@@ -26,6 +26,8 @@ export class ShapePlugin implements IPluginTempl {
         "onDragStartElement",
         "onDragEndEvent",
         "getShapePluginRelatedLines",
+        "getSerializableConnections",
+        "restoreConnections",
     ];
     static hotkeys: string[] = [];
     static events = ["testEvent"];
@@ -406,11 +408,32 @@ export class ShapePlugin implements IPluginTempl {
             .map((conn) => conn.line as IUI);
     }
 
+    public getSerializableConnections(): ISerializedConnection[] {
+        return this.connections
+            .filter((conn) => conn.from?.id && conn.to?.id && conn.line?.id)
+            .map((conn) => ({
+                fromId: conn.from.id as string,
+                toId: conn.to.id as string,
+                lineId: conn.line.id as string,
+            }));
+    }
+
+    public restoreConnections(data: ISerializedConnection[]) {
+        this.connections = [];
+        data.forEach((item) => {
+            const from = this.editorBoard.getById(item.fromId);
+            const to = this.editorBoard.getById(item.toId);
+            const line = this.editorBoard.getById(item.lineId);
+            if (from && to && line) {
+                this.connections.push({ from, to, line } as any);
+            }
+        });
+    }
+
     public destroy() {
         this._unListenners();
         this.dragHandlers.clear();
         this.connections.length = 0;
-        // 防止组件销毁后，还有一个挂起的 throttle 回调试图去更新已经不存在的图形
         this._updateRelatedLinesThrottled.cancel();
     }
 }

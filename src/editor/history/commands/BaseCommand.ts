@@ -84,8 +84,21 @@ export abstract class BaseCommand implements ICommand {
         }
     }
 
-    // 获取元素
     public getElement(id?: string): IUIInputData | IUI {
         return this.editorBoard.getById(id || this.elementId) as IUIInputData | IUI;
+    }
+
+    /** 供 HistoryManager 序列化时读取子类数据 */
+    public serializeCustomData(): any {
+        if (this.compressed) this.decompress();
+        const data = this.getCustomData();
+        this.compress();
+        return data;
+    }
+
+    /** 供 HistoryManager 反序列化时写入子类数据 */
+    public restoreCustomData(data: any): void {
+        this.setCustomData(data);
+        this.compress();
     }
 }
