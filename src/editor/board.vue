@@ -10,7 +10,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { App, Text, version, type IUI } from "leafer-ui";
+import { App, version } from "leafer-ui";
 import "@leafer-in/editor";
 import "@leafer-in/viewport";
 import "@leafer-in/text-editor";
