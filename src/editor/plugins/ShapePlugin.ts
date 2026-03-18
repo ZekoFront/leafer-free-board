@@ -20,8 +20,9 @@ import {
     getBezierMidpoint,
     enforceMinGap,
     HistoryEvent,
+    drawConnectionLabel,
 } from "../utils";
-import { EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
+import { EditorEvent, EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
 
 interface IConnection {
     from: IUIInputData;
@@ -112,6 +113,7 @@ export class ShapePlugin implements IPluginTempl {
             this._onTransformEvent,
         );
         this.editorBoard.on(HistoryEvent.CHANGE, this._onHistoryChange);
+        this.editorBoard.app.editor.on(EditorEvent.SELECT, this._onEditorSelect);
     }
 
     private _onDragLeaferOver = (evt: DragEvent) => {
@@ -142,6 +144,7 @@ export class ShapePlugin implements IPluginTempl {
             this._onTransformEvent,
         );
         this.editorBoard.off(HistoryEvent.CHANGE, this._onHistoryChange);
+        this.editorBoard.app.editor.off(EditorEvent.SELECT, this._onEditorSelect);
     }
 
     // 创建节流版本的更新函数
@@ -386,7 +389,7 @@ export class ShapePlugin implements IPluginTempl {
 
             const isCurve = this.drawMode === "curve";
             const mid = isCurve ? getBezierMidpoint(p0, p3) : getLineMidpoint(p0, p3);
-            const label = this._createLabel(mid.x, mid.y);
+            const label = drawConnectionLabel(mid.x, mid.y);
             this.editorBoard.addLeaferElement(label);
 
             this.connections.push({
@@ -396,33 +399,6 @@ export class ShapePlugin implements IPluginTempl {
                 label: label,
             });
         }
-    }
-
-    private _createLabel(midX: number, midY: number): IUI {
-        return new Text({
-            id: this.editorBoard.generateId(),
-            name: "ConnectionLabel",
-            text: "",
-            placeholder: "",
-            fontSize: 12,
-            editable: true,
-            draggable: false,
-            textAlign: "center",
-            verticalAlign: "middle",
-            around: "center",
-            x: midX,
-            y: midY,
-            width: 40,
-            height: 20,
-            padding: [2, 6],
-            boxStyle: {
-                fill: "transparent",
-                stroke: "transparent",
-                strokeWidth: 1,
-                cornerRadius: 4,
-            },
-            data: { isConnectionLabel: true },
-        }) as unknown as IUI;
     }
 
     private _updateLabelPosition(label: IUI, midX: number, midY: number) {
@@ -522,7 +498,26 @@ export class ShapePlugin implements IPluginTempl {
             if (lineInTree && !labelInTree) {
                 try { this.editorBoard.app.tree.add(conn.label); } catch { /* re-add failed */ }
             }
+            this._syncLabelBackground(conn.label);
         });
+    }
+
+    /** 编辑器选中变化时（用户结束文本编辑后触发），同步所有标签背景 */
+    private _onEditorSelect = () => {
+        this.connections.forEach((conn) => {
+            if (conn.label) this._syncLabelBackground(conn.label);
+        });
+    };
+
+    /** 根据标签是否有文本内容切换背景：有内容→白底遮线，无内容→透明 */
+    private _syncLabelBackground(label: IUI) {
+        const hasText = !!((label as Text).text);
+        const fill = hasText ? "#ffffff" : "transparent";
+        const stroke = hasText ? "#ddd" : "transparent";
+        const current = (label as any).boxStyle || {};
+        if (current.fill !== fill || current.stroke !== stroke) {
+            (label as any).boxStyle = { ...current, fill, stroke };
+        }
     }
 
     public getSerializableConnections(): ISerializedConnection[] {
@@ -552,10 +547,11 @@ export class ShapePlugin implements IPluginTempl {
                     const { p0, p3 } = getBestConnectionByWorldBoxBounds(from, to, this.editorBoard.app);
                     const isCurve = (line as IUI).tag === "Path";
                     const mid = isCurve ? getBezierMidpoint(p0, p3) : getLineMidpoint(p0, p3);
-                    label = this._createLabel(mid.x, mid.y);
+                    label = drawConnectionLabel(mid.x, mid.y);
                     if (item.labelText) (label as any).text = item.labelText;
                     this.editorBoard.addLeaferElement(label);
                 }
+                if (label) this._syncLabelBackground(label);
                 this.connections.push({
                     from: from as IUIInputData,
                     to: to as IUIInputData,
