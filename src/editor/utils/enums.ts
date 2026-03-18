@@ -9,3 +9,7 @@ export enum SelectEvent {
     SINGLE = "selectSingle",
     MULTIPLE = "selectMultiple",
 }
+
+export enum HistoryEvent {
+    CHANGE = "history:change",
+}

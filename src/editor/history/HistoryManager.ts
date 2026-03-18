@@ -2,21 +2,22 @@ import { isEqual } from "lodash-es";
 import type { ICommand } from "./interface/ICommand";
 import {
     ExecuteTypeEnum,
+    type HistoryAction,
     type IPluginOption,
     type IPluginTempl,
 } from "@/editor/types";
-import type { IUIInputData } from "leafer-ui";
 import { AddCommand, DeleteCommand, MoveCommand, PasteCommand, UpdateAttrCommand } from "./index";
 import type EditorBoard from "@/editor/EditorBoard";
+import { HistoryEvent } from "@/editor/utils";
 
 // 历史记录管理器 - 核心撤销重做逻辑
 export class HistoryManager implements IPluginTempl {
     static pluginName: string = "HistoryManager";
     static events: string[] = [];
     static apis: string[] = [];
-    private maxHistorySize: number; // 历史记录最大数量
-    private undoStack: ICommand[] = []; // 撤销栈
-    private redoStack: ICommand[] = []; // 重做栈
+    private maxHistorySize: number;
+    private undoStack: ICommand[] = [];
+    private redoStack: ICommand[] = [];
     constructor(
         public editorBoard: EditorBoard,
         options: IPluginOption,
@@ -26,49 +27,57 @@ export class HistoryManager implements IPluginTempl {
         this.redoStack = [];
     }
 
-    // 执行命令
-    execute(element: IUIInputData) {
-        if (!element || !element.data) return;
+    execute(action: HistoryAction) {
+        try {
+            let command: ICommand;
 
-        let command: ICommand = {} as ICommand;
-        // 新增元素命令
-        if (element.data.executeType === ExecuteTypeEnum.AddElement) {
-            element.type = ExecuteTypeEnum.AddElement;
-            command = new AddCommand({
-                element,
-                editorBoard: this.editorBoard
-            });
-            
-        } else if (element.data.executeType === ExecuteTypeEnum.MoveElement) {
-            // 移动元素命令
-            command = new MoveCommand({
-                moveList: element.data.moveList,
-                tag: element.tag || "",
-                editor: this.editorBoard,
-            });
-        } else if (element.data.executeType === ExecuteTypeEnum.UpdateAttribute) {
-            // 更新元素属性
-            command = new UpdateAttrCommand({
-                elementId: element.elementId,
-                editor: this.editorBoard,
-                oldAttrs: element.oldAttrs,
-                newAttrs: element.newAttrs,
-                tag: element.tag || "",
-                childId: element.data.childId || "",
-            });
-        } else if (element.data.executeType === ExecuteTypeEnum.DeleteElement) {
-            command = new DeleteCommand({
-                elementIds: element.elementIds,
-                editorBoard: this.editorBoard
-            });
-        } else if (element.data.executeType === ExecuteTypeEnum.Paste) {
-            command = new PasteCommand({
-                elementIds: element.elementIds,
-                editorBoard: this.editorBoard
-            });
+            switch (action.executeType) {
+                case ExecuteTypeEnum.AddElement:
+                    action.element.type = ExecuteTypeEnum.AddElement;
+                    command = new AddCommand({
+                        element: action.element,
+                        editorBoard: this.editorBoard,
+                    });
+                    break;
+
+                case ExecuteTypeEnum.MoveElement:
+                    command = new MoveCommand({
+                        moveList: action.moveList,
+                        tag: action.tag || "",
+                        editor: this.editorBoard,
+                    });
+                    break;
+
+                case ExecuteTypeEnum.UpdateAttribute:
+                    command = new UpdateAttrCommand({
+                        elementId: action.elementId,
+                        editor: this.editorBoard,
+                        oldAttrs: action.oldAttrs,
+                        newAttrs: action.newAttrs,
+                        tag: action.tag || "",
+                        childId: action.childId || "",
+                    });
+                    break;
+
+                case ExecuteTypeEnum.DeleteElement:
+                    command = new DeleteCommand({
+                        elementIds: action.elementIds,
+                        editorBoard: this.editorBoard,
+                    });
+                    break;
+
+                case ExecuteTypeEnum.Paste:
+                    command = new PasteCommand({
+                        elementIds: action.elementIds,
+                        editorBoard: this.editorBoard,
+                    });
+                    break;
+            }
+
+            this.addCommand(command);
+        } catch (err) {
+            console.error(`[HistoryManager] execute 失败 (${action.executeType}):`, err);
         }
-
-        this.addCommand(command);
     }
 
     // 通用命令
@@ -92,32 +101,33 @@ export class HistoryManager implements IPluginTempl {
             this.undoStack.shift();
         }
 
-        this.editorBoard.emit("history:change", this.state());
+        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
     }
 
-    // 撤销
     undo() {
-        if (this.canUndo()) {
-            // 获取删除后最后一个元素进行撤销
-            // 如果撤回命令为空，则不进行任何操作
-            if (this.undoStack.length === 0) return;
-            const command = this.undoStack.pop() as ICommand;
+        if (!this.canUndo()) return;
+        const command = this.undoStack.pop()!;
+        try {
             command.decompress();
             command.undo();
             this.redoStack.push(command);
-            this.editorBoard.emit("history:change", this.state());
+        } catch (err) {
+            console.error("[HistoryManager] undo 失败:", err);
         }
+        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
     }
 
-    // 重做
     redo() {
-        if (this.canRedo()) {
-            const command = this.redoStack.pop() as ICommand;
+        if (!this.canRedo()) return;
+        const command = this.redoStack.pop()!;
+        try {
             command.decompress();
             command.redo();
             this.undoStack.push(command);
-            this.editorBoard.emit("history:change", this.state());
+        } catch (err) {
+            console.error("[HistoryManager] redo 失败:", err);
         }
+        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
     }
 
     // 检查是否可以撤销

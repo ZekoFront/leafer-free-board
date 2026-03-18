@@ -7,7 +7,7 @@ import {
     type IUIInputData,
 } from "leafer-ui";
 import { Arrow } from "@leafer-in/arrow";
-import { isEqual, throttle } from "lodash-es";
+import { throttle } from "lodash-es";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IDrawState, type IPluginTempl } from "../types";
 import {
@@ -262,8 +262,7 @@ export class ShapePlugin implements IPluginTempl {
             this.element &&
             this.element.data
         ) {
-            this.element.data.executeType = ExecuteTypeEnum.AddElement;
-            this.editorBoard.history.execute(this.element);
+            this.editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: this.element });
         }
 
         this.element = null;
@@ -309,10 +308,8 @@ export class ShapePlugin implements IPluginTempl {
             // 根据拖拽类型生成图形
             const shape = createElement(type, point);
             if (shape) {
-                shape.data &&
-                    (shape.data.executeType = ExecuteTypeEnum.AddElement);
                 const res = this.editorBoard.addLeaferElement(shape);
-                res && this.editorBoard.history.execute(shape);
+                res && this.editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: shape });
             }
         }
 
@@ -356,11 +353,8 @@ export class ShapePlugin implements IPluginTempl {
         }
 
         if (line) {
-            line.data && (line.data.executeType = ExecuteTypeEnum.AddElement);
-            // 添加元素到画布
             this.editorBoard.addLeaferElement(line);
-            // 添加历史记录
-            this.editorBoard.history.execute(line);
+            this.editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: line });
             this.connections.push({ from: startRect, to: endRect, line: line });
         }
     }
@@ -384,11 +378,9 @@ export class ShapePlugin implements IPluginTempl {
 
     // 更新相关连接线
     private _updateRelatedLines(movingRect: IUIInputData) {
+        const movingId = movingRect.id;
         this.connections.forEach((conn) => {
-            if (
-                isEqual(conn.from, movingRect) ||
-                isEqual(conn.to, movingRect)
-            ) {
+            if (conn.from?.id === movingId || conn.to?.id === movingId) {
                 // 重新计算最佳连接点 (p0, p3 及其方向)
                 const { p0, p3 } = getBestConnectionByWorldBoxBounds(
                     conn.from,
@@ -408,12 +400,9 @@ export class ShapePlugin implements IPluginTempl {
 
     // 暴露给 HandlerPlugin 使用，获取某个元素关联的所有线条
     public getShapePluginRelatedLines(node: IUIInputData): IUI[] {
-        // 过滤出与 node 相关的连接 (from 或 to 是 node)
-        // 并返回其中的 line 对象
+        const nodeId = node.id;
         return this.connections
-            .filter(
-                (conn) => isEqual(conn.from, node) || isEqual(conn.to, node),
-            )
+            .filter((conn) => conn.from?.id === nodeId || conn.to?.id === nodeId)
             .map((conn) => conn.line as IUI);
     }
 

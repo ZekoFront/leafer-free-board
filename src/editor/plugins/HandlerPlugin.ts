@@ -1,4 +1,4 @@
-import { SelectEvent, SelectMode } from "@/utils";
+import { SelectEvent, SelectMode } from "@/editor/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import { LeaferEvent, DragEvent, type IUI, Line, Path } from "leafer-ui";
@@ -179,10 +179,8 @@ class HandlerPlugin implements IPluginTempl {
             // 添加操作记录
             if (moveList.length > 0) {
                 this.editorBoard.history.execute({
-                    data: {
-                        executeType: ExecuteTypeEnum.MoveElement,
-                        moveList: moveList,
-                    },
+                    executeType: ExecuteTypeEnum.MoveElement,
+                    moveList: moveList,
                 });
             }
         }

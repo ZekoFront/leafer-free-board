@@ -1,4 +1,4 @@
-import { SelectEvent } from "@/utils";
+import { SelectEvent } from "@/editor/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import type { IUI } from "leafer-ui";
@@ -31,11 +31,8 @@ export class DeleteHotKeyPlugin implements IPluginTempl {
         const selectIds = this.selectNodes.map((node) => node.id);
 
         this.editorBoard.history.execute({
+            executeType: ExecuteTypeEnum.DeleteElement,
             elementIds: selectIds as string[],
-            editorBoard: this.editorBoard,
-            data: {
-                executeType: ExecuteTypeEnum.DeleteElement,
-            }
         });
 
         if (this.selectNodes.length) {

@@ -150,7 +150,7 @@ export const exportOptions = [
         key: "png",
     },
     {
-        label: "导出图片 png",
+        label: "导出图片 jpg",
         key: "jpg",
     },
     {

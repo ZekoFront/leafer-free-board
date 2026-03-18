@@ -1,5 +1,5 @@
 import type EditorBoard from "@/editor/EditorBoard";
-import { SelectMode, SelectEvent } from "@/utils";
+import { SelectMode, SelectEvent } from "@/editor/utils";
 import type { IUI, IUIInputData } from "leafer-ui";
 
 export interface Selector {
@@ -66,7 +66,7 @@ export default function useSelectorListen() {
         editorBoard.on(SelectEvent.EMPTY, selectEmpty);
     });
 
-    onBeforeMount(() => {
+    onBeforeUnmount(() => {
         editorBoard.off(SelectEvent.SINGLE, selectSingle);
         editorBoard.off(SelectEvent.MULTIPLE, selectMultiple);
         editorBoard.off(SelectEvent.EMPTY, selectEmpty);

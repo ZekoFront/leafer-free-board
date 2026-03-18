@@ -39,26 +39,29 @@ class EditorBoard extends EventEmitter {
         this.use(HandlerPlugin);
     }
 
-    // 引入组件
     public use(plugin: IPluginTempl, options?: IPluginOption) {
-        if (this._checkPlugin(plugin) && this.app) {
-            this._saveCustomAttr(plugin);
-            const pluginRunTime = new (plugin as IPluginClass)(
-                this,
-                options || {},
-            );
-            // 添加插件名称
-            pluginRunTime.pluginName = plugin.pluginName;
-            this.pluginMap[plugin.pluginName] = pluginRunTime;
-            this._bindingHotkeys(pluginRunTime);
-            this._bindingApis(pluginRunTime);
+        try {
+            if (this._checkPlugin(plugin) && this.app) {
+                this._saveCustomAttr(plugin);
+                const pluginRunTime = new (plugin as IPluginClass)(
+                    this,
+                    options || {},
+                );
+                pluginRunTime.pluginName = plugin.pluginName;
+                this.pluginMap[plugin.pluginName] = pluginRunTime;
+                this._bindingHotkeys(pluginRunTime);
+                this._bindingApis(pluginRunTime);
+            }
+        } catch (err) {
+            console.error(`[EditorBoard] 插件 "${plugin.pluginName}" 加载失败:`, err);
         }
         return this;
     }
 
     public addLeaferElement(element: IUIInputData) {
         if (!this.app.tree) {
-            throw new Error("Editor not initialized");
+            console.error("[EditorBoard] addLeaferElement 失败: 编辑器未初始化");
+            return null;
         }
 
         if (!element.id) element.id = this.generateId();
@@ -110,24 +113,28 @@ class EditorBoard extends EventEmitter {
         this.customEvents = this.customEvents.concat(events);
     }
 
-    // 检查组件
-    private _checkPlugin(plugin: IPluginTempl) {
+    private _checkPlugin(plugin: IPluginTempl): boolean {
         const { pluginName, events = [], apis = [] } = plugin;
-        //名称检查
-        if (this.pluginMap[pluginName]) {
-            throw new Error(pluginName + "插件重复初始化");
-        }
-        events.forEach((eventName: string) => {
-            if (this.customEvents.find((info) => info === eventName)) {
-                throw new Error(pluginName + "插件中" + eventName + "重复");
-            }
-        });
 
-        apis.forEach((apiName: string) => {
-            if (this.customApis.find((info) => info === apiName)) {
-                throw new Error(pluginName + "插件中" + apiName + "重复");
+        if (this.pluginMap[pluginName]) {
+            console.warn(`[EditorBoard] 插件 "${pluginName}" 已注册，跳过重复初始化`);
+            return false;
+        }
+
+        for (const eventName of events) {
+            if (this.customEvents.includes(eventName)) {
+                console.warn(`[EditorBoard] 插件 "${pluginName}" 事件 "${eventName}" 与已注册事件冲突，跳过`);
+                return false;
             }
-        });
+        }
+
+        for (const apiName of apis) {
+            if (this.customApis.includes(apiName)) {
+                console.warn(`[EditorBoard] 插件 "${pluginName}" API "${apiName}" 与已注册 API 冲突，跳过`);
+                return false;
+            }
+        }
+
         return true;
     }
 
@@ -143,7 +150,11 @@ class EditorBoard extends EventEmitter {
     public destroy() {
         this.history.destroy();
         Object.keys(this.pluginMap).forEach((key) => {
-            this.pluginMap[key] && this.pluginMap[key].destroy();
+            try {
+                this.pluginMap[key]?.destroy();
+            } catch (err) {
+                console.error(`[EditorBoard] 插件 "${key}" 销毁失败:`, err);
+            }
         });
         this.app.destroy();
         this.pluginMap = {};

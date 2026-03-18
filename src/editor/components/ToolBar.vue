@@ -77,6 +77,7 @@ import {
     ClearIcon,
 } from "@/assets/icons";
 import { ExecuteTypeEnum, type IDrawState, type IToolBar } from "../types";
+import { HistoryEvent } from "@/editor/utils";
 import useSelectorListen from "@/hooks/useSelectorListen";
 import { toolbars as toolBarMenu } from "@/editor/utils";
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
@@ -105,6 +106,7 @@ const handleClear = () => {
         draggable: true,
         onPositiveClick: () => {
             editorBoard.app.tree.clear();
+            editorBoard.history.clear();
         },
         onNegativeClick: () => {},
     });
@@ -138,9 +140,6 @@ const setImage = (file: File, index: number) => {
         y,
         draggable: true,
         editable: true,
-        data: {
-            executeType: ExecuteTypeEnum.AddElement,
-        },
     });
     image.once(ImageEvent.LOADED, function (e: ImageEvent) {
         console.log("image loaded", e);
@@ -150,7 +149,7 @@ const setImage = (file: File, index: number) => {
     });
 
     editorBoard.addLeaferElement(image);
-    editorBoard.history.execute(image);
+    editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: image });
 };
 
 const printHistory = () => {
@@ -168,11 +167,11 @@ const updateHistoryState = (state: any) => {
 };
 
 onMounted(() => {
-    editorBoard.on("history:change", updateHistoryState);
+    editorBoard.on(HistoryEvent.CHANGE, updateHistoryState);
 });
 
 onUnmounted(() => {
     // 解绑，防止内存泄漏
-    editorBoard.off("history:change", updateHistoryState);
+    editorBoard.off(HistoryEvent.CHANGE, updateHistoryState);
 });
 </script>

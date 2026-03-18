@@ -94,16 +94,13 @@ onMounted(() => {
                 cornerRadius: 5,
                 fill: "#ffffff",
             },
-            data: {
-                executeType: ExecuteTypeEnum.AddElement,
-            },
         },
         100,
         100,
         100,
     );
     editorBoard.addLeaferElement(text);
-    editorBoard.history.execute(text);
+    editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: text });
 
     const rect = Rect.one(
         {
@@ -119,18 +116,14 @@ onMounted(() => {
             draggable: true,
             cornerRadius: 5,
             editable: true,
-            dashPattern: [6, 6], // 绘制虚线
-            data: {
-                executeType: ExecuteTypeEnum.AddElement,
-            },
+            dashPattern: [6, 6],
         },
         300,
         100,
         100,
     );
     editorBoard.addLeaferElement(rect);
-    // 调用历史插件，添加历史记录
-    editorBoard.history.execute(rect);
+    editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: rect });
 
     // 检测 text 是否与 rect 碰撞 （通过世界坐标中的 box 包围盒跨层级检测）
     text.on(DragEvent.DRAG, () => {

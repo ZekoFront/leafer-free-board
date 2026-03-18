@@ -1,4 +1,4 @@
-import { SelectEvent } from "@/utils";
+import { SelectEvent } from "@/editor/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import type { IUI } from "leafer-ui";
@@ -55,11 +55,8 @@ export class CopyPlugin implements IPluginTempl {
 
             // 添加历史记录
             this.editorBoard.history.execute({
-                elementIds: this.copyNodes.map((node) => node.id),
-                editorBoard: this.editorBoard,
-                data: {
-                    executeType: ExecuteTypeEnum.Paste,
-                },
+                executeType: ExecuteTypeEnum.Paste,
+                elementIds: this.copyNodes.map((node) => node.id) as string[],
             });
 
             this.copyNodes.length = 0;

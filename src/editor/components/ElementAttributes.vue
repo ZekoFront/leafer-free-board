@@ -404,16 +404,13 @@ const handleFillColor = (color: string) => {
 };
 
 const setRecord = (key: string, oldValue: any, newValue: any, childId?: string) => {
-    // 保留历史记录
     editor.history.execute({
+        executeType: ExecuteTypeEnum.UpdateAttribute,
         elementId: selectedActive.value?.id || "",
         oldAttrs: { [key]: oldValue || "" },
         newAttrs: { [key]: newValue },
         tag: selectedActive.value?.tag || "",
-        data: {
-            childId: childId || "",
-            executeType: ExecuteTypeEnum.UpdateAttribute,
-        },
+        childId: childId || "",
     });
 };
 
