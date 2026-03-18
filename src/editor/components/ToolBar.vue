@@ -81,7 +81,10 @@ import { HistoryEvent } from "@/editor/utils";
 import useSelectorListen from "@/hooks/useSelectorListen";
 import { toolbars as toolBarMenu } from "@/editor/utils";
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
+import { useBoardStore } from "@/editor/stores/useBoardStore";
 
+
+const boardStore = useBoardStore();
 const { editorBoard } = useSelectorListen();
 const { dialog } = useNaiveDiscrete();
 
@@ -107,6 +110,7 @@ const handleClear = () => {
         onPositiveClick: () => {
             editorBoard.app.tree.clear();
             editorBoard.history.clear();
+            boardStore.clear();
         },
         onNegativeClick: () => {},
     });

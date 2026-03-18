@@ -322,10 +322,10 @@ export class ShapePlugin implements IPluginTempl {
         startRect: IUIInputData | null,
         endRect: IUIInputData,
     ) {
-        // 计算点和方向
         const { p0, p3 } = getBestConnectionByWorldBoxBounds(
             startRect || ({} as IUIInputData),
             endRect,
+            this.editorBoard.app,
         );
         let line: IUI | null = null;
         if (this.drawMode == "curve") {
@@ -387,6 +387,7 @@ export class ShapePlugin implements IPluginTempl {
                 const { p0, p3 } = getBestConnectionByWorldBoxBounds(
                     conn.from,
                     conn.to,
+                    this.editorBoard.app,
                 );
                 if (conn.line.tag == "Path") {
                     // 更新曲线

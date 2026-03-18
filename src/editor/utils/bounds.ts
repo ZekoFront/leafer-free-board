@@ -1,4 +1,4 @@
-import type { IUI, IUIInputData } from "leafer-ui";
+import type { App, IUI, IUIInputData } from "leafer-ui";
 import type { IPointItem } from "../types";
 
 /**
@@ -65,19 +65,20 @@ export const getBestConnection = (elA: IUIInputData, elB: IUIInputData) => {
 };
 
 /**
- * 世界坐标：计算起点和终点的连接线
+ * 计算起点和终点的连接线（支持缩放/旋转/平移场景）
  *
  * @param elA
  * @param elB
+ * @param app 传入 app 实例，用于将世界坐标转换为页面坐标
  * @returns { p0: IPointItem, p3: IPointItem }
  */
 export const getBestConnectionByWorldBoxBounds = (
     elA: IUIInputData,
     elB: IUIInputData,
+    app?: App,
 ) => {
-    // 获取世界坐标下的包围盒
-    const rectA = getRectBounds(elA);
-    const rectB = getRectBounds(elB);
+    const rectA = getRectBounds(elA, app);
+    const rectB = getRectBounds(elB, app);
 
     // 直接使用 worldBox 算出来的中心点
     const cxA = rectA.centerX;
@@ -125,28 +126,48 @@ export const getBestConnectionByWorldBoxBounds = (
 /**
  * 获取矩形的边界
  *
+ * worldBoxBounds 能正确处理缩放(scale)、旋转(rotation)后的实际大小，
+ * 但它返回的是世界坐标（包含视图平移/缩放变换）。
+ * 当画布发生平移或缩放后，需要通过 app.getPagePoint() 转换回页面坐标，
+ * 否则连线坐标会与实际元素位置产生偏移。
+ *
  * @param rect
+ * @param app 传入 app 实例时，自动将世界坐标转换为页面坐标
  * @returns { top, bottom, left, right, width, height, centerX, centerY }
  */
-export const getRectBounds = (rect: IUIInputData) => {
-    // 本地坐标
-    // return {
-    //     top: rect.y,
-    //     bottom: (rect.y || 0) + (rect.height || 0),
-    //     left: rect.x,
-    //     right: (rect.x || 0) + (rect.width || 0),
-    //     width: rect.width,
-    //     height: rect.height
-    // }
-
-    // 世界坐标
-    // 强制转换为 IUI 类型以访问 worldBoxBounds
+export const getRectBounds = (rect: IUIInputData, app?: App) => {
     const element = rect as IUI;
 
-    // 【核心修复】使用 worldBoxBounds
-    // worldBoxBounds 会自动计算缩放(scale)、旋转(rotation)后的实际位置和大小
+    // worldBoxBounds 会自动计算元素经过 scale、rotation 后的实际包围盒
+    // 但返回值处于世界坐标系（包含视图平移/缩放变换）
     const bounds = element.worldBoxBounds;
 
+    if (app) {
+        // 世界坐标 → 页面坐标：
+        // 取包围盒的左上角和右下角两个端点，通过 app.getPagePoint()
+        // 反向剥离视图变换（zoomLayer 的 scale + translate），
+        // 得到画布内容空间中的真实位置，与 Line.points / Path.path 同一坐标系
+        const topLeft = app.getPagePoint({ x: bounds.x, y: bounds.y });
+        const bottomRight = app.getPagePoint({
+            x: bounds.x + bounds.width,
+            y: bounds.y + bounds.height,
+        });
+        const width = bottomRight.x - topLeft.x;
+        const height = bottomRight.y - topLeft.y;
+
+        return {
+            top: topLeft.y,
+            bottom: topLeft.y + height,
+            left: topLeft.x,
+            right: topLeft.x + width,
+            width,
+            height,
+            centerX: topLeft.x + width / 2,
+            centerY: topLeft.y + height / 2,
+        };
+    }
+
+    // 未传入 app 时直接使用世界坐标（仅适用于视图未平移/缩放的场景）
     return {
         top: bounds.y,
         bottom: bounds.y + bounds.height,
@@ -154,7 +175,6 @@ export const getRectBounds = (rect: IUIInputData) => {
         right: bounds.x + bounds.width,
         width: bounds.width,
         height: bounds.height,
-        // 顺便把中心点也算出来，后面要用
         centerX: bounds.x + bounds.width / 2,
         centerY: bounds.y + bounds.height / 2,
     };

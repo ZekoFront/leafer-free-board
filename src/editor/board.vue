@@ -147,6 +147,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
     autoSave.cancel();
     editorBoard.off(HistoryEvent.CHANGE, autoSave);
+    boardStore.clear();
     editorBoard.destroy();
 });
 
