@@ -85,6 +85,15 @@ app.tree.on(ZoomEvent.BEFORE_ZOOM, (e: ZoomEvent) => {
 })
 ```
 
+# 碰撞检测
+参考文档：https://www.leaferjs.com/ui/guide/advanced/bounds.html#%E6%A3%80%E6%B5%8B%E5%85%83%E7%B4%A0%E7%9A%84%E5%8C%85%E5%9B%B4%E7%9B%92%E6%98%AF%E5%90%A6%E7%A2%B0%E6%92%9E
+```js
+text.on(DragEvent.DRAG, () => {
+    const rect2Bounds = new Bounds(text.worldBoxBounds);
+    text.fill = rect2Bounds.hit(text.worldBoxBounds) ? "blue" : "#FFE04B";
+});
+```
+
 # 监听指针事件PointerEvent
 
 支持右键菜单功能

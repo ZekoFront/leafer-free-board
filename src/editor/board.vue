@@ -10,7 +10,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { App, Rect, Text, version, DragEvent, Bounds } from "leafer-ui";
+import { App, Text, version } from "leafer-ui";
 import "@leafer-in/editor";
 import "@leafer-in/viewport";
 import "@leafer-in/text-editor";
@@ -56,7 +56,7 @@ function initDefaultElements() {
         {
             tag: "Text",
             id: editorBoard.generateId(),
-            text: "Action is the proper fruit of knowledge.",
+            text: "knowledge is power.",
             editable: true,
             fill: "#FFE04B",
             fontSize: 16,
@@ -73,38 +73,11 @@ function initDefaultElements() {
         },
         100,
         100,
-        100,
+        80,
+        80
     );
     editorBoard.addLeaferElement(text);
     editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: text });
-
-    const rect = Rect.one(
-        {
-            id: editorBoard.generateId(),
-            name: "rect",
-            x: 100,
-            y: 10,
-            width: 100,
-            height: 100,
-            stroke: "#32cd79",
-            strokeWidth: 2,
-            fill: "#32cd79",
-            draggable: true,
-            cornerRadius: 5,
-            editable: true,
-            dashPattern: [6, 6],
-        },
-        300,
-        100,
-        100,
-    );
-    editorBoard.addLeaferElement(rect);
-    editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: rect });
-
-    text.on(DragEvent.DRAG, () => {
-        const rect2Bounds = new Bounds(rect.worldBoxBounds);
-        text.fill = rect2Bounds.hit(text.worldBoxBounds) ? "blue" : "#FFE04B";
-    });
 }
 
 onMounted(() => {

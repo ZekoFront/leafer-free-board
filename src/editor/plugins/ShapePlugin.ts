@@ -337,7 +337,7 @@ export class ShapePlugin implements IPluginTempl {
                 strokeWidth: 2,
                 editable: true,
                 draggable: false,
-                // endArrow: 'arrow' // 箭头
+                endArrow: 'arrow' // 箭头
             });
             // 放到最底层
             // this.editorBoard.app.tree.addAt(path, 0)
