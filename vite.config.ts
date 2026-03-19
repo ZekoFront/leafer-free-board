@@ -47,6 +47,40 @@ export default defineConfig({
     base: "/leafer-free-board/",
     build: {
         outDir: "dist",
+        chunkSizeWarningLimit: 500,
+        rolldownOptions: {
+            output: {
+                assetFileNames: 'assets/[name]-[hash][extname]',
+                chunkFileNames: 'js/board-[name]-[hash].js',
+                codeSplitting: {
+                    // 设置 chunk 的最大体积，Rolldown 会尽量把超出的块自动拆分 (单位: 字节)
+                    maxSize: 500 * 1024,
+                    groups: [
+                        // 提取 Leafer 绘图引擎相关 (最高优先级，因为最重)
+                        {
+                            name: 'leafer-vendor',
+                            test: /[\\/]node_modules[\\/](@leafer.*|leafer.*)[\\/]/,
+                            priority: 40
+                        },
+                        {
+                            name: 'naive-vendor',
+                            test: /[\\/]node_modules[\\/]naive-ui[\\/]/,
+                            priority: 30
+                        },
+                        {
+                            name: 'vue-vendor',
+                            test: /[\\/]node_modules[\\/](vue|pinia|@vueuse.*)[\\/]/,
+                            priority: 20
+                        },
+                        {
+                            name: 'utils-vendor',
+                            test: /[\\/]node_modules[\\/](lodash-es|decimal\.js|lz-string|hotkeys-js|uuid)[\\/]/,
+                            priority: 10
+                        }
+                    ]
+                }
+            }
+        }
     },
     resolve: {
         alias: {
