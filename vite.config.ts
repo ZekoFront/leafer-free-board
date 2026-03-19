@@ -51,7 +51,7 @@ export default defineConfig({
         rolldownOptions: {
             output: {
                 assetFileNames: 'assets/[name]-[hash][extname]',
-                chunkFileNames: 'js/board-[name]-[hash].js',
+                chunkFileNames: 'js/[name]-[hash].js',
                 codeSplitting: {
                     // 设置 chunk 的最大体积，Rolldown 会尽量把超出的块自动拆分 (单位: 字节)
                     maxSize: 500 * 1024,
