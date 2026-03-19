@@ -47,30 +47,18 @@ export default defineConfig({
     base: "/leafer-free-board/",
     build: {
         outDir: "dist",
-        chunkSizeWarningLimit: 500,
+        // 将警告阈值从默认的 500 调高到 1000 (单位: KB)
+        chunkSizeWarningLimit: 1024, 
         rolldownOptions: {
             output: {
                 assetFileNames: 'assets/[name]-[hash][extname]',
                 chunkFileNames: 'js/[name]-[hash].js',
                 codeSplitting: {
-                    // 设置 chunk 的最大体积，Rolldown 会尽量把超出的块自动拆分 (单位: 字节)
-                    maxSize: 500 * 1024,
                     groups: [
-                        // 提取 Leafer 绘图引擎相关 (最高优先级，因为最重)
                         {
                             name: 'leafer-vendor',
-                            test: /[\\/]node_modules[\\/](@leafer.*|leafer.*)[\\/]/,
+                            test: /[\\/]node_modules[\\/](@leafer|leafer|@leafer-in|@leafer-ui)[\\/]/,
                             priority: 40
-                        },
-                        {
-                            name: 'vue-ui-vendor',
-                            test: /[\\/]node_modules[\\/](vue|pinia|@vueuse.*|naive-ui|vueuc)[\\/]/,
-                            priority: 20
-                        },
-                        {
-                            name: 'utils-vendor',
-                            test: /[\\/]node_modules[\\/](lodash-es|decimal\.js|lz-string|hotkeys-js|uuid)[\\/]/,
-                            priority: 10
                         }
                     ]
                 }
