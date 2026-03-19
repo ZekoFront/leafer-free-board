@@ -63,13 +63,8 @@ export default defineConfig({
                             priority: 40
                         },
                         {
-                            name: 'naive-vendor',
-                            test: /[\\/]node_modules[\\/]naive-ui[\\/]/,
-                            priority: 30
-                        },
-                        {
-                            name: 'vue-vendor',
-                            test: /[\\/]node_modules[\\/](vue|pinia|@vueuse.*)[\\/]/,
+                            name: 'vue-ui-vendor',
+                            test: /[\\/]node_modules[\\/](vue|pinia|@vueuse.*|naive-ui|vueuc)[\\/]/,
                             priority: 20
                         },
                         {
