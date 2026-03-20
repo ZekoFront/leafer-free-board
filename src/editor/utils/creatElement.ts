@@ -113,6 +113,7 @@ export const drawBoxText = (point: IPointData, opt?:IDefaultOptionsType): IUI =>
 // 绘制文本
 export const drawText = (point: IPointData): IUI => {
     return new Text({
+        id: uuidv4(),
         name: "Text",
         fill: "#333333",
         placeholder: "请输入文本", // 占位符文本
@@ -143,6 +144,7 @@ export const drawCircleText = (point: IPointData): IUI => {
     });
 
     const text = new Text({
+        id: uuidv4(),
         draggable: false,
         editable: true,
         text: defaultOptions.text,
@@ -184,7 +186,8 @@ export const drawCircleText = (point: IPointData): IUI => {
 // 绘制椭圆文本
 export const drawEllipseText = (point: IPointData): IUI => {
     const circle = new Ellipse({
-        editable: false,
+        editable: true,
+        dragBounds: "parent", // 限制元素拖动范围
         width: 100,
         height: 50,
         x: 0,
@@ -194,6 +197,7 @@ export const drawEllipseText = (point: IPointData): IUI => {
     });
 
     const text = new Text({
+        id: uuidv4(),
         draggable: false,
         editable: true,
         text: defaultOptions.text,
@@ -244,6 +248,7 @@ export const drawDiamondText = (point: IPointData): IUI => {
     });
 
     const text = new Text({
+        id: uuidv4(),
         draggable: false,
         editable: true,
         text: defaultOptions.text,

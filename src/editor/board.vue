@@ -35,6 +35,7 @@ import { ExecuteTypeEnum } from "./types";
 import { useBoardStore } from "./stores/useBoardStore";
 import { HistoryEvent, drawBoxText } from "@/editor/utils";
 import { debounce } from "lodash-es";
+import "@/editor/bridge/proxyData";
 
 const boardRef = useTemplateRef<HTMLDivElement>("boardRef");
 let app: App = {} as App;

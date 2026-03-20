@@ -17,6 +17,7 @@ export class HistoryManager implements IPluginTempl {
     static pluginName: string = "HistoryManager";
     static events: string[] = [];
     static apis: string[] = [];
+    public isPerformingAction = false;
     private maxHistorySize: number;
     private undoStack: ICommand[] = [];
     private redoStack: ICommand[] = [];
@@ -109,12 +110,15 @@ export class HistoryManager implements IPluginTempl {
     undo() {
         if (!this.canUndo()) return;
         const command = this.undoStack.pop()!;
+        this.isPerformingAction = true;
         try {
             command.decompress();
             command.undo();
             this.redoStack.push(command);
         } catch (err) {
             console.error("[HistoryManager] undo 失败:", err);
+        } finally {
+            this.isPerformingAction = false;
         }
         this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
     }
@@ -122,12 +126,15 @@ export class HistoryManager implements IPluginTempl {
     redo() {
         if (!this.canRedo()) return;
         const command = this.redoStack.pop()!;
+        this.isPerformingAction = true;
         try {
             command.decompress();
             command.redo();
             this.undoStack.push(command);
         } catch (err) {
             console.error("[HistoryManager] redo 失败:", err);
+        } finally {
+            this.isPerformingAction = false;
         }
         this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
     }

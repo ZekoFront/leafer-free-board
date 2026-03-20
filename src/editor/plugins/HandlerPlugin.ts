@@ -1,10 +1,19 @@
 import { SelectEvent, SelectMode } from "@/editor/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
-import { LeaferEvent, DragEvent, type IUI, Line, Path } from "leafer-ui";
+import { LeaferEvent, DragEvent, type IUI, Line, Path, PropertyEvent } from "leafer-ui";
 import { cloneDeep, isArray, isEqual, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../types";
 import { EditorEvent } from "@leafer-in/editor";
+
+const TRACKED_ATTRS = new Set([
+    'fontSize', 'fontWeight', 'italic', 'textDecoration',
+    'fill', 'stroke', 'strokeWidth', 'dashPattern',
+    'zIndex', 'text', 'padding',
+    'startArrow', 'endArrow',
+]);
+
+const ATTR_DEBOUNCE_MS = 300;
 
 class HandlerPlugin implements IPluginTempl {
     static pluginName = "HandlerPlugin";
@@ -19,6 +28,13 @@ class HandlerPlugin implements IPluginTempl {
     // Key: 标签ID, Value: 标签的起始位置
     private labelStartSnapshot: Map<string, { x: number; y: number }> =
         new Map();
+    private _pendingAttrChange: {
+        elementId: string;
+        tag: string;
+        oldAttrs: Record<string, any>;
+        newAttrs: Record<string, any>;
+        timer: ReturnType<typeof setTimeout>;
+    } | null = null;
 
     constructor(public editorBoard: EditorBoard) {
         this.selectedMode = SelectMode.EMPTY;
@@ -39,6 +55,7 @@ class HandlerPlugin implements IPluginTempl {
         this.editorBoard.app.on(DragEvent.START, this._listenDragStartEvent);
         this.editorBoard.app.on(DragEvent.END, this._listenDragEndEvent);
         this.editorBoard.app.on(DragEvent.MOVE, this._listenDragMoveEvent);
+        this.editorBoard.app.tree.on(PropertyEvent.CHANGE, this._listenPropertyEvent);
     }
 
     private _unlistenners() {
@@ -53,6 +70,89 @@ class HandlerPlugin implements IPluginTempl {
         this.editorBoard.app.off(DragEvent.START, this._listenDragStartEvent);
         this.editorBoard.app.off(DragEvent.END, this._listenDragEndEvent);
         this.editorBoard.app.off(DragEvent.MOVE, this._listenDragMoveEvent);
+        this.editorBoard.app.tree.off(PropertyEvent.CHANGE, this._listenPropertyEvent);
+    }
+
+    /**
+     * 统一监听选中元素的属性变更，自动录入历史记录。
+     *
+     * 使用防抖延时器（ATTR_DEBOUNCE_MS = 300ms）合并高频连续操作：
+     * - 场景：用户连续点击 n-input-number 的步进按钮（12→13→14→15），
+     *   或快速输入文本（h→he→hel→hell→hello），每次都会触发 PropertyEvent。
+     * - 如果不做防抖，每次变更都会生成一条独立的历史命令，
+     *   用户需要按 5 次 Ctrl+Z 才能撤回一次"调大字号"操作，体验极差。
+     * - 防抖策略：在 300ms 内的连续变更合并为一条命令，
+     *   保留第一次变更的 oldValue（原始值）和最后一次的 newValue（最终值），
+     *   用户只需一次 Ctrl+Z 即可撤回整组操作。
+     */
+    private _listenPropertyEvent = (evt: PropertyEvent) => {
+        // 撤销/重做期间产生的 PropertyEvent 不应被重新录入
+        if (this.editorBoard.history.isPerformingAction) return;
+
+        const attrName = (evt as any).attrName as string;
+        const oldValue = (evt as any).oldValue;
+        const newValue = (evt as any).newValue;
+        const target = evt.target as IUI;
+
+        // 只跟踪白名单内的用户可编辑属性，忽略 Leafer 内部属性变化
+        if (!attrName || !TRACKED_ATTRS.has(attrName)) return;
+
+        const elementId = target?.id;
+        if (!elementId) return;
+
+        // 只记录当前选中元素的变更，排除画布上其他元素的属性变化
+        const isSelected = this.newSelectedElements.some(el => el.id === elementId);
+        if (!isSelected) return;
+
+        const tag = (target as any)?.tag || '';
+
+        if (this._pendingAttrChange && this._pendingAttrChange.elementId === elementId) {
+            // 同一元素的后续变更：更新 newAttrs 为最新值，保留首次 oldAttrs 不变
+            this._pendingAttrChange.newAttrs[attrName] = newValue;
+            if (!(attrName in this._pendingAttrChange.oldAttrs)) {
+                this._pendingAttrChange.oldAttrs[attrName] = oldValue;
+            }
+            // 重置延时器：只要持续有变更就一直延后提交，直到操作停止 300ms
+            clearTimeout(this._pendingAttrChange.timer);
+            this._pendingAttrChange.timer = setTimeout(
+                () => this._flushPendingAttrChange(),
+                ATTR_DEBOUNCE_MS,
+            );
+        } else {
+            // 切换到新元素时，先提交上一个元素的待定变更
+            this._flushPendingAttrChange();
+            this._pendingAttrChange = {
+                elementId,
+                tag,
+                oldAttrs: { [attrName]: oldValue },
+                newAttrs: { [attrName]: newValue },
+                // 启动延时器：300ms 内无新变更则自动提交到历史
+                timer: setTimeout(
+                    () => this._flushPendingAttrChange(),
+                    ATTR_DEBOUNCE_MS,
+                ),
+            };
+        }
+    };
+
+    /** 将累积的待定属性变更提交为一条 UpdateAttrCommand */
+    private _flushPendingAttrChange() {
+        if (!this._pendingAttrChange) return;
+        const { elementId, tag, oldAttrs, newAttrs, timer } = this._pendingAttrChange;
+        clearTimeout(timer);
+        this._pendingAttrChange = null;
+
+        const hasChanged = Object.keys(newAttrs).some(
+            key => newAttrs[key] !== oldAttrs[key],
+        );
+        if (!hasChanged) return;
+        this.editorBoard.history.execute({
+            executeType: ExecuteTypeEnum.UpdateAttribute,
+            elementId,
+            oldAttrs,
+            newAttrs,
+            tag,
+        });
     }
 
     private _listenDragStartEvent = (evt: DragEvent) => {
@@ -230,6 +330,7 @@ class HandlerPlugin implements IPluginTempl {
     };
 
     private _listenSelectEvent = (evt: EditorEvent) => {
+        this._flushPendingAttrChange();
         if (isArray(evt.value)) {
             this.selectedMode = SelectMode.MULTIPLE;
             this.editorBoard.emit(SelectEvent.MULTIPLE, evt.value);
@@ -260,6 +361,7 @@ class HandlerPlugin implements IPluginTempl {
     }
 
     public destroy() {
+        this._flushPendingAttrChange();
         this.selectedMode = SelectMode.EMPTY;
         this.newSelectedElements = [];
         this.dragStartSnapshot.clear();

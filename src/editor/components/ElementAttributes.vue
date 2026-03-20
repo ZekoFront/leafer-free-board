@@ -23,7 +23,7 @@
                                 </div>
                                 <n-input-number
                                     class="attribute-item__input"
-                                    v-model:value="selectedActive.fontSize"
+                                    v-model:value="fontSize"
                                     :on-update:value="handleFontSizeChange"
                                 />
                             </aside>
@@ -244,7 +244,7 @@ const { editor } = defineProps({
     },
 });
 
-const { isSingle, selectedActive } = useSelectorListen();
+const { isSingle, selectedActive, proxyData } = useSelectorListen();
 
 const activeName = ref("setting");
 const isArrowBothEnds = ref(false);
@@ -254,6 +254,7 @@ const strokeWidth = ref(0);
 const dashPattern = ref([0, 0]);
 const padding = ref([0, 0]);
 const zIndex = ref(0);
+const fontSize = ref(12);
 const fontWeight = ref("normal");
 const fontStyles = ref<string[]>([]);
 const textContent = ref("");
@@ -278,10 +279,8 @@ const handleArrowTypeClick = (type: string) => {
     }
 };
 
-const handleTextChange = (e: FocusEvent) => {
-    const textVal = (e.target as HTMLInputElement).value;
+const handleTextChange = () => {
     if (selectedActive.value) {
-        setRecord("text", selectedActive.value?.text || "", textVal);
         selectedActive.value.text = textContent.value;
     }
 };
@@ -292,10 +291,8 @@ const handleTextUpdate = (value: string) => {
 };
 
 const handleFontSizeChange = (value: number | null) => {
-    if (selectedActive.value) {
-        setRecord("fontSize", selectedActive.value?.fontSize || 0, value);
-        selectedActive.value.fontSize = value || 0;
-    }
+    if (!proxyData.value) return;
+    proxyData.value.fontSize = value || 0;
 };
 
 const handleFontStyleIcon = (value: string) => {
@@ -326,7 +323,6 @@ const handleFontStyleIcon = (value: string) => {
 const handleZIndexChange = (value: number | null) => {
     zIndex.value = value || 0;
     if (selectedActive.value) {
-        setRecord("zIndex", selectedActive.value?.zIndex || 0, value);
         selectedActive.value.zIndex = value || 0;
     }
 };
@@ -334,6 +330,7 @@ const handleZIndexChange = (value: number | null) => {
 const handlePaddingChange = (value: number | null, type: number) => {
     padding.value[type] = value || 0;
     if (selectedActive.value && selectedActive.value.tag === "Box") {
+        // Box 子元素的 PropertyEvent 不会被 HandlerPlugin 捕获，需手动记录
         setRecord(
             "padding",
             selectedActive.value?.padding || [0, 0],
@@ -343,11 +340,6 @@ const handlePaddingChange = (value: number | null, type: number) => {
             selectedActive.value.children[0].padding = padding.value;
         }
     } else if (selectedActive.value && selectedActive.value.tag === "Text") {
-        setRecord(
-            "padding",
-            selectedActive.value?.padding || [0, 0],
-            padding.value,
-        );
         selectedActive.value.padding = padding.value;
     }
 };
@@ -355,11 +347,6 @@ const handlePaddingChange = (value: number | null, type: number) => {
 const handleDashPatternChange0 = (value: number | null) => {
     dashPattern.value[0] = value || 0;
     if (selectedActive.value) {
-        setRecord(
-            "dashPattern",
-            selectedActive.value?.dashPattern || [0, 0],
-            dashPattern.value,
-        );
         selectedActive.value.dashPattern = dashPattern.value;
     }
 };
@@ -367,38 +354,30 @@ const handleDashPatternChange0 = (value: number | null) => {
 const handleDashPatternChange1 = (value: number | null) => {
     dashPattern.value[1] = value || 0;
     if (selectedActive.value) {
-        setRecord(
-            "dashPattern",
-            selectedActive.value?.dashPattern || [0, 0],
-            dashPattern.value,
-        );
         selectedActive.value.dashPattern = dashPattern.value;
     }
 };
 
 const handleStrokeColor = (color: string) => {
     if (selectedActive.value) {
-        setRecord("stroke", selectedActive.value?.stroke || "", color);
         selectedActive.value.stroke = color;
     }
 };
 const handleStrokeWidthChange = (value: number | null) => {
     strokeWidth.value = value || 0;
     if (selectedActive.value) {
-        setRecord("strokeWidth", selectedActive.value?.strokeWidth || 0, value);
         selectedActive.value.strokeWidth = value || 0;
     }
 };
 
 const handleFillColor = (color: string) => {
-    // 区分分组和普通单元素
     if (selectedActive.value?.tag === "Group") {
+        // Group 子元素的 PropertyEvent 不会被 HandlerPlugin 捕获，需手动记录
         if (selectedActive.value?.children && selectedActive.value.children[0]) {
             setRecord("fill", selectedActive.value?.children[0].fill || "", color, selectedActive.value?.children[0].id);
             selectedActive.value.children[0].fill = color;
         }
     } else {
-        setRecord("fill", selectedActive.value?.fill || "", color);
         selectedActive.value && (selectedActive.value.fill = color);
     }
 };
@@ -415,25 +394,22 @@ const setRecord = (key: string, oldValue: any, newValue: any, childId?: string) 
 };
 
 watchEffect(() => {
-    if (selectedActive.value) {
-        textContent.value = selectedActive.value.text as string || "";
-        fillColor.value = (selectedActive.value.fill as string) || "";
-        strokeColor.value = (selectedActive.value.stroke as string) || "";
-        strokeWidth.value = Number(selectedActive.value.strokeWidth) || 0;
-        dashPattern.value = (selectedActive.value.dashPattern as number[]) || [
-            0, 0,
-        ];
-        zIndex.value = selectedActive.value.zIndex || 0;
-        fontWeight.value = (selectedActive.value.fontWeight as string) || "normal";
-        // 矩形文本元素生效
-        if (selectedActive.value.tag === "Box") {
-            if (
-                selectedActive.value.children &&
-                selectedActive.value.children[0]
-            ) {
-                padding.value = (selectedActive.value.children[0]
-                    .padding as number[]) || [0, 0];
-            }
+    const pd = proxyData.value;
+    if (pd) {
+        textContent.value = (pd.text as string) || "";
+        fontSize.value = Number(pd.fontSize) || 12;
+        fillColor.value = (pd.fill as string) || "";
+        strokeColor.value = (pd.stroke as string) || "";
+        strokeWidth.value = Number(pd.strokeWidth) || 0;
+        dashPattern.value = (pd.dashPattern as number[]) || [0, 0];
+        zIndex.value = pd.zIndex || 0;
+        fontWeight.value = (pd.fontWeight as string) || "normal";
+    }
+    // 矩形文本元素的 padding 需要从 children 读取
+    if (selectedActive.value?.tag === "Box") {
+        const child = selectedActive.value.children?.[0];
+        if (child) {
+            padding.value = (child.padding as number[]) || [0, 0];
         }
     }
 });

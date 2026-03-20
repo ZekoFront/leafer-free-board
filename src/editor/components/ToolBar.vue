@@ -62,7 +62,7 @@
                     <ClearIcon></ClearIcon>
                 </n-icon>
             </div>
-            <button @click="printHistory">打印历史记录</button>
+            <button v-if="isDev" @click="printHistory">打印历史记录</button>
         </div>
     </div>
 </template>
@@ -84,6 +84,7 @@ import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
 import { useBoardStore } from "@/editor/stores/useBoardStore";
 
 
+const isDev = import.meta.env.DEV;
 const boardStore = useBoardStore();
 const { editorBoard } = useSelectorListen();
 const { dialog } = useNaiveDiscrete();

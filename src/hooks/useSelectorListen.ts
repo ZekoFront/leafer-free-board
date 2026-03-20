@@ -20,7 +20,8 @@ export default function useSelectorListen() {
         );
     }
 
-    const selectedActive = ref<IUIInputData | null>(null);
+    const selectedActive = shallowRef<IUIInputData | null>(null);
+    let previousElement: IUIInputData | null = null;
     const state = reactive<Selector>({
         selectedMode: SelectMode.EMPTY,
         selectedId: "",
@@ -29,28 +30,44 @@ export default function useSelectorListen() {
         editorBoard: editorBoard,
     });
 
+    // 切换前清理旧元素的代理数据
+    const _clearPrevProxy = () => {
+        if (previousElement && (previousElement as any).clearProxyData) {
+            (previousElement as any).clearProxyData();
+        }
+    };
+
     const selectSingle = (value: IUI) => {
+        _clearPrevProxy();
         state.selectedMode = SelectMode.SINGLE;
         state.selectedId = value.id;
         state.selectedIds = [value.id];
         selectedActive.value = value;
+        proxyData.value = (value as any).proxyData;
+        previousElement = value;
         state.seletcedType = value.tag;
     };
 
     const selectMultiple = (value: IUI[]) => {
+        _clearPrevProxy();
+        previousElement = null;
         const target = value;
         state.selectedMode = SelectMode.MULTIPLE;
         state.selectedId = "";
         state.selectedIds = target.map((item: IUI) => item.id);
         state.seletcedType = "";
         selectedActive.value = null;
+        proxyData.value = null;
     };
 
     const selectEmpty = () => {
+        _clearPrevProxy();
+        previousElement = null;
         state.selectedMode = SelectMode.EMPTY;
         state.selectedId = "";
         state.selectedIds = [];
         selectedActive.value = null;
+        proxyData.value = null;
         state.seletcedType = "";
     };
 
@@ -59,6 +76,8 @@ export default function useSelectorListen() {
         () => state.selectedMode === SelectMode.MULTIPLE,
     );
     const selectedModes = computed(() => state.selectedMode);
+
+    const proxyData = shallowRef<any>(null);
 
     onMounted(() => {
         editorBoard.on(SelectEvent.SINGLE, selectSingle);
@@ -78,5 +97,6 @@ export default function useSelectorListen() {
         isMultiple,
         selectedMode: selectedModes,
         selectedActive,
+        proxyData
     };
 }
