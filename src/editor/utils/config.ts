@@ -15,6 +15,15 @@ import {
 
 import { BoldIcon, ItalicIcon, UnderlineIcon } from "@/assets/icons";
 
+
+export const trackedAttrs = [
+    'fontSize', 'fontWeight', 'italic', 'textDecoration',
+    'fill', 'stroke', 'strokeWidth', 'dashPattern',
+    'zIndex', 'text', 'padding',
+    'startArrow', 'endArrow',
+    "height", "width",
+];
+
 export const arrowTypes = [
     {
         label: "标准箭头",

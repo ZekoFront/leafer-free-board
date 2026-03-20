@@ -1,4 +1,4 @@
-import { SelectEvent, SelectMode } from "@/editor/utils";
+import { SelectEvent, SelectMode, trackedAttrs } from "@/editor/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
 import { LeaferEvent, DragEvent, type IUI, Line, Path, PropertyEvent } from "leafer-ui";
@@ -6,12 +6,7 @@ import { cloneDeep, isArray, isEqual, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../types";
 import { EditorEvent } from "@leafer-in/editor";
 
-const TRACKED_ATTRS = new Set([
-    'fontSize', 'fontWeight', 'italic', 'textDecoration',
-    'fill', 'stroke', 'strokeWidth', 'dashPattern',
-    'zIndex', 'text', 'padding',
-    'startArrow', 'endArrow',
-]);
+const TRACKED_ATTRS = new Set(trackedAttrs);
 
 const ATTR_DEBOUNCE_MS = 300;
 
