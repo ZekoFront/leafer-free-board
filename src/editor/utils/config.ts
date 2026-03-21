@@ -88,38 +88,19 @@ export const arrowTypes = [
 ];
 
 export const colorPanel = [
-    "#18A058",
-    "#2080F0",
-    "#F0A020",
-    "#FF4500",
-    "#FF8C00",
-    "#FFD700",
-    "#90EE90",
-    "#00CED1",
-    "#1E90FF",
-    "#C71585",
-    "#32CD79",
-    "#CCCCCC",
-    "#000000",
-    "#808080",
-    "#404040",
-    "#ABCDEF",
-    "#FF4500",
-    "#CC5800",
-    "#FAD000",
-    "#94E094",
-    "#00BFBF",
-    "#2680F0",
-    "#C71585",
-    "#FFFFFF",
+    "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
+    "#0ea5e9", "#3b82f6", "#6366f1", "#8b5cf6", "#ec4899",
+    "#fca5a5", "#fed7aa", "#fde68a", "#bbf7d0", "#99f6e4",
+    "#bae6fd", "#bfdbfe", "#c7d2fe", "#ddd6fe", "#fbcfe8",
+    "#1f2937", "#6b7280", "#d1d5db", "#ffffff",
 ];
 
 export const strokeColorList = [
-    "#1e1e1e",
-    "#e03131",
-    "#2f9e44",
-    "#1971c2",
-    "#f08c00",
+    "#1f2937",
+    "#ef4444",
+    "#22c55e",
+    "#3b82f6",
+    "#6366f1",
 ];
 
 export const fontWeightList = [

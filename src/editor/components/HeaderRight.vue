@@ -26,6 +26,7 @@ import {
     MAX_ZOOM,
     DEFAULT_STEP_ZOOM,
     DEFAULT_ZOOM,
+    CustomEvent,
 } from "@/editor/utils";
 
 const { editor } = defineProps({
@@ -56,6 +57,17 @@ const zoomReset = () => {
     zoom.value = 1;
     editor.app.zoom(zoom.value);
 };
+
+const setZoom = (zoomValue: number) => {
+    zoom.value = zoomValue;
+}
+
+onMounted(() => {
+    editor.on(CustomEvent.ZOOM, setZoom)
+})
+onBeforeUnmount(() => {
+    editor.off(CustomEvent.ZOOM, setZoom)
+})
 </script>
 
 <style scoped lang="scss">
@@ -69,9 +81,8 @@ const zoomReset = () => {
         border-radius: 0.5rem;
         padding: 4px;
         box-shadow:
-            0px 0px 0.9310142994px 0px rgba(0, 0, 0, 0.17),
-            0px 0px 3.1270833015px 0px rgba(0, 0, 0, 0.08),
-            0px 7px 14px 0px rgba(0, 0, 0, 0.05);
+            0 1px 2px rgba(0, 0, 0, 0.06),
+            0 2px 8px rgba(0, 0, 0, 0.04);
         .zoom-percentage {
             padding: 0 3px;
             display: inline-block;

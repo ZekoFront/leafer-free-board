@@ -34,7 +34,7 @@ import { EditorBoard } from "@/editor";
 import ToolBar from "./components/ToolBar.vue";
 import { ExecuteTypeEnum } from "./types";
 import { useBoardStore } from "./stores/useBoardStore";
-import { HistoryEvent, drawBoxText } from "@/editor/utils";
+import { CustomEvent, drawBoxText } from "@/editor/utils";
 import { debounce } from "lodash-es";
 import "@/editor/bridge/proxyData";
 
@@ -62,7 +62,7 @@ function initDefaultElements() {
 onMounted(() => {
     app = new App({
         view: boardRef.value!,
-        ground: { fill: "#91124c" },
+        ground: { fill: "#e5e7eb" },
         tree: { type: "design" },
         editor: {
             point: { cornerRadius: 0 },
@@ -72,7 +72,7 @@ onMounted(() => {
             buttonsDirection: "top",
         },
         sky: {},
-        fill: "#ffffff",
+        fill: "#fafafa",
         touch: { preventDefault: false },
         pointer: { preventDefaultMenu: true },
     });
@@ -87,7 +87,7 @@ onMounted(() => {
     editorBoard.use(HistoryHotKeyPlugin);
     editorBoard.use(ShapePlugin);
 
-    editorBoard.on(HistoryEvent.CHANGE, autoSave);
+    editorBoard.on(CustomEvent.CHANGE, autoSave);
 
     const snapshot = boardStore.load();
     if (snapshot && snapshot.canvas?.length > 0) {
@@ -99,7 +99,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
     autoSave.cancel();
-    editorBoard.off(HistoryEvent.CHANGE, autoSave);
+    editorBoard.off(CustomEvent.CHANGE, autoSave);
     boardStore.clear();
     editorBoard.destroy();
 });

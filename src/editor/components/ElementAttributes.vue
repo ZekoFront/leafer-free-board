@@ -7,6 +7,7 @@
             <n-tabs
                 tab-class="tab-class"
                 type="line"
+                size="small"
                 animated
                 :on-update:value="handleClick"
             >
@@ -23,6 +24,7 @@
                                 </div>
                                 <n-input-number
                                     class="attribute-item__input"
+                                    size="small"
                                     v-model:value="fontSize"
                                     :on-update:value="handleFontSizeChange"
                                 />
@@ -47,6 +49,7 @@
                             <div class="attribute-item__label">文本内容</div>
                             <n-input
                                 class="attribute-item__input"
+                                size="small"
                                 v-model:value="textContent"
                                 clearable
                                 :placeholder="selectedActive.placeholder || ''"
@@ -82,7 +85,7 @@
                     <div
                         class="attribute-item arrow-type"
                         v-if="
-                            ['Box', 'Rect', 'Text', 'Group'].includes(
+                            ['Box', 'Rect', 'Text', 'Group', 'Ellipse'].includes(
                                 selectedActive.tag as string,
                             )
                         "
@@ -114,6 +117,7 @@
                         <div class="attribute-item__flex">
                             <span>上下&nbsp;</span>
                             <n-input-number
+                                size="small"
                                 v-model:value="padding[0]"
                                 clearable
                                 :on-update:value="
@@ -122,6 +126,7 @@
                             />
                             <span>&nbsp;左右&nbsp;</span>
                             <n-input-number
+                                size="small"
                                 v-model:value="padding[1]"
                                 clearable
                                 :on-update:value="
@@ -160,6 +165,7 @@
                             <div class="attribute-item__label">描边宽度</div>
                             <n-input-number
                                 class="attribute-item__input"
+                                size="small"
                                 v-model:value="strokeWidth"
                                 clearable
                                 :on-update:value="handleStrokeWidthChange"
@@ -170,12 +176,14 @@
                             <div class="attribute-item__flex">
                                 <span>段长&nbsp;</span>
                                 <n-input-number
+                                    size="small"
                                     v-model:value="dashPattern[0]"
                                     clearable
                                     :on-update:value="handleDashPatternChange0"
                                 />
                                 <span>&nbsp;段间隔&nbsp;</span>
                                 <n-input-number
+                                    size="small"
                                     v-model:value="dashPattern[1]"
                                     clearable
                                     :on-update:value="handleDashPatternChange1"
@@ -187,6 +195,7 @@
                         <div class="attribute-item__label">层级</div>
                         <n-input-number
                             class="attribute-item__input"
+                            size="small"
                             v-model:value="zIndex"
                             clearable
                             :on-update:value="handleZIndexChange"
@@ -248,7 +257,7 @@ const { isSingle, selectedActive, proxyData } = useSelectorListen();
 
 const activeName = ref("setting");
 const isArrowBothEnds = ref(false);
-const fillColor = ref("#32cd79");
+const fillColor = ref("#818cf8");
 const strokeColor = ref("#2080F0");
 const strokeWidth = ref(0);
 const dashPattern = ref([0, 0]);

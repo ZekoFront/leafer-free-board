@@ -10,7 +10,7 @@ import {
 import { AddCommand, DeleteCommand, MoveCommand, PasteCommand, UpdateAttrCommand } from "./index";
 import { BaseCommand } from "./commands/BaseCommand";
 import type EditorBoard from "@/editor/EditorBoard";
-import { HistoryEvent } from "@/editor/utils";
+import { CustomEvent } from "@/editor/utils";
 
 // 历史记录管理器 - 核心撤销重做逻辑
 export class HistoryManager implements IPluginTempl {
@@ -104,7 +104,7 @@ export class HistoryManager implements IPluginTempl {
             this.undoStack.shift();
         }
 
-        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
+        this.editorBoard.emit(CustomEvent.CHANGE, this.state());
     }
 
     undo() {
@@ -120,7 +120,7 @@ export class HistoryManager implements IPluginTempl {
         } finally {
             this.isPerformingAction = false;
         }
-        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
+        this.editorBoard.emit(CustomEvent.CHANGE, this.state());
     }
 
     redo() {
@@ -136,7 +136,7 @@ export class HistoryManager implements IPluginTempl {
         } finally {
             this.isPerformingAction = false;
         }
-        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
+        this.editorBoard.emit(CustomEvent.CHANGE, this.state());
     }
 
     // 检查是否可以撤销
@@ -186,7 +186,7 @@ export class HistoryManager implements IPluginTempl {
         this.redoStack = data.redoStack
             .map((s) => this._deserializeCommand(s))
             .filter(Boolean) as ICommand[];
-        this.editorBoard.emit(HistoryEvent.CHANGE, this.state());
+        this.editorBoard.emit(CustomEvent.CHANGE, this.state());
     }
 
     private _serializeCommand(cmd: ICommand): ISerializedCommand {

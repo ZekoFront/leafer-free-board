@@ -1,7 +1,7 @@
-import { SelectEvent, SelectMode, trackedAttrs } from "@/editor/utils";
+import { CustomEvent, SelectEvent, SelectMode, trackedAttrs } from "@/editor/utils";
 import type EditorBoard from "../EditorBoard";
 import { ExecuteTypeEnum, type IPluginTempl } from "../types";
-import { LeaferEvent, DragEvent, type IUI, Line, Path, PropertyEvent } from "leafer-ui";
+import { LeaferEvent, DragEvent, type IUI, Line, Path, PropertyEvent, ZoomEvent } from "leafer-ui";
 import { cloneDeep, isArray, isEqual, isNull, isObject } from "lodash-es";
 import type { IMoveData } from "../types";
 import { EditorEvent } from "@leafer-in/editor";
@@ -51,6 +51,10 @@ class HandlerPlugin implements IPluginTempl {
         this.editorBoard.app.on(DragEvent.END, this._listenDragEndEvent);
         this.editorBoard.app.on(DragEvent.MOVE, this._listenDragMoveEvent);
         this.editorBoard.app.tree.on(PropertyEvent.CHANGE, this._listenPropertyEvent);
+        this.editorBoard.app.on(ZoomEvent.ZOOM, this._listenZoomEvent);
+    }
+    private _listenZoomEvent = (zoom: ZoomEvent) => {
+        this.editorBoard.emit(CustomEvent.ZOOM, zoom.totalScale);
     }
 
     private _unlistenners() {
@@ -66,6 +70,7 @@ class HandlerPlugin implements IPluginTempl {
         this.editorBoard.app.off(DragEvent.END, this._listenDragEndEvent);
         this.editorBoard.app.off(DragEvent.MOVE, this._listenDragMoveEvent);
         this.editorBoard.app.tree.off(PropertyEvent.CHANGE, this._listenPropertyEvent);
+        this.editorBoard.app.off(ZoomEvent.ZOOM, this._listenZoomEvent);
     }
 
     /**

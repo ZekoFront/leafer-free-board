@@ -53,12 +53,12 @@ interface IDefaultOptionsType {
 
 // 绘制元素的公共选项
 const defaultOptions:IDefaultOptionsType = {
-    fill: "#32cd79",
-    stroke: "#13ad8cff",
+    fill: "#818cf8",
+    stroke: "#6366f1",
     fontColor: "#FFFFFF",
     cornerRadius: 10,
     strokeWidth: 1,
-    opacity: 0.7,
+    opacity: 1,
     text: "双击编辑",
 };
 
@@ -92,7 +92,7 @@ export const drawBoxText = (point: IPointData, opt?:IDefaultOptionsType): IUI =>
         editable: true,
         resizeChildren: true, // 同时 resize 文本
         strokeWidth: 0,
-        stroke: "#32cd79",
+        stroke: defaultOptions.stroke,
         children: [
             {
                 id: uuidv4(),
@@ -115,7 +115,7 @@ export const drawText = (point: IPointData): IUI => {
     return new Text({
         id: uuidv4(),
         name: "Text",
-        fill: "#333333",
+        fill: "#374151",
         placeholder: "请输入文本", // 占位符文本
         placeholderColor: "rgba(120,120,120,0.5)", // 占位符颜色
         draggable: true,
@@ -243,7 +243,7 @@ export const drawDiamondText = (point: IPointData): IUI => {
         height: 100,
         sides: 4,
         cornerRadius: 10,
-        fill: "#32cd79",
+        fill: defaultOptions.fill,
         id: uuidv4(),
     });
 

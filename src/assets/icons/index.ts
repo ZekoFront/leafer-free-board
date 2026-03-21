@@ -20,3 +20,4 @@ export { default as DeleteIcon } from "./delete-icon.svg";
 export { default as DiamondIcon } from "./diamond-icon.svg";
 export { default as CopyIcon } from "./copy-icon.svg";
 export { default as EllipseIcon } from "./ellipse-icon.svg";
+export { default as HotkeyIcon } from "./hotkey-icon.svg";

@@ -10,6 +10,7 @@ export enum SelectEvent {
     MULTIPLE = "selectMultiple",
 }
 
-export enum HistoryEvent {
+export enum CustomEvent {
     CHANGE = "history:change",
+    ZOOM = "board:zoom",
 }

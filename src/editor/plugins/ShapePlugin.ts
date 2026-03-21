@@ -19,7 +19,7 @@ import {
     getLineMidpoint,
     getBezierMidpoint,
     enforceMinGap,
-    HistoryEvent,
+    CustomEvent,
     drawConnectionLabel,
 } from "../utils";
 import { EditorEvent, EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
@@ -112,7 +112,7 @@ export class ShapePlugin implements IPluginTempl {
             EditorRotateEvent.ROTATE,
             this._onTransformEvent,
         );
-        this.editorBoard.on(HistoryEvent.CHANGE, this._onHistoryChange);
+        this.editorBoard.on(CustomEvent.CHANGE, this._onHistoryChange);
         this.editorBoard.app.editor.on(EditorEvent.SELECT, this._onEditorSelect);
     }
 
@@ -143,7 +143,7 @@ export class ShapePlugin implements IPluginTempl {
             EditorRotateEvent.ROTATE,
             this._onTransformEvent,
         );
-        this.editorBoard.off(HistoryEvent.CHANGE, this._onHistoryChange);
+        this.editorBoard.off(CustomEvent.CHANGE, this._onHistoryChange);
         this.editorBoard.app.editor.off(EditorEvent.SELECT, this._onEditorSelect);
     }
 

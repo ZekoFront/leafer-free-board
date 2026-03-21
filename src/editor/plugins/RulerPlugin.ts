@@ -13,15 +13,15 @@ export class RulerPlugin implements IPluginTempl {
 
     group = new Group()
     /** 文字颜色 */
-    textColor = '#aaa'
+    textColor = '#9ca3af'
     /** 背景颜色 */
-    bgColor = '#fff'
+    bgColor = '#fafafa'
     /** 间隔线颜色 */
-    lineColor = '#ccc'
+    lineColor = '#d1d5db'
     /** 下边框颜色 */
-    borderColor = '#ccc'
+    borderColor = '#e5e7eb'
     /** 遮罩颜色 */
-    maskColor = '#e2ebff'
+    maskColor = 'rgba(99, 102, 241, 0.1)'
     app: App;
 
     constructor(editorBoard: EditorBoard) {
