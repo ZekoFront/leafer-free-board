@@ -5,3 +5,4 @@ export * from "./ShapePlugin";
 export * from "./DeleteHotKeyPlugin";
 export * from "./CopyPlugin";
 export * from "./DotMatrixPlugin";
+export * from "./HistoryHotKeyPlugin";

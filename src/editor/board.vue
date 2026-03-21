@@ -28,6 +28,7 @@ import {
     DeleteHotKeyPlugin,
     CopyPlugin,
     DotMatrixPlugin,
+    HistoryHotKeyPlugin,
 } from "@/editor/plugins";
 import { EditorBoard } from "@/editor";
 import ToolBar from "./components/ToolBar.vue";
@@ -83,6 +84,7 @@ onMounted(() => {
     editorBoard.use(DotMatrixPlugin);
     editorBoard.use(DeleteHotKeyPlugin);
     editorBoard.use(CopyPlugin);
+    editorBoard.use(HistoryHotKeyPlugin);
     editorBoard.use(ShapePlugin);
 
     editorBoard.on(HistoryEvent.CHANGE, autoSave);
