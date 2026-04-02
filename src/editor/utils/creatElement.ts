@@ -52,10 +52,10 @@ interface IDefaultOptionsType {
 }
 
 // 绘制元素的公共选项
-const defaultOptions:IDefaultOptionsType = {
-    fill: "#818cf8",
-    stroke: "#6366f1",
-    fontColor: "#FFFFFF",
+export const defaultOptions:IDefaultOptionsType = {
+    fill: "#ffffff",
+    stroke: "#00BFB2",
+    fontColor: "#050D1A",
     cornerRadius: 10,
     strokeWidth: 1,
     opacity: 1,
@@ -91,7 +91,7 @@ export const drawBoxText = (point: IPointData, opt?:IDefaultOptionsType): IUI =>
         hitChildren: false, // 阻止直接选择子元素（防止父子选择冲突，可双击进入组内选择子元素）
         editable: true,
         resizeChildren: true, // 同时 resize 文本
-        strokeWidth: 0,
+        strokeWidth: defaultOptions.strokeWidth,
         stroke: defaultOptions.stroke,
         children: [
             {
@@ -141,6 +141,8 @@ export const drawCircleText = (point: IPointData): IUI => {
         y: 0,
         fill: defaultOptions.fill,
         id: uuidv4(),
+        stroke: defaultOptions.stroke,
+        strokeWidth: defaultOptions.strokeWidth,
     });
 
     const text = new Text({
@@ -194,6 +196,8 @@ export const drawEllipseText = (point: IPointData): IUI => {
         y: 0,
         fill: defaultOptions.fill,
         id: uuidv4(),
+        stroke: defaultOptions.stroke,
+        strokeWidth: defaultOptions.strokeWidth,
     });
 
     const text = new Text({
@@ -245,6 +249,8 @@ export const drawDiamondText = (point: IPointData): IUI => {
         cornerRadius: 10,
         fill: defaultOptions.fill,
         id: uuidv4(),
+        stroke: defaultOptions.stroke,
+        strokeWidth: defaultOptions.strokeWidth,
     });
 
     const text = new Text({

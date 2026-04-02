@@ -10,7 +10,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { App, version } from "leafer-ui";
+import { App, version, type IUIInputData } from "leafer-ui";
 import "@leafer-in/editor";
 import "@leafer-in/viewport";
 import "@leafer-in/text-editor";
@@ -32,9 +32,8 @@ import {
 } from "@/editor/plugins";
 import { EditorBoard } from "@/editor";
 import ToolBar from "./components/ToolBar.vue";
-import { ExecuteTypeEnum } from "./types";
 import { useBoardStore } from "./stores/useBoardStore";
-import { CustomEvent, drawBoxText } from "@/editor/utils";
+import { CustomEvent, data } from "@/editor/utils";
 import { debounce } from "lodash-es";
 import "@/editor/bridge/proxyData";
 
@@ -54,9 +53,13 @@ const autoSave = debounce(() => {
 }, 1000);
 
 function initDefaultElements() {
-    const text = drawBoxText({ x: 100, y: 100 }, { fontColor: "#FFFFFF" });
-    editorBoard.addLeaferElement(text);
-    editorBoard.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: text });
+    editorBoard.history.clear();
+    editorBoard.app.tree.clear();
+    if (data.children && Array.isArray(data.children)) {
+        editorBoard.app.tree.add(
+            data.children as IUIInputData[],
+        );
+    }
 }
 
 onMounted(() => {

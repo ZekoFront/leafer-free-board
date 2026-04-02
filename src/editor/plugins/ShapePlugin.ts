@@ -21,6 +21,7 @@ import {
     enforceMinGap,
     CustomEvent,
     drawConnectionLabel,
+    defaultOptions,
 } from "../utils";
 import { EditorEvent, EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
 
@@ -365,8 +366,8 @@ export class ShapePlugin implements IPluginTempl {
             const pathData = getBezierPathString(p0, p3);
             line = new Path({
                 path: pathData,
-                stroke: "#555",
-                strokeWidth: 2,
+                stroke: defaultOptions.stroke,
+                strokeWidth: defaultOptions.strokeWidth,
                 editable: true,
                 draggable: false,
                 endArrow: 'arrow',
@@ -374,8 +375,8 @@ export class ShapePlugin implements IPluginTempl {
         } else if (this.drawMode == "line") {
             line = new Line({
                 editable: true,
-                stroke: "#555",
-                strokeWidth: 2,
+                stroke: defaultOptions.stroke,
+                strokeWidth: defaultOptions.strokeWidth,
                 dashPattern: [0, 0],
                 points: [p0.x, p0.y, p3.x, p3.y],
                 draggable: false,
