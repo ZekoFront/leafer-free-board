@@ -1,0 +1,20 @@
+/**
+ * editor-shell.scss — 可编辑画板容器布局样式
+ *
+ * EditorCanvas 专用样式：header 工具栏、画布 body、属性面板区域。
+ *
+ * 核心职责：
+ * - `.leafer-editor-canvas` 根容器 flex 纵向全屏
+ * - `.leafer-editor-canvas__header` 工具栏高度与边框
+ * - `.leafer-canvas-shell` 在编辑模式下的 flex:1 与 min-height
+ * - 属性面板 `.leafer-editor-canvas__attributes` 宽度与滚动
+ *
+ * 迁移来源：`src/editor/css/index.scss`、`layout.scss`
+ */
+
+.leafer-editor-canvas {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}

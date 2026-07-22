@@ -1,5 +1,5 @@
 {
-    "name": "leafer-free-board",
+    "name": "@leafer-free/board",
     "version": "0.0.1",
     "private": true,
     "type": "module",

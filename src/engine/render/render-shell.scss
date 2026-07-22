@@ -1,0 +1,21 @@
+/**
+ * render-shell.scss — 渲染 / 预览画板容器样式
+ *
+ * RenderCanvas 专用样式：通常无工具栏，画布区域占满容器。
+ *
+ * 核心职责：
+ * - `.leafer-render-canvas` 根容器尺寸（默认 width/height 100%）
+ * - `.leafer-canvas-shell` 在 render 模式下居中或 fit 显示
+ * - 可选：preview 边框、阴影、只读 cursor 样式
+ *
+ * 与 editor-shell 差异：
+ * - 无 header / attributes 区域布局
+ * - 更轻量，适合嵌入 iframe、文档预览块
+ */
+
+.leafer-render-canvas {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}

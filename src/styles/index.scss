@@ -1,0 +1,14 @@
+/**
+ * styles/index.scss — 画板组件全局样式入口
+ *
+ * npm 包对外样式入口 `@leafer-free/board/styles` 的源文件，
+ * 聚合 EditorCanvas / RenderCanvas 及子组件所需的基础样式。
+ *
+ * 核心职责：
+ * - 引入 layout 布局（header、body、attributes 区域尺寸与 flex）
+ * - 引入 tokens 设计变量（颜色、间距、z-index）
+ * - 覆盖 Leafer 容器 `.leafer-free-board--*` 类名样式
+ * - 构建时单独打包为 dist/styles/index.css，供消费方按需引入
+ *
+ * 迁移来源：`src/editor/css/index.scss`、`layout.scss`
+ */
