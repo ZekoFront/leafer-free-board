@@ -6,11 +6,11 @@ export const EDIT_APP_CONFIG: IAppConfig = {
     tree: { type: "design" },
     editor: {
         // point: { cornerRadius: 0 },
-        middlePoint: {},
+        // middlePoint: {},
         // rotatePoint: { width: 16, height: 16, cursor: "all-scroll" },
         // rect: { dashPattern: [3, 2] },
         selectedStyle: {
-            strokeWidth: 0,
+            strokeWidth: 2,
         },
         rect: {
             strokeWidth: 1,
