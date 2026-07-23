@@ -7,7 +7,7 @@
 import { useMouse } from "@/hooks/userMouse";
 import useSelectorListen from "@/hooks/useSelectorListen";
 
-// const editorBoard:any = inject('editorBoard')
+// const editorCore:any = inject(EDITOR_CORE_KEY)
 
 const { x, y } = useMouse();
 const { selectedMode, isSingle } = useSelectorListen();

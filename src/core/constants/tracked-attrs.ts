@@ -1,0 +1,18 @@
+/** PropertyEvent 白名单：仅这些属性变更会写入历史记录 */
+export const trackedAttrs = [
+    "fontSize",
+    "fontWeight",
+    "italic",
+    "textDecoration",
+    "fill",
+    "stroke",
+    "strokeWidth",
+    "dashPattern",
+    "zIndex",
+    "text",
+    "padding",
+    "startArrow",
+    "endArrow",
+    "height",
+    "width",
+] as const;

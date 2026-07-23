@@ -1,5 +1,6 @@
-import type EditorBoard from "@/editor/EditorBoard";
-import { SelectMode, SelectEvent } from "@/editor/utils";
+import type EditorCore from "@/core/EditorCore";
+import { SelectMode, SelectEvent } from "@/core/constants/select-events";
+import { useEditorCore } from "@/composables/useEditorCore";
 import type { IUI, IUIInputData } from "leafer-ui";
 
 export interface Selector {
@@ -8,17 +9,11 @@ export interface Selector {
     selectedIds: (string | undefined)[];
     seletcedType: string;
     selectedActive?: IUI | undefined;
-    editorBoard: EditorBoard;
+    editor: EditorCore;
 }
 
 export default function useSelectorListen() {
-    // 注入editorBoard并校验存在性
-    const editorBoard = inject("editorBoard") as EditorBoard;
-    if (!editorBoard) {
-        throw new Error(
-            'useSelectorListen 依赖 "editorBoard"，请通过 provide 注入',
-        );
-    }
+    const editor = useEditorCore();
 
     const selectedActive = shallowRef<IUIInputData | null>(null);
     let previousElement: IUIInputData | null = null;
@@ -27,13 +22,12 @@ export default function useSelectorListen() {
         selectedId: "",
         selectedIds: [],
         seletcedType: "",
-        editorBoard: editorBoard,
+        editor,
     });
 
-    // 切换前清理旧元素的代理数据
     const _clearPrevProxy = () => {
-        if (previousElement && (previousElement as any).clearProxyData) {
-            (previousElement as any).clearProxyData();
+        if (previousElement && (previousElement as IUIInputData & { clearProxyData?: () => void }).clearProxyData) {
+            (previousElement as IUIInputData & { clearProxyData: () => void }).clearProxyData();
         }
     };
 
@@ -43,7 +37,7 @@ export default function useSelectorListen() {
         state.selectedId = value.id;
         state.selectedIds = [value.id];
         selectedActive.value = value;
-        proxyData.value = (value as any).proxyData;
+        proxyData.value = (value as IUIInputData & { proxyData?: unknown }).proxyData ?? null;
         previousElement = value;
         state.seletcedType = value.tag;
     };
@@ -51,10 +45,9 @@ export default function useSelectorListen() {
     const selectMultiple = (value: IUI[]) => {
         _clearPrevProxy();
         previousElement = null;
-        const target = value;
         state.selectedMode = SelectMode.MULTIPLE;
         state.selectedId = "";
-        state.selectedIds = target.map((item: IUI) => item.id);
+        state.selectedIds = value.map((item: IUI) => item.id);
         state.seletcedType = "";
         selectedActive.value = null;
         proxyData.value = null;
@@ -76,27 +69,29 @@ export default function useSelectorListen() {
         () => state.selectedMode === SelectMode.MULTIPLE,
     );
     const selectedModes = computed(() => state.selectedMode);
-
     const proxyData = shallowRef<any>(null);
 
     onMounted(() => {
-        editorBoard.on(SelectEvent.SINGLE, selectSingle);
-        editorBoard.on(SelectEvent.MULTIPLE, selectMultiple);
-        editorBoard.on(SelectEvent.EMPTY, selectEmpty);
+        editor.on(SelectEvent.SINGLE, selectSingle as (...args: any[]) => void);
+        editor.on(SelectEvent.MULTIPLE, selectMultiple as (...args: any[]) => void);
+        editor.on(SelectEvent.EMPTY, selectEmpty as (...args: any[]) => void);
     });
 
     onBeforeUnmount(() => {
-        editorBoard.off(SelectEvent.SINGLE, selectSingle);
-        editorBoard.off(SelectEvent.MULTIPLE, selectMultiple);
-        editorBoard.off(SelectEvent.EMPTY, selectEmpty);
+        editor.off(SelectEvent.SINGLE, selectSingle as (...args: any[]) => void);
+        editor.off(SelectEvent.MULTIPLE, selectMultiple as (...args: any[]) => void);
+        editor.off(SelectEvent.EMPTY, selectEmpty as (...args: any[]) => void);
     });
 
     return {
-        editorBoard,
+        editor,
+        editorCore: editor,
+        /** 旧版 src/editor 组件兼容，新代码请用 editorCore */
+        editorBoard: editor,
         isSingle,
         isMultiple,
         selectedMode: selectedModes,
         selectedActive,
-        proxyData
+        proxyData,
     };
 }

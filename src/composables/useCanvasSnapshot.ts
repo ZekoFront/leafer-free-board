@@ -1,17 +1,35 @@
-/**
- * useCanvasSnapshot — 画布快照持久化
- *
- * Vue Composable，封装快照的保存、加载与防抖自动保存，与 UI 存储策略解耦。
- *
- * 核心职责：
- * - `save(storageKey?)`：调用 editor.saveSnapshot() 并写入 localStorage / 自定义后端
- * - `load(storageKey?)`：读取并返回 ICanvasSnapshot，供 CanvasContext.loadSnapshot 使用
- * - `autoSave(options)`：监听 CustomEvent.CHANGE，debounce 后自动 save（替代 useBoardStore）
- * - `clear()`：清除本地缓存
- *
- * 设计原则：
- * - 不持有 App / EditorCore 所有权，仅通过 useEditorCore 读写
- * - 存储介质可配置（默认 localStorage + lz-string 压缩，对齐现有 useBoardStore）
- *
- * 迁移来源：`src/editor/stores/useBoardStore.ts`
- */
+import LZString from "lz-string";
+import type { ICanvasSnapshot } from "@/core/types";
+
+const DEFAULT_STORAGE_KEY = "leafer-editor-canvas-state";
+
+export function useCanvasSnapshot(storageKey = DEFAULT_STORAGE_KEY) {
+    function save(snapshot: ICanvasSnapshot) {
+        try {
+            const json = JSON.stringify(snapshot);
+            const compressed = LZString.compressToUTF16(json);
+            localStorage.setItem(storageKey, compressed);
+        } catch (err) {
+            console.error("[CanvasSnapshot] 保存失败:", err);
+        }
+    }
+
+    function load(): ICanvasSnapshot | null {
+        try {
+            const compressed = localStorage.getItem(storageKey);
+            if (!compressed) return null;
+            const json = LZString.decompressFromUTF16(compressed);
+            if (!json) return null;
+            return JSON.parse(json) as ICanvasSnapshot;
+        } catch (err) {
+            console.error("[CanvasSnapshot] 加载失败:", err);
+            return null;
+        }
+    }
+
+    function clear() {
+        localStorage.removeItem(storageKey);
+    }
+
+    return { save, load, clear, storageKey };
+}
