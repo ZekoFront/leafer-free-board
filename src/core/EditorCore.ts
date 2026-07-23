@@ -2,7 +2,6 @@ import { EventEmitter } from "events";
 import { App } from "leafer-ui";
 import hotkeys from "hotkeys-js";
 import { v4 as uuidv4 } from "uuid";
-import { HistoryManager } from "@/editor/history";
 import type {
     ICanvasSnapshot,
     IPluginClass,
@@ -13,14 +12,10 @@ import type {
 export default class EditorCore extends EventEmitter {
     private _app: App | null = null;
     pluginMap: Record<string, IPluginTempl> = {};
-    history: HistoryManager;
     [key: string]: any;
 
     constructor() {
         super();
-        this.history = new HistoryManager(this as never, {
-            maxHistorySize: 50,
-        });
     }
 
     bindApp(app: App) {
@@ -88,7 +83,6 @@ export default class EditorCore extends EventEmitter {
     }
 
     destroy() {
-        this.history.destroy?.();
         Object.values(this.pluginMap).forEach((plugin) => {
             try {
                 plugin.destroy?.();

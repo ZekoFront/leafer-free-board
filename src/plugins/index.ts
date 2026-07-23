@@ -31,3 +31,5 @@ export * from "./edit/ScrollBarPlugin";
 export * from "./edit/DotMatrixPlugin";
 
 export * from "./render/ViewportPlugin";
+
+export * from "./history/HistoryPlugin";
