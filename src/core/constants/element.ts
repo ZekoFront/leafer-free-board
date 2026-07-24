@@ -11,4 +11,5 @@ export const DEFAULT_ELEMENT_OPTIONS = {
     height: 100,
     editable: true,
     draggable: true,
+    lineStroke: "#000000",
 };

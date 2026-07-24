@@ -35,7 +35,7 @@ export function getSegmentPoints(
 }
 
 const BASE_STROKE = {
-    stroke: DEFAULT_ELEMENT_OPTIONS.stroke,
+    stroke: DEFAULT_ELEMENT_OPTIONS.lineStroke,
     strokeWidth: DEFAULT_ELEMENT_OPTIONS.strokeWidth,
     strokeCap: "round" as const,
     strokeJoin: "round" as const,
