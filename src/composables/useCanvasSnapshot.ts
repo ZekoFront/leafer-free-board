@@ -82,5 +82,20 @@ export function useCanvasSnapshot(
         }
     }
 
-    return { save, load, clear, storageKey };
+    /** 有内容则保存，空画布则清除存储 */
+    function persist(snapshot: ICanvasSnapshot) {
+        const hasCanvas = (snapshot.canvas?.length ?? 0) > 0;
+        const hasHistory =
+            (snapshot.history?.undoStack?.length ?? 0) > 0 ||
+            (snapshot.history?.redoStack?.length ?? 0) > 0;
+
+        if (!hasCanvas && !hasHistory) {
+            clear();
+            return;
+        }
+
+        save(snapshot);
+    }
+
+    return { save, load, clear, persist, storageKey };
 }

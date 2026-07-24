@@ -1,7 +1,8 @@
 import { debounce } from "lodash-es";
 import { CanvasContext } from "@/core/CanvasContext";
 import { CustomEvent } from "@/core/constants";
-import { CANVAS_CONTEXT_KEY, EDITOR_CORE_KEY } from "@/core/constants/injection-keys";import EditorCore from "@/core/EditorCore";
+import { CANVAS_CONTEXT_KEY, EDITOR_CORE_KEY } from "@/core/constants/injection-keys";
+import EditorCore from "@/core/EditorCore";
 import type { CanvasMode, IAppConfig, IPluginClass } from "@/core/types";
 import { useCanvasSnapshot } from "@/composables/useCanvasSnapshot";
 import { DEFAULT_EDIT_PLUGINS } from "@/engine/edit/default-plugins";
@@ -49,7 +50,7 @@ export function useCanvasLifecycle(options: UseCanvasLifecycleOptions) {
         if (options.autoSave !== false) {
             autoSaveDebounced = debounce(() => {
                 try {
-                    snapshotStore.save(ctx.saveSnapshot());
+                    snapshotStore.persist(ctx.saveSnapshot());
                 } catch (err) {
                     console.error("[CanvasLifecycle] 自动保存失败:", err);
                 }

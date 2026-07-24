@@ -138,12 +138,7 @@ const handleClear = () => {
                 editor.app.tree.clear();
             });
             clearHistory();
-            snapshotStore.save({
-                canvas: [],
-                history: { undoStack: [], redoStack: [] },
-                version: 1,
-                timestamp: Date.now(),
-            });
+            snapshotStore.clear();
         },
         onNegativeClick: () => { },
     });
