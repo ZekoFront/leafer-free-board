@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import type EditorCore from "@/core/EditorCore";
 import { toolbarMenu } from "@/config";
 import { type IDrawState, type IPluginTempl } from "@/core/types";
-import { createElement } from "@/utils/createElement";
+import { createElement } from "@/core/elements";
 
 const DRAGGABLE_TYPES = new Set(
     toolbarMenu.filter((item) => item.draggable).map((item) => item.type),

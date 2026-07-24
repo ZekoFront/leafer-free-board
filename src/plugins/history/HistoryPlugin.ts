@@ -1,6 +1,8 @@
 import type EditorCore from "@/core/EditorCore";
+import { CustomEvent } from "@/core/constants";
 import type { IPluginTempl } from "@/core/types";
-import { ChildEvent, DragEvent, KeyEvent, Line } from "leafer-ui";
+import { ChildEvent, DragEvent, KeyEvent, Text } from "leafer-ui";
+import { InnerEditorEvent } from "@leafer-in/editor";
 
 // 1. 定义原子增量操作的 TS 类型体系
 export type HistoryType = "ADD" | "REMOVE" | "UPDATE_BATCH";
@@ -12,9 +14,12 @@ export interface EntityProps {
     y?: number;
     width?: number;
     height?: number;
+    rotation?: number;
     points?: number[]; // 连线专用的坐标数组
+    path?: string; // Path 连线
     fill?: string;
     stroke?: string;
+    text?: string | number;
     customData?: Record<string, any>; // 保存节点和线之间的关联关系
 }
 
@@ -28,23 +33,41 @@ export interface HistoryOp {
     }[];
     // 针对 单图元 ADD/REMOVE
     targetId?: string;
-    targetClass?: string;
+    targetTag?: string;
     undoData?: Partial<EntityProps>;
     redoData?: Partial<EntityProps>;
+}
+
+export interface HistoryStateSnapshot {
+    undoStack: HistoryOp[];
+    redoStack: HistoryOp[];
 }
 
 // 2. 完整历史记录控制插件
 export class HistoryPlugin implements IPluginTempl {
     static pluginName = "HistoryPlugin";
+    static apis = [
+        "undo",
+        "redo",
+        "getCanUndo",
+        "getCanRedo",
+        "clearHistory",
+        "exportHistory",
+        "importHistory",
+        "runWithoutRecording",
+    ];
     private app: any;
     private undoStack: HistoryOp[] = [];
     private redoStack: HistoryOp[] = [];
-    private maxStackSize = 100; // 限制栈深度防止内存溢出
+    private maxStackSize = 50; // 限制栈深度防止内存溢出
 
     // 状态锁：当处于 撤销/重做 执行期时，不重复收集变更
     private isExecuting = false;
     // 临时暂存器：用于在拖拽刚开始时备份图元状态
     private snapshotBeforeDrag: Map<string, Partial<EntityProps>> = new Map();
+    // 内联文本编辑：OPEN 时备份，CLOSE 时对比并入栈
+    private innerEditorTextSnapshot: { targetId: string; text: string } | null =
+        null;
 
     constructor(public editor: EditorCore) {
         this.app = editor.app;
@@ -71,13 +94,15 @@ export class HistoryPlugin implements IPluginTempl {
         this.app.tree.on("update", this.onUpdateUnified);
 
         this.app.on(KeyEvent.DOWN, this.onKeydown);
+        this.app.editor.on(InnerEditorEvent.OPEN, this.onOpenInnerEditor)
+        this.app.editor.on(InnerEditorEvent.CLOSE, this.onCloseInnerEditor);
     }
 
     private onDragStart = () => {
         if (this.isExecuting) return;
         this.snapshotBeforeDrag.clear();
-
-        const targets = this.app.editor.targets || [];
+        // 获取选中的元素
+        const targets = this.app.editor.list || [];
         targets.forEach((target: any) => {
             // 1. 备份节点自身状态
             this.storeTargetSnapshot(target);
@@ -100,8 +125,10 @@ export class HistoryPlugin implements IPluginTempl {
             const hasChanged =
                 currentTarget.x !== oldProps.x ||
                 currentTarget.y !== oldProps.y ||
+                currentTarget.rotation !== oldProps.rotation ||
                 JSON.stringify(currentTarget.points) !==
-                    JSON.stringify(oldProps.points);
+                    JSON.stringify(oldProps.points) ||
+                currentTarget.path !== oldProps.path;
 
             if (hasChanged) {
                 updateBatch.push({
@@ -126,8 +153,8 @@ export class HistoryPlugin implements IPluginTempl {
         this.pushOp({
             type: "ADD",
             targetId: child.id,
-            targetClass: child.tag || "Rect",
-            redoData: this.extractCurrentProps(child),
+            targetTag: child.tag,
+            redoData: child.toJSON(),
         });
     };
 
@@ -137,8 +164,8 @@ export class HistoryPlugin implements IPluginTempl {
         this.pushOp({
             type: "REMOVE",
             targetId: child.id,
-            targetClass: child.tag || "Rect",
-            undoData: this.extractCurrentProps(child),
+            targetTag: child.tag,
+            undoData: child.toJSON(),
         });
     };
 
@@ -162,6 +189,49 @@ export class HistoryPlugin implements IPluginTempl {
         }
     };
 
+    private onOpenInnerEditor = () => {
+        if (this.isExecuting) return;
+
+        const editTarget = this.app.editor.innerEditor?.editTarget;
+        if (!(editTarget instanceof Text) || !editTarget.id) return;
+
+        this.innerEditorTextSnapshot = {
+            targetId: editTarget.id,
+            text: String(editTarget.text ?? ""),
+        };
+    };
+
+    private onCloseInnerEditor = () => {
+        if (this.isExecuting) return;
+
+        const snapshot = this.innerEditorTextSnapshot;
+        if (!snapshot) return;
+
+        const editTarget =
+            this.app.editor.innerEditor?.editTarget ??
+            this.app.tree.findId(snapshot.targetId);
+
+        this.innerEditorTextSnapshot = null;
+
+        if (!(editTarget instanceof Text) || editTarget.id !== snapshot.targetId) {
+            return;
+        }
+
+        const currentText = String(editTarget.text ?? "");
+        if (currentText === snapshot.text) return;
+
+        this.pushOp({
+            type: "UPDATE_BATCH",
+            batchData: [
+                {
+                    id: snapshot.targetId,
+                    undoData: { text: snapshot.text },
+                    redoData: { text: currentText },
+                },
+            ],
+        });
+    };
+
     // ==========================================
     // 二、核心撤销（Undo）与重做（Redo）核心逻辑
     // ==========================================
@@ -175,6 +245,7 @@ export class HistoryPlugin implements IPluginTempl {
         if (this.undoStack.length > this.maxStackSize) {
             this.undoStack.shift();
         }
+        this.emitChange();
     }
 
     /**
@@ -182,6 +253,7 @@ export class HistoryPlugin implements IPluginTempl {
      */
     public undo() {
         if (this.isExecuting) return;
+        this.app.editor.cancel()
         const op = this.undoStack.pop();
         if (!op) return;
 
@@ -190,6 +262,7 @@ export class HistoryPlugin implements IPluginTempl {
 
         this.applyOperation(op, "undo");
         this.isExecuting = false; // 释放状态锁
+        this.emitChange();
     }
 
     /**
@@ -202,9 +275,9 @@ export class HistoryPlugin implements IPluginTempl {
 
         this.isExecuting = true; // 开启状态锁
         this.undoStack.push(op);
-
         this.applyOperation(op, "redo");
         this.isExecuting = false; // 释放状态锁
+        this.emitChange();
     }
 
     /**
@@ -219,14 +292,14 @@ export class HistoryPlugin implements IPluginTempl {
                 if (isUndo) {
                     this.rawRemove(op.targetId!);
                 } else {
-                    this.rawCreate(op.targetClass!, op.redoData!);
+                    this.app.tree.add(op.redoData);
                 }
                 break;
 
             case "REMOVE":
                 // REMOVE 的撤销是重新恢复图元，重做是再次移除
                 if (isUndo) {
-                    this.rawCreate(op.targetClass!, op.undoData!);
+                    this.app.tree.add(op.undoData);
                 } else {
                     this.rawRemove(op.targetId!);
                 }
@@ -268,11 +341,12 @@ export class HistoryPlugin implements IPluginTempl {
     private extractCurrentProps(target: any): Partial<EntityProps> {
         const props: Partial<EntityProps> = {
             id: target.id,
-            className: target.tag || target.className,
+            className: target.tag,
             x: target.x,
             y: target.y,
             width: target.width,
             height: target.height,
+            rotation: target.rotation,
             fill: target.fill,
             stroke: target.stroke,
         };
@@ -280,9 +354,15 @@ export class HistoryPlugin implements IPluginTempl {
         if (target.points) {
             props.points = [...target.points];
         }
+        if (target.path) {
+            props.path = target.path;
+        }
         // 恢复连线与节点之间的关联拓扑关系核心
         if (target.customData) {
             props.customData = { ...target.customData };
+        }
+        if (target.text !== undefined && target.text !== null) {
+            props.text = target.text;
         }
         return props;
     }
@@ -297,27 +377,6 @@ export class HistoryPlugin implements IPluginTempl {
                 line.customData?.startNodeId === nodeId ||
                 line.customData?.endNodeId === nodeId,
         );
-    }
-
-    /**
-     * 纯物理还原图元方法
-     */
-    private rawCreate(className: string, props: Partial<EntityProps>) {
-        let element: any;
-        // 根据类别反射创建 Leafer 图元实例
-        if (className === "Line") {
-            element = new Line(props as any);
-        } else {
-            // 默认按基础图元或通过你的自定义注册类来实例化
-            //   const LeaferUI = require('leafer-ui')
-            //   if (LeaferUI[className]) {
-            //     element = new LeaferUI[className](props)
-            //   }
-        }
-
-        if (element) {
-            this.app.tree.add(element);
-        }
     }
 
     /**
@@ -342,6 +401,48 @@ export class HistoryPlugin implements IPluginTempl {
         return this.redoStack.length > 0;
     }
 
+    public clearHistory() {
+        this.undoStack = [];
+        this.redoStack = [];
+        this.emitChange();
+    }
+
+    /** 导出 undo/redo 栈，供 IndexedDB 持久化 */
+    public exportHistory(): HistoryStateSnapshot {
+        return {
+            undoStack: JSON.parse(JSON.stringify(this.undoStack)) as HistoryOp[],
+            redoStack: JSON.parse(JSON.stringify(this.redoStack)) as HistoryOp[],
+        };
+    }
+
+    /** 从持久化数据恢复 undo/redo 栈 */
+    public importHistory(state: HistoryStateSnapshot) {
+        this.undoStack = JSON.parse(
+            JSON.stringify(state.undoStack ?? []),
+        ) as HistoryOp[];
+        this.redoStack = JSON.parse(
+            JSON.stringify(state.redoStack ?? []),
+        ) as HistoryOp[];
+        this.emitChange();
+    }
+
+    /** 加载画布或批量清空时暂停历史收集 */
+    public runWithoutRecording(fn: () => void) {
+        this.isExecuting = true;
+        try {
+            fn();
+        } finally {
+            this.isExecuting = false;
+        }
+    }
+
+    private emitChange() {
+        this.editor.emit(CustomEvent.CHANGE, {
+            canUndo: this.getCanUndo(),
+            canRedo: this.getCanRedo(),
+        });
+    }
+
     /**
      * 销毁清理事件
      */
@@ -352,7 +453,10 @@ export class HistoryPlugin implements IPluginTempl {
         this.app.tree.off(ChildEvent.REMOVE, this.onRemoveUnified);
         this.app.tree.off("update", this.onUpdateUnified);
         this.app.off(KeyEvent.DOWN, this.onKeydown);
+        this.app.editor.off(InnerEditorEvent.OPEN, this.onOpenInnerEditor);
+        this.app.editor.off(InnerEditorEvent.CLOSE, this.onCloseInnerEditor);
         this.snapshotBeforeDrag.clear();
+        this.innerEditorTextSnapshot = null;
         this.undoStack = [];
         this.redoStack = [];
     }

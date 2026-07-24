@@ -7,4 +7,8 @@ export const DEFAULT_ELEMENT_OPTIONS = {
     strokeWidth: 1,
     opacity: 1,
     text: "双击编辑",
+    width: 100,
+    height: 100,
+    editable: true,
+    draggable: true,
 };

@@ -1,7 +1,7 @@
 import { debounce } from "lodash-es";
 import { CanvasContext } from "@/core/CanvasContext";
-import { CANVAS_CONTEXT_KEY, EDITOR_CORE_KEY } from "@/core/constants/injection-keys";
-import EditorCore from "@/core/EditorCore";
+import { CustomEvent } from "@/core/constants";
+import { CANVAS_CONTEXT_KEY, EDITOR_CORE_KEY } from "@/core/constants/injection-keys";import EditorCore from "@/core/EditorCore";
 import type { CanvasMode, IAppConfig, IPluginClass } from "@/core/types";
 import { useCanvasSnapshot } from "@/composables/useCanvasSnapshot";
 import { DEFAULT_EDIT_PLUGINS } from "@/engine/edit/default-plugins";
@@ -55,10 +55,10 @@ export function useCanvasLifecycle(options: UseCanvasLifecycleOptions) {
                 }
             }, 1000);
             autoSaveHandler = () => autoSaveDebounced?.();
-            ctx.editor.on("change", autoSaveHandler);
+            ctx.editor.on(CustomEvent.CHANGE, autoSaveHandler);
         }
 
-        const snapshot = snapshotStore.load();
+        const snapshot = await snapshotStore.load();
         if (snapshot?.canvas?.length) {
             ctx.loadSnapshot(snapshot);
         }
@@ -71,7 +71,7 @@ export function useCanvasLifecycle(options: UseCanvasLifecycleOptions) {
     onBeforeUnmount(() => {
         autoSaveDebounced?.cancel();
         if (ctxRef.value && autoSaveHandler) {
-            ctxRef.value.editor.off("change", autoSaveHandler);
+            ctxRef.value.editor.off(CustomEvent.CHANGE, autoSaveHandler);
         }
         ctxRef.value?.destroy();
         ctxRef.value = null;

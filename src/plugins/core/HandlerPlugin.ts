@@ -1,13 +1,8 @@
 
 import {
-    trackedAttrs,
-} from "@/core/constants";
-import {
     type IPluginTempl,
 } from "@/core/types";
 
-const TRACKED_ATTRS = new Set<string>(trackedAttrs);
-const ATTR_DEBOUNCE_MS = 300;
 
 /**
  * HandlerPlugin — 核心事件处理插件

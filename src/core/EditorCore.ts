@@ -70,16 +70,25 @@ export default class EditorCore extends EventEmitter {
             ) ?? [];
         return {
             canvas,
+            history: this.exportHistory?.(),
             version: 1,
             timestamp: Date.now(),
         };
     }
 
     loadSnapshot(snapshot: ICanvasSnapshot) {
-        this.app.tree.clear();
-        snapshot.canvas.forEach((item) => {
-            this.app.tree.add(item as never);
+        this.runWithoutRecording?.(() => {
+            this.app.tree.clear();
+            snapshot.canvas.forEach((item) => {
+                this.app.tree.add(item as never);
+            });
         });
+
+        if (snapshot.history) {
+            this.importHistory?.(snapshot.history);
+        } else {
+            this.clearHistory?.();
+        }
     }
 
     destroy() {

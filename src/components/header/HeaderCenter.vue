@@ -1,17 +1,10 @@
 <template>
     <div class="center">
         <div class="center-tool-bar-wrapper default-shadow__wrapper">
-            <div
-                v-for="(item, index) in toolbars"
-                :key="item.type"
-                :class="['icon-block', { active: currentIndex === index }]"
-                :id="item.type"
-                :title="item.title"
-                :draggable="item.draggable"
-                @dragstart="handleDragStart($event, item)"
-                @mousedown="handleClick(item, index)"
-                @click="handleClick(item, index)"
-            >
+            <div v-for="(item, index) in toolbars" :key="item.type"
+                :class="['icon-block', { active: currentIndex === index }]" :id="item.type" :title="item.title"
+                :draggable="item.draggable" @dragstart="handleDragStart($event, item)"
+                @mousedown="handleClick(item, index)" @click="handleClick(item, index)">
                 <n-icon :size="22">
                     <component :is="item.icon"></component>
                 </n-icon>
@@ -26,39 +19,27 @@
                     <ImageAddIcon></ImageAddIcon>
                 </n-icon>
             </div>
-            <div
-                :class="[
-                    'icon-block',
-                    'icon-block--undo',
-                    { disabled: !isCanUndo },
-                    { 'active-icon': isCanUndo },
-                ]"
-                title="撤销"
-                @click="isCanUndo && editor.history.undo()"
-            >
+            <div :class="[
+                'icon-block',
+                'icon-block--undo',
+                { disabled: !isCanUndo },
+                { 'active-icon': isCanUndo },
+            ]" title="撤销" @click="isCanUndo && undo()">
                 <n-icon :size="22">
                     <UndoIcon></UndoIcon>
                 </n-icon>
             </div>
-            <div
-                :class="[
-                    'icon-block',
-                    'icon-block--redo',
-                    { disabled: !iscanRedo },
-                    { 'active-icon': iscanRedo },
-                ]"
-                title="重做"
-                @click="iscanRedo && editor.history.redo()"
-            >
+            <div :class="[
+                'icon-block',
+                'icon-block--redo',
+                { disabled: !iscanRedo },
+                { 'active-icon': iscanRedo },
+            ]" title="重做" @click="iscanRedo && redo()">
                 <n-icon :size="22">
                     <RedoIcon></RedoIcon>
                 </n-icon>
             </div>
-            <div
-                class="icon-block icon-block--redo"
-                title="清空画布"
-                @click="handleClear"
-            >
+            <div class="icon-block icon-block--redo" title="清空画布" @click="handleClear">
                 <n-icon :size="22">
                     <ClearIcon></ClearIcon>
                 </n-icon>
@@ -78,11 +59,7 @@
                 </template>
                 <div class="hotkey-panel">
                     <div class="hotkey-panel__title">快捷键</div>
-                    <div
-                        class="hotkey-panel__item"
-                        v-for="item in hotkeyList"
-                        :key="item.label"
-                    >
+                    <div class="hotkey-panel__item" v-for="item in hotkeyList" :key="item.label">
                         <span class="hotkey-panel__label">{{ item.label }}</span>
                         <span class="hotkey-panel__keys">
                             <kbd v-for="k in item.keys" :key="k">{{ k }}</kbd>
@@ -108,14 +85,14 @@ import {
 import { ExecuteTypeEnum, type IDrawState, type IToolBar } from "@/core/types";
 import { toolbarMenu } from "@/config";
 import { useCanvasSnapshot } from "@/composables/useCanvasSnapshot";
+import { useHistory } from "@/composables/useHistory";
 import useSelectorListen from "@/hooks/useSelectorListen";
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
-
-const CHANGE_EVENT = "history:change";
 
 const isDev = import.meta.env.DEV;
 const snapshotStore = useCanvasSnapshot();
 const { editor } = useSelectorListen();
+const { canUndo: isCanUndo, canRedo: iscanRedo, undo, redo, clearHistory } = useHistory();
 const { dialog } = useNaiveDiscrete();
 
 const currentIndex = ref<number>(0);
@@ -157,11 +134,18 @@ const handleClear = () => {
         negativeText: "取消",
         draggable: true,
         onPositiveClick: () => {
-            editor.app.tree.clear();
-            editor.history.clear();
-            snapshotStore.clear();
+            editor.runWithoutRecording?.(() => {
+                editor.app.tree.clear();
+            });
+            clearHistory();
+            snapshotStore.save({
+                canvas: [],
+                history: { undoStack: [], redoStack: [] },
+                version: 1,
+                timestamp: Date.now(),
+            });
         },
-        onNegativeClick: () => {},
+        onNegativeClick: () => { },
     });
 };
 
@@ -206,25 +190,11 @@ const setImage = (file: File, index: number) => {
 };
 
 const printHistory = () => {
-    console.log("历史记录:", editor.history.state());
+    console.log("历史记录:", {
+        canUndo: isCanUndo.value,
+        canRedo: iscanRedo.value,
+    });
 };
-
-const isCanUndo = ref(false);
-const iscanRedo = ref(false);
-
-const updateHistoryState = (state: any) => {
-    // console.log('历史记录:', state)
-    isCanUndo.value = state.canUndo;
-    iscanRedo.value = state.canRedo;
-};
-
-onMounted(() => {
-    editor.on(CHANGE_EVENT, updateHistoryState);
-});
-
-onUnmounted(() => {
-    editor.off(CHANGE_EVENT, updateHistoryState);
-});
 </script>
 
 <style lang="scss">
@@ -237,19 +207,23 @@ onUnmounted(() => {
         margin-bottom: 6px;
         border-bottom: 1px solid #f0f0f0;
     }
+
     &__item {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 5px 0;
     }
+
     &__label {
         font-size: 12px;
         color: #4b5563;
     }
+
     &__keys {
         display: flex;
         gap: 4px;
+
         kbd {
             display: inline-block;
             font-family: inherit;

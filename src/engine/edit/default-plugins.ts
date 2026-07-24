@@ -1,10 +1,11 @@
 import {
+    DeleteHotKeyPlugin,
     DotMatrixPlugin,
     RulerPlugin,
     ScrollBarPlugin,
     ShapePlugin,
     SnapPlugin,
-    HistoryPlugin
+    HistoryPlugin,
 } from "@/plugins";
 
 
@@ -18,5 +19,6 @@ export const DEFAULT_EDIT_PLUGINS = [
     DotMatrixPlugin,
     ShapePlugin,
     HistoryPlugin,
+    DeleteHotKeyPlugin,
 ];
 

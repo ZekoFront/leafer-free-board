@@ -1,7 +1,9 @@
+import type { HistoryStateSnapshot } from "@/plugins/history/HistoryPlugin";
+
 export interface ICanvasSnapshot {
     canvas: unknown[];
     connections?: unknown[];
-    history?: unknown;
+    history?: HistoryStateSnapshot;
     version: number;
     timestamp: number;
 }
