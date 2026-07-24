@@ -7,7 +7,7 @@ import { Arrow } from "@leafer-in/arrow";
 export const drawArrow = (point: IPointData): IUI => {
     return new Arrow({
         id: uuidv4(),
-        name: "Arrow",
+        name: "箭头",
         curve: true,
         points: [point.x, point.y, 0, 0],
         strokeCap: "round",

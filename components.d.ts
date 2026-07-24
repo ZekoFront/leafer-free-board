@@ -12,12 +12,19 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     CanvasHeader: typeof import('./src/components/header/CanvasHeader.vue')['default']
+    ElementAttributes: typeof import('./src/components/ElementAttributes.vue')['default']
     HeaderCenter: typeof import('./src/components/header/HeaderCenter.vue')['default']
     HeaderLeft: typeof import('./src/components/header/HeaderLeft.vue')['default']
     HeaderRight: typeof import('./src/components/header/HeaderRight.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    NColorPicker: typeof import('naive-ui')['NColorPicker']
     NDropdown: typeof import('naive-ui')['NDropdown']
     NIcon: typeof import('naive-ui')['NIcon']
+    NInput: typeof import('naive-ui')['NInput']
+    NInputNumber: typeof import('naive-ui')['NInputNumber']
     NPopover: typeof import('naive-ui')['NPopover']
+    NSwitch: typeof import('naive-ui')['NSwitch']
+    NTabPane: typeof import('naive-ui')['NTabPane']
+    NTabs: typeof import('naive-ui')['NTabs']
   }
 }

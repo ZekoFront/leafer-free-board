@@ -4,7 +4,9 @@
             <slot name="header" :ctx="ctx" :editor="editor" />
         </div>
 
-        <div ref="canvasRef" class="leafer-canvas-provider__body leafer-canvas-shell" />
+        <div ref="canvasRef" class="leafer-canvas-provider__body leafer-canvas-shell">
+            <ElementAttributes v-if="ready" />
+        </div>
 
         <div v-if="ready" class="leafer-canvas-provider__footer">
             <slot name="footer" :ctx="ctx" :editor="editor" />
@@ -17,6 +19,7 @@ import type { CanvasContext } from "@/core/CanvasContext";
 import type EditorCore from "@/core/EditorCore";
 import type { CanvasMode, IAppConfig, IPluginClass } from "@/core/types";
 import { useCanvasLifecycle } from "./useCanvasLifecycle";
+import ElementAttributes from "@/components/ElementAttributes.vue";
 
 const props = withDefaults(
     defineProps<{

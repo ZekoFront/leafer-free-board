@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 export const drawText = (point: IPointData): IUI => {
     return new Text({
         id: uuidv4(),
-        name: "Text",
+        name: "文本",
         fill: "#374151",
         placeholder: "请输入文本", // 占位符文本
         placeholderColor: "rgba(120,120,120,0.5)", // 占位符颜色

@@ -55,6 +55,7 @@ export class HistoryPlugin implements IPluginTempl {
         "exportHistory",
         "importHistory",
         "runWithoutRecording",
+        "getIsExecuting",
     ];
     private app: any;
     private undoStack: HistoryOp[] = [];
@@ -399,6 +400,10 @@ export class HistoryPlugin implements IPluginTempl {
 
     public getCanRedo(): boolean {
         return this.redoStack.length > 0;
+    }
+
+    public getIsExecuting(): boolean {
+        return this.isExecuting;
     }
 
     public clearHistory() {

@@ -29,6 +29,8 @@ import "@leafer-in/find";
 import "@leafer-in/export";
 import "@leafer-in/view";
 
+import "@/bridge/proxyData";
+
 import type { CanvasContext } from "@/core/CanvasContext";
 import type { IAppConfig, IPluginClass } from "@/core/types";
 import { CANVAS_CONTEXT_KEY } from "@/core/constants/injection-keys";

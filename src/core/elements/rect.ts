@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 export const createRect = (point: IPointData): IUI => {
     return new Rect({
         id: uuidv4(),
-        name: "Rect",
+        name: "矩形",
         x: point.x,
         y: point.y,
         width: DEFAULT_ELEMENT_OPTIONS.width,

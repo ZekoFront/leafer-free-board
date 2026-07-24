@@ -5,6 +5,7 @@ import { DEFAULT_ELEMENT_OPTIONS } from "../constants";
 // 绘制椭圆
 export const drawEllipse = (point: IPointData): IUI => {
     const circle = new Ellipse({
+        name: "椭圆",
         editable: DEFAULT_ELEMENT_OPTIONS.editable,
         draggable: DEFAULT_ELEMENT_OPTIONS.draggable,
         width: DEFAULT_ELEMENT_OPTIONS.width,

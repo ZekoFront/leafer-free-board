@@ -1,7 +1,12 @@
 import type EditorCore from "@/core/EditorCore";
 import { SelectMode, SelectEvent } from "@/core/constants/select-events";
 import { useEditorCore } from "@/composables/useEditorCore";
-import type { IUI, IUIInputData } from "leafer-ui";
+import type { IUI } from "leafer-ui";
+
+export interface ElementProxyData {
+    clearProxyData?: () => void;
+    proxyData?: Record<string, unknown>;
+}
 
 export interface Selector {
     selectedMode: (typeof SelectMode)[keyof typeof SelectMode];
@@ -15,8 +20,8 @@ export interface Selector {
 export default function useSelectorListen() {
     const editor = useEditorCore();
 
-    const selectedActive = shallowRef<IUIInputData | null>(null);
-    let previousElement: IUIInputData | null = null;
+    const selectedActive = shallowRef<IUI | null>(null);
+    let previousElement: IUI | null = null;
     const state = reactive<Selector>({
         selectedMode: SelectMode.EMPTY,
         selectedId: "",
@@ -26,9 +31,8 @@ export default function useSelectorListen() {
     });
 
     const _clearPrevProxy = () => {
-        if (previousElement && (previousElement as IUIInputData & { clearProxyData?: () => void }).clearProxyData) {
-            (previousElement as IUIInputData & { clearProxyData: () => void }).clearProxyData();
-        }
+        const prev = previousElement as ElementProxyData | null;
+        prev?.clearProxyData?.();
     };
 
     const selectSingle = (value: IUI) => {
@@ -37,7 +41,7 @@ export default function useSelectorListen() {
         state.selectedId = value.id;
         state.selectedIds = [value.id];
         selectedActive.value = value;
-        proxyData.value = (value as IUIInputData & { proxyData?: unknown }).proxyData ?? null;
+        proxyData.value = (value as ElementProxyData).proxyData ?? null;
         previousElement = value;
         state.seletcedType = value.tag;
     };

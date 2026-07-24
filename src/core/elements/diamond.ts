@@ -5,6 +5,7 @@ import { DEFAULT_ELEMENT_OPTIONS } from "../constants";
 // 创建菱形
 export const drawDiamond = (point: IPointData): IUI => {
     const diamond = new Polygon({
+        name: "菱形",
         width: DEFAULT_ELEMENT_OPTIONS.width,
         height: DEFAULT_ELEMENT_OPTIONS.height,
         x: point.x,
