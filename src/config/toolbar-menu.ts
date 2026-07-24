@@ -6,6 +6,7 @@ import {
     DiamondIcon,
     EllipseIcon,
     LineIcon,
+    PaintbrushIcon,
     RectIcon,
     SelectIcon,
     TextIcon,
@@ -21,4 +22,5 @@ export const toolbarMenu: IToolBar[] = [
     { icon: ArrowAngleIcon, title: "箭头", type: "arrow", draggable: false },
     { icon: LineIcon, title: "直线连线(带箭头)", type: "line", draggable: false },
     { icon: CurveIcon, title: "曲线连接", type: "curve", draggable: false },
+    { icon: PaintbrushIcon, title: "画笔", type: "paintbrush", draggable: false },
 ];

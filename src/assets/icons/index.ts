@@ -21,3 +21,4 @@ export { default as DiamondIcon } from "./diamond-icon.svg";
 export { default as CopyIcon } from "./copy-icon.svg";
 export { default as EllipseIcon } from "./ellipse-icon.svg";
 export { default as HotkeyIcon } from "./hotkey-icon.svg";
+export { default as PaintbrushIcon } from "./paintbrush-icon.svg";
