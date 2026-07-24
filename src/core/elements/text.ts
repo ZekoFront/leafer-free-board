@@ -10,7 +10,7 @@ export const drawText = (point: IPointData): IUI => {
         placeholder: "请输入文本", // 占位符文本
         placeholderColor: "rgba(120,120,120,0.5)", // 占位符颜色
         draggable: true,
-        fontSize: 16,
+        fontSize: 13,
         padding: 12,
         height: 50,
         boxStyle: {

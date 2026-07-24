@@ -536,7 +536,7 @@ $panel-bg: #ffffff;
         min-height: 0;
         display: flex;
         flex-direction: column;
-        padding: 10px 10px 0;
+        padding: 10px 0px 0;
 
         :deep(.n-tabs-nav) {
             padding: 0 2px;
