@@ -13,10 +13,13 @@ declare module 'vue' {
   export interface GlobalComponents {
     CanvasHeader: typeof import('./src/components/header/CanvasHeader.vue')['default']
     ElementAttributes: typeof import('./src/components/ElementAttributes.vue')['default']
+    ElementPalette: typeof import('./src/components/ElementPalette.vue')['default']
     HeaderCenter: typeof import('./src/components/header/HeaderCenter.vue')['default']
     HeaderLeft: typeof import('./src/components/header/HeaderLeft.vue')['default']
     HeaderRight: typeof import('./src/components/header/HeaderRight.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    NCollapse: typeof import('naive-ui')['NCollapse']
+    NCollapseItem: typeof import('naive-ui')['NCollapseItem']
     NColorPicker: typeof import('naive-ui')['NColorPicker']
     NDropdown: typeof import('naive-ui')['NDropdown']
     NIcon: typeof import('naive-ui')['NIcon']

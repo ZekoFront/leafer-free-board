@@ -14,10 +14,22 @@
 .leafer-canvas-provider__body {
     flex: 1;
     min-height: 0;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+}
+
+.leafer-canvas-provider__canvas {
+    flex: 1;
+    min-width: 0;
     position: relative;
 }
 
 .leafer-canvas-shell {
     width: 100%;
     height: 100%;
+}
+
+.leafer-canvas-provider__footer {
+    flex-shrink: 0;
 }

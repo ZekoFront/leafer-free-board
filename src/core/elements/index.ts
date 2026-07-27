@@ -10,3 +10,7 @@ export * from "./lineSegment";
 export * from "./connection";
 export * from "./paintbrush";
 export * from "./image";
+export * from "./polygonShape";
+export * from "./roundedRect";
+export * from "./mindNode";
+export * from "./viewport";

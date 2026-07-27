@@ -9,7 +9,7 @@ import {
 } from "leafer-ui";
 import { v4 as uuidv4 } from "uuid";
 import type EditorCore from "@/core/EditorCore";
-import { toolbarMenu } from "@/config";
+import { getDraggableElementTypes } from "@/config/element-palette";
 import { MIN_CONNECTION_LABEL_GAP } from "@/core/constants";
 
 import {
@@ -39,9 +39,7 @@ import {
 
 import type { ConnectionKind, IDrawState, IPluginTempl } from "@/core/types";
 
-const DRAGGABLE_TYPES = new Set(
-    toolbarMenu.filter((item) => item.draggable).map((item) => item.type),
-);
+const DRAGGABLE_TYPES = getDraggableElementTypes();
 
 /** 画布两点自由绘制 */
 
