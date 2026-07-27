@@ -1,5 +1,6 @@
 import {
     ConnectionPlugin,
+    CopyPlugin,
     DeleteHotKeyPlugin,
     DotMatrixPlugin,
     HandlerPlugin,
@@ -21,5 +22,6 @@ export const DEFAULT_EDIT_PLUGINS = [
     ShapePlugin,
     HistoryPlugin,
     DeleteHotKeyPlugin,
+    CopyPlugin,
 ];
 

@@ -1,6 +1,7 @@
 import { Polygon, type IPointData, type IUI } from "leafer-ui";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_ELEMENT_OPTIONS } from "@/core/constants";
+import { buildPolygonPoints } from "@/core/geometry/polygonConnection";
 
 const BASE = {
     width: DEFAULT_ELEMENT_OPTIONS.width,
@@ -22,9 +23,9 @@ export function createPolygon(
     return new Polygon({
         id: uuidv4(),
         name,
-        sides,
         x: point.x,
         y: point.y,
+        points: buildPolygonPoints(sides, BASE.width, BASE.height),
         ...BASE,
     });
 }

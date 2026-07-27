@@ -9,7 +9,7 @@ export const createRect = (point: IPointData): IUI => {
         name: "矩形",
         x: point.x,
         y: point.y,
-        width: DEFAULT_ELEMENT_OPTIONS.width,
+        width: DEFAULT_ELEMENT_OPTIONS.width * 2,
         height: DEFAULT_ELEMENT_OPTIONS.height,
         fill: DEFAULT_ELEMENT_OPTIONS.fill,
         stroke: DEFAULT_ELEMENT_OPTIONS.stroke,

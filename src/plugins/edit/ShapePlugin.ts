@@ -121,6 +121,7 @@ export class ShapePlugin implements IPluginTempl {
             this.activeTool = "paintbrush";
             app.cursor = "default";
             app.editor.config.selector = false;
+            app.editor.cancel?.();
             return;
         }
 
@@ -128,6 +129,7 @@ export class ShapePlugin implements IPluginTempl {
             this.activeTool = type;
             app.cursor = "crosshair";
             app.editor.config.selector = false;
+            app.editor.cancel?.();
             return;
         }
 
@@ -135,12 +137,14 @@ export class ShapePlugin implements IPluginTempl {
             this.activeTool = type;
             app.cursor = "crosshair";
             app.editor.config.selector = false;
+            app.editor.cancel?.();
             return;
         }
 
         this.activeTool = null;
         app.cursor = "default";
         app.editor.config.selector = true;
+        app.editor.cancel?.();
     }
 
     private onDragOver = (evt: DragEvent) => {

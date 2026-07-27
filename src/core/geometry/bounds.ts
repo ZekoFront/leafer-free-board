@@ -1,13 +1,14 @@
 import type { App, IUI, IUIInputData } from "leafer-ui";
 import type { IConnectionPoint } from "../types";
+import {
+    getConnectionPointOnPolygon,
+    isPolygonElement,
+} from "./polygonConnection";
 
 /**
  * 计算起点和终点的连接线（支持缩放/旋转/平移场景）
  *
- * @param elA
- * @param elB
- * @param app 传入 app 实例，用于将世界坐标转换为页面坐标
- * @returns { p0: IConnectionPoint, p3: IConnectionPoint }
+ * Polygon 使用轮廓射线交点，其余图元使用 worldBox 四边中点。
  */
 export const getBestConnectionByWorldBoxBounds = (
     elA: IUIInputData,
@@ -17,7 +18,6 @@ export const getBestConnectionByWorldBoxBounds = (
     const rectA = getRectBounds(elA, app);
     const rectB = getRectBounds(elB, app);
 
-    // 直接使用 worldBox 算出来的中心点
     const cxA = rectA.centerX;
     const cyA = rectA.centerY;
     const cxB = rectB.centerX;
@@ -30,31 +30,39 @@ export const getBestConnectionByWorldBoxBounds = (
     let p3: IConnectionPoint = { x: 0, y: 0, dirX: 0, dirY: 0 };
 
     if (Math.abs(dx) > Math.abs(dy)) {
-        // 左右连接
         if (dx > 0) {
-            // A -> B
             p0 = { x: rectA.right, y: cyA, dirX: 1, dirY: 0 };
             p3 = { x: rectB.left, y: cyB, dirX: -1, dirY: 0 };
         } else {
-            // B <- A
             p0 = { x: rectA.left, y: cyA, dirX: -1, dirY: 0 };
             p3 = { x: rectB.right, y: cyB, dirX: 1, dirY: 0 };
         }
     } else {
-        // 上下连接
         if (dy > 0) {
-            // A
-            // ↓
-            // B
             p0 = { x: cxA, y: rectA.bottom, dirX: 0, dirY: 1 };
             p3 = { x: cxB, y: rectB.top, dirX: 0, dirY: -1 };
         } else {
-            // B
-            // ↑
-            // A
             p0 = { x: cxA, y: rectA.top, dirX: 0, dirY: -1 };
             p3 = { x: cxB, y: rectB.bottom, dirX: 0, dirY: 1 };
         }
+    }
+
+    if (app && isPolygonElement(elA as IUI)) {
+        const edge = getConnectionPointOnPolygon(
+            elA as IUI,
+            { x: cxB, y: cyB },
+            app,
+        );
+        if (edge) p0 = edge;
+    }
+
+    if (app && isPolygonElement(elB as IUI)) {
+        const edge = getConnectionPointOnPolygon(
+            elB as IUI,
+            { x: cxA, y: cyA },
+            app,
+        );
+        if (edge) p3 = edge;
     }
 
     return { p0, p3 };
