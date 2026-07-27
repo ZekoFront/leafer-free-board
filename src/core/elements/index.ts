@@ -7,4 +7,5 @@ export * from "./pathLabel";
 export * from "./arrow";
 export * from "./createElement";
 export * from "./lineSegment";
+export * from "./connection";
 export * from "./paintbrush";

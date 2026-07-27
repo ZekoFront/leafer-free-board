@@ -21,7 +21,7 @@
 
 export * from "./core/HandlerPlugin";
 export * from "./core/HistoryHotKeyPlugin";
-
+export * from "./edit/ConnectionPlugin";
 export * from "./edit/ShapePlugin";
 export * from "./edit/CopyPlugin";
 export * from "./edit/DeleteHotKeyPlugin";
@@ -29,7 +29,5 @@ export * from "./edit/SnapPlugin";
 export * from "./edit/RulerPlugin";
 export * from "./edit/ScrollBarPlugin";
 export * from "./edit/DotMatrixPlugin";
-
 export * from "./render/ViewportPlugin";
-
 export * from "./history/HistoryPlugin";

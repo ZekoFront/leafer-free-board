@@ -11,10 +11,10 @@ function isEditableTargetFocused(): boolean {
 }
 
 /**
- * DeleteHotKeyPlugin — 删除快捷键插件
+ * DeleteHotKeyPlugin — 删除快捷键
  *
- * 监听 Backspace / Delete，删除 editor.app.editor.list 中的选中元素。
- * 删除由 HistoryPlugin 通过 ChildEvent.REMOVE 自动入栈，支持撤销。
+ * 删除选中元素前，先通过 ConnectionPlugin 清理关联连线/标签，
+ * 再由 HistoryPlugin 的 ChildEvent.REMOVE 自动入栈。
  */
 export class DeleteHotKeyPlugin implements IPluginTempl {
     static pluginName = "DeleteHotKeyPlugin";
@@ -25,7 +25,6 @@ export class DeleteHotKeyPlugin implements IPluginTempl {
 
     constructor(public editor: EditorCore) {}
 
-    /** 删除当前选中元素（供快捷键与 UI 调用） */
     deleteNode() {
         const list = (this.editor.app.editor.list || []) as IUI[];
         if (!list.length) return;
@@ -34,6 +33,10 @@ export class DeleteHotKeyPlugin implements IPluginTempl {
         this.editor.app.editor.cancel();
 
         targets.forEach((node) => {
+            // 先删拓扑关联的 line/label，再删节点本身
+            if (node.id) {
+                this.editor.removeConnectionsForNode?.(node.id);
+            }
             node.remove?.();
         });
     }

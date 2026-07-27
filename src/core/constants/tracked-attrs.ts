@@ -15,4 +15,6 @@ export const trackedAttrs = [
     "endArrow",
     "height",
     "width",
+    "points",
+    "path",
 ] as const;

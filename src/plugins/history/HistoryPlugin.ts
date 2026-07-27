@@ -369,15 +369,11 @@ export class HistoryPlugin implements IPluginTempl {
     }
 
     /**
-     * 顺藤摸瓜：根据节点 ID 获取与其连接的所有连线图元
+     * 顺藤摸瓜：根据节点 ID 获取与其连接的所有连线图元。
+     * 委托 ConnectionPlugin 拓扑表（替代旧版 customData 方案）。
      */
     private getRelatedLines(nodeId: string): any[] {
-        const allLines = this.app.tree.find({ className: "Line" }) || [];
-        return allLines.filter(
-            (line: any) =>
-                line.customData?.startNodeId === nodeId ||
-                line.customData?.endNodeId === nodeId,
-        );
+        return this.editor.getRelatedLines?.(nodeId) ?? [];
     }
 
     /**

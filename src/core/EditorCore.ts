@@ -63,6 +63,12 @@ export default class EditorCore extends EventEmitter {
         return uuidv4();
     }
 
+    /** 按 id 查找画布上的元素（快照恢复、连线 import 用） */
+    getById(id: string) {
+        if (!id) return null;
+        return this.app.tree.findId(id) ?? null;
+    }
+
     saveSnapshot(): ICanvasSnapshot {
         const canvas =
             this.app.tree?.children?.map(
@@ -70,6 +76,7 @@ export default class EditorCore extends EventEmitter {
             ) ?? [];
         return {
             canvas,
+            connections: this.exportConnections?.() ?? [],
             history: this.exportHistory?.(),
             version: 1,
             timestamp: Date.now(),
@@ -83,6 +90,11 @@ export default class EditorCore extends EventEmitter {
                 this.app.tree.add(item as never);
             });
         });
+
+        // 画布元素就绪后再恢复连线拓扑
+        if (snapshot.connections?.length) {
+            this.importConnections?.(snapshot.connections);
+        }
 
         if (snapshot.history) {
             this.importHistory?.(snapshot.history);

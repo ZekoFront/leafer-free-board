@@ -1,20 +1,19 @@
 import {
+    ConnectionPlugin,
     DeleteHotKeyPlugin,
     DotMatrixPlugin,
     HandlerPlugin,
+    HistoryPlugin,
     RulerPlugin,
     ScrollBarPlugin,
     ShapePlugin,
     SnapPlugin,
-    HistoryPlugin,
 } from "@/plugins";
 
-
-
-/** 编辑画板默认插件，后续逐步补充 */
-
+/** 编辑画板默认插件；ConnectionPlugin 需在 ShapePlugin / HistoryPlugin 之前注册 */
 export const DEFAULT_EDIT_PLUGINS = [
     HandlerPlugin,
+    ConnectionPlugin,
     SnapPlugin,
     RulerPlugin,
     ScrollBarPlugin,
