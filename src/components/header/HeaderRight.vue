@@ -19,6 +19,12 @@
 
 <script setup lang="ts">
 import { Decimal } from "decimal.js";
+import {
+    computed,
+    onBeforeUnmount,
+    onMounted,
+    ref,
+} from "vue";
 import { ZoomInIcon, ZoomOutIcon } from "@/assets/icons";
 import { useEditorCore } from "@/composables/useEditorCore";
 import {

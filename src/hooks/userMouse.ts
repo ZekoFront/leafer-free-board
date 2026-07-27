@@ -1,3 +1,5 @@
+import { onMounted, onUnmounted, ref } from "vue";
+
 // 按照惯例，组合式函数名以“use”开头
 export function useMouse() {
     // 被组合式函数封装和管理的状态

@@ -1,4 +1,12 @@
 import { debounce } from "lodash-es";
+import {
+    nextTick,
+    onBeforeUnmount,
+    onMounted,
+    provide,
+    ref,
+    shallowRef,
+} from "vue";
 import { CanvasContext } from "@/core/CanvasContext";
 import { CustomEvent } from "@/core/constants";
 import { CANVAS_CONTEXT_KEY, EDITOR_CORE_KEY } from "@/core/constants/injection-keys";

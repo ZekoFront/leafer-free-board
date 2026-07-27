@@ -22,6 +22,7 @@
 
 <script setup lang="ts">
 import { version } from "leafer-ui";
+import { computed, provide, shallowRef } from "vue";
 import "@leafer-in/editor";
 import "@leafer-in/viewport";
 import "@leafer-in/text-editor";

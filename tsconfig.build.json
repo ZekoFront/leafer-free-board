@@ -1,0 +1,21 @@
+{
+    "extends": "./tsconfig.app.json",
+    "compilerOptions": {
+        "composite": false,
+        "declaration": true,
+        "declarationMap": false,
+        "emitDeclarationOnly": true,
+        "noEmit": false,
+        "skipLibCheck": true,
+        "outDir": "./dist",
+        "rootDir": "./src"
+    },
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "auto-import.d.ts",
+        "components.d.ts"
+    ],
+    "exclude": ["src/playground/**"]
+}

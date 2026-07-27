@@ -280,6 +280,7 @@ defineOptions({ name: "ElementAttributes" });
 
 import { Arrow } from "@leafer-in/arrow";
 import type { IUI } from "leafer-ui";
+import { computed, ref, watchEffect } from "vue";
 import { DeleteIcon } from "@/assets/icons";
 import {
     arrowTypes,

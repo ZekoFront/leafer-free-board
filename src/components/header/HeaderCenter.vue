@@ -74,6 +74,7 @@
 
 <script setup lang="ts">
 import { ImageEvent } from "leafer-ui";
+import { ref, shallowRef } from "vue";
 import {
     RedoIcon,
     UndoIcon,

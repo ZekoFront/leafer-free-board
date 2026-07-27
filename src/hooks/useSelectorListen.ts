@@ -2,6 +2,13 @@ import type EditorCore from "@/core/EditorCore";
 import { SelectMode, SelectEvent } from "@/core/constants/select-events";
 import { useEditorCore } from "@/composables/useEditorCore";
 import type { IUI } from "leafer-ui";
+import {
+    computed,
+    onBeforeUnmount,
+    onMounted,
+    reactive,
+    shallowRef,
+} from "vue";
 
 export interface ElementProxyData {
     clearProxyData?: () => void;

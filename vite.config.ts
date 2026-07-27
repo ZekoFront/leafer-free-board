@@ -1,5 +1,6 @@
-import { defineConfig } from "vite";
+import { defineConfig, type UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import dts from "vite-plugin-dts";
 import path from "path";
 import AutoImport from "unplugin-auto-import/vite";
 import { NaiveUiResolver } from "unplugin-vue-components/resolvers";
@@ -7,14 +8,69 @@ import Components from "unplugin-vue-components/vite";
 import { fileURLToPath, URL } from "node:url";
 import svgLoader from "vite-svg-loader";
 
-// https://vite.dev/config/
-export default defineConfig({
+const alias = {
+    "@": path.resolve(__dirname, "./src"),
+};
+
+const libExternal = [
+    "vue",
+    "pinia",
+    "leafer-ui",
+    /^@leafer-in\//,
+    /^@leafer-ui\//,
+    /^@leafer\//,
+    /^leafer-x-/,
+    "events",
+    "hotkeys-js",
+    "uuid",
+    "lodash-es",
+    "decimal.js",
+    "lz-string",
+    "@vueuse/core",
+];
+
+/** npm 库模式：输出 dist/index.js + dist/index.d.ts */
+const libConfig: UserConfig = {
     plugins: [
         vue(),
-        svgLoader({
-            defaultImport: "component",
+        svgLoader({ defaultImport: "component" }),
+        dts({
+            tsconfigPath: "./tsconfig.build.json",
+            entryRoot: "src",
+            include: ["src/**/*.ts", "src/**/*.vue"],
+            exclude: ["src/playground/**"],
         }),
-        // 自动按需引入组件
+    ],
+    build: {
+        outDir: "dist",
+        emptyOutDir: true,
+        rolldownOptions: {
+            checks: {
+                // 库构建总时长 ~6s，dts/svg 占比高属正常，关闭误报式提示
+                pluginTimings: false,
+            },
+            external: libExternal,
+            output: {
+                entryFileNames: "[name].js",
+                assetFileNames: "assets/[name][extname]",
+            },
+        },
+        lib: {
+            entry: {
+                index: path.resolve(__dirname, "src/index.ts"),
+                "plugins/index": path.resolve(__dirname, "src/plugins/index.ts"),
+            },
+            formats: ["es"],
+        },
+    },
+    resolve: { alias },
+};
+
+/** Playground 演示站构建 */
+const appConfig: UserConfig = {
+    plugins: [
+        vue(),
+        svgLoader({ defaultImport: "component" }),
         AutoImport({
             imports: [
                 "vue",
@@ -33,7 +89,6 @@ export default defineConfig({
             dts: fileURLToPath(new URL("./auto-import.d.ts", import.meta.url)),
             eslintrc: {
                 enabled: true,
-                // 生成文件地址和名称
                 filepath: fileURLToPath(
                     new URL("./.eslintrc-auto-import.json", import.meta.url),
                 ),
@@ -47,27 +102,27 @@ export default defineConfig({
     base: "/leafer-free-board/",
     build: {
         outDir: "dist",
-        // 将警告阈值从默认的 500 调高到 1000 (单位: KB)
-        chunkSizeWarningLimit: 1024, 
+        chunkSizeWarningLimit: 1024,
         rolldownOptions: {
             output: {
-                assetFileNames: 'assets/[name]-[hash][extname]',
-                chunkFileNames: 'js/[name]-[hash].js',
+                assetFileNames: "assets/[name]-[hash][extname]",
+                chunkFileNames: "js/[name]-[hash].js",
                 codeSplitting: {
                     groups: [
                         {
-                            name: 'leafer-vendor',
+                            name: "leafer-vendor",
                             test: /[\\/]node_modules[\\/](@leafer|leafer|@leafer-in|@leafer-ui)[\\/]/,
-                            priority: 40
-                        }
-                    ]
-                }
-            }
-        }
-    },
-    resolve: {
-        alias: {
-            "@": path.resolve(__dirname, "./src"),
+                            priority: 40,
+                        },
+                    ],
+                },
+            },
         },
     },
-});
+    resolve: { alias },
+};
+
+// https://vite.dev/config/
+export default defineConfig(({ mode }) =>
+    mode === "lib" ? libConfig : appConfig,
+);
