@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { Image, ImageEvent } from "leafer-ui";
+import { ImageEvent } from "leafer-ui";
 import {
     RedoIcon,
     UndoIcon,
@@ -82,7 +82,8 @@ import {
     ClearIcon,
     HotkeyIcon,
 } from "@/assets/icons";
-import { ExecuteTypeEnum, type IDrawState, type IToolBar } from "@/core/types";
+import { type IDrawState, type IToolBar } from "@/core/types";
+import { createImageFromUrl, getImageDropPoint } from "@/core/elements";
 import { toolbarMenu } from "@/config";
 import { useCanvasSnapshot } from "@/composables/useCanvasSnapshot";
 import { useHistory } from "@/composables/useHistory";
@@ -93,7 +94,7 @@ const isDev = import.meta.env.DEV;
 const snapshotStore = useCanvasSnapshot();
 const { editor } = useSelectorListen();
 const { canUndo: isCanUndo, canRedo: iscanRedo, undo, redo, clearHistory } = useHistory();
-const { dialog } = useNaiveDiscrete();
+const { dialog, message } = useNaiveDiscrete();
 
 const currentIndex = ref<number>(0);
 const toolbars = shallowRef<IToolBar[]>(toolbarMenu);
@@ -150,38 +151,59 @@ const uploadImage = () => {
     input.accept = "image/*";
     input.multiple = true;
     input.style.display = "none";
+
+    const cleanup = () => {
+        input.remove();
+    };
+
+    input.onchange = (e) => {
+        const files = (e.target as HTMLInputElement).files;
+        if (!files?.length) {
+            cleanup();
+            return;
+        }
+        Array.from(files).forEach((file, index) => {
+            addImageFromFile(file, index);
+        });
+        cleanup();
+    };
+
+    // 用户取消选择时也移除临时 input
+    input.addEventListener("cancel", cleanup, { once: true });
+
     document.body.appendChild(input);
     input.click();
-    input.onchange = (e) => {
-        const target = e.target as HTMLInputElement;
-        const file = target.files || [];
-        if (file?.length === 0) return;
-        for (let i = 0; i < file.length; i++) {
-            setImage(file[i] as File, i);
-        }
-    };
 };
 
-const setImage = (file: File, index: number) => {
-    let x = 100 + index * 50,
-        y = 100;
+/**
+ * 导入单张图片到画布。
+ * - 使用视口中心 + 偏移定位
+ * - tree.add 后由 HistoryPlugin 的 ChildEvent.ADD 自动入栈，支持撤销
+ */
+const addImageFromFile = (file: File, index: number) => {
+    if (!file.type.startsWith("image/")) {
+        message.warning(`「${file.name}」不是支持的图片格式`);
+        return;
+    }
+
     const localUrl = URL.createObjectURL(file);
-    const image = Image.one({
-        url: localUrl,
-        x,
-        y,
-        draggable: true,
-        editable: true,
-    });
-    image.once(ImageEvent.LOADED, function (e: ImageEvent) {
-        console.log("image loaded", e);
-    });
-    image.once(ImageEvent.ERROR, function (e: ImageEvent) {
-        console.log("image error", e.error);
+    const point = getImageDropPoint(editor.app, index);
+    const image = createImageFromUrl(localUrl, point, file.name);
+
+    image.once(ImageEvent.LOADED, () => {
+        // 加载成功后释放 Object URL，Leafer 已持有解码后的图像数据
+        URL.revokeObjectURL(localUrl);
     });
 
-    editor.addLeaferElement(image);
-    editor.history.execute({ executeType: ExecuteTypeEnum.AddElement, element: image });
+    image.once(ImageEvent.ERROR, () => {
+        URL.revokeObjectURL(localUrl);
+        if (image.parent) {
+            image.remove();
+        }
+        message.error(`图片「${file.name}」加载失败`);
+    });
+
+    editor.app.tree.add(image);
 };
 
 const printHistory = () => {

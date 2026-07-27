@@ -9,3 +9,4 @@ export * from "./createElement";
 export * from "./lineSegment";
 export * from "./connection";
 export * from "./paintbrush";
+export * from "./image";
