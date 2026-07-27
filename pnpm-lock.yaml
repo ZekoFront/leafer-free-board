@@ -53,12 +53,6 @@ importers:
       '@leafer/core':
         specifier: ^2.0.2
         version: 2.0.2
-      '@types/events':
-        specifier: ^3.0.3
-        version: 3.0.3
-      '@types/lodash-es':
-        specifier: ^4.17.12
-        version: 4.17.12
       '@vueuse/core':
         specifier: ^13.9.0
         version: 13.9.0(vue@3.5.29(typescript@5.9.3))
@@ -92,12 +86,6 @@ importers:
       pinia:
         specifier: ^3.0.3
         version: 3.0.4(typescript@5.9.3)(vue@3.5.29(typescript@5.9.3))
-      unplugin-auto-import:
-        specifier: ^20.2.0
-        version: 20.3.0(@vueuse/core@13.9.0(vue@3.5.29(typescript@5.9.3)))
-      unplugin-vue-components:
-        specifier: ^29.1.0
-        version: 29.2.0(@babel/parser@7.29.0)(vue@3.5.29(typescript@5.9.3))
       uuid:
         specifier: ^13.0.0
         version: 13.0.0
@@ -105,6 +93,12 @@ importers:
         specifier: ^3.5.22
         version: 3.5.29(typescript@5.9.3)
     devDependencies:
+      '@types/events':
+        specifier: ^3.0.3
+        version: 3.0.3
+      '@types/lodash-es':
+        specifier: ^4.17.12
+        version: 4.17.12
       '@types/node':
         specifier: ^24.6.0
         version: 24.10.15
@@ -123,9 +117,18 @@ importers:
       typescript:
         specifier: ~5.9.3
         version: 5.9.3
+      unplugin-auto-import:
+        specifier: ^20.2.0
+        version: 20.3.0(@vueuse/core@13.9.0(vue@3.5.29(typescript@5.9.3)))
+      unplugin-vue-components:
+        specifier: ^29.1.0
+        version: 29.2.0(@babel/parser@7.29.0)(vue@3.5.29(typescript@5.9.3))
       vite:
         specifier: ^8.0.0
         version: 8.0.0(@types/node@24.10.15)(sass@1.97.3)
+      vite-plugin-dts:
+        specifier: ^5.0.3
+        version: 5.0.3(@vue/language-core@3.2.5)(typescript@5.9.3)(vite@8.0.0(@types/node@24.10.15)(sass@1.97.3))
       vite-svg-loader:
         specifier: ^5.1.0
         version: 5.1.0(vue@3.5.29(typescript@5.9.3))
@@ -722,6 +725,15 @@ packages:
   '@rolldown/pluginutils@1.0.0-rc.9':
     resolution: {integrity: sha512-w6oiRWgEBl04QkFZgmW+jnU1EC9b57Oihi2ot3HNWIQRqgHp5PnYDia5iZ5FF7rpa4EQdiqMDXjlqKGXBhsoXw==}
 
+  '@rollup/pluginutils@5.4.0':
+    resolution: {integrity: sha512-MfPp06CjRLfXQ3wY0R8vJDYBy/MvVcc9OulEfR0B8Iv9ko+GCNaRZ+EpJYFl27LhKsZK0o420sYCRHCjfCgeUg==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
+
   '@trysound/sax@0.2.0':
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
     engines: {node: '>=10.13.0'}
@@ -871,6 +883,9 @@ packages:
   commander@7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
     engines: {node: '>= 10'}
+
+  compare-versions@6.1.1:
+    resolution: {integrity: sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==}
 
   confbox@0.1.8:
     resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
@@ -1032,6 +1047,9 @@ packages:
 
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
+
+  kolorist@1.8.0:
+    resolution: {integrity: sha512-Y+60/zizpJ3HRH8DCss+q95yr6145JXZo46OTpFvDZWLfRCE4qChOyk1b26nMaNpfHHgxagk9dXT5OP0Tfe+dQ==}
 
   leafer-ui@2.0.2:
     resolution: {integrity: sha512-6oV3cDydE7AtaiCUgdPV2RiMsM32TUzuCZtcLuTQg8OSjA7bQQQ2sM3Y7oQPBaOLBo0ux9yGAau7dNJ4D1L+eg==}
@@ -1313,6 +1331,36 @@ packages:
       '@vueuse/core':
         optional: true
 
+  unplugin-dts@1.0.3:
+    resolution: {integrity: sha512-/GR887wfG4r1cWyt1UZsLRuMIjsmEbGkS9yJrz+0dsToHAYUD5CTyP3JMGVLv25j9K0mJcwAVvZno/aTuSUvNg==}
+    peerDependencies:
+      '@microsoft/api-extractor': '>=7'
+      '@rspack/core': ^1
+      '@vue/language-core': ^3.1.5
+      esbuild: '*'
+      rolldown: '*'
+      rollup: '>=3'
+      typescript: '>=4'
+      vite: '>=3'
+      webpack: ^4 || ^5
+    peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      '@rspack/core':
+        optional: true
+      '@vue/language-core':
+        optional: true
+      esbuild:
+        optional: true
+      rolldown:
+        optional: true
+      rollup:
+        optional: true
+      vite:
+        optional: true
+      webpack:
+        optional: true
+
   unplugin-utils@0.3.1:
     resolution: {integrity: sha512-5lWVjgi6vuHhJ526bI4nlCOmkCIF3nnfXkCMDeMJrtdvxTs6ZFCM8oNufGTsDbKv/tJ/xj8RpvXjRuPBZJuJog==}
     engines: {node: '>=20.19.0'}
@@ -1342,6 +1390,20 @@ packages:
     resolution: {integrity: sha512-H9V1zGRLQZg9b+GdMk8MXDN2Lva0zx72MPahDKc30v+DtwKjfyOSXWRIX4t2mhDubM1H09gPhWeth/BJWPHGUw==}
     peerDependencies:
       vue: ^3.0.11
+
+  vite-plugin-dts@5.0.3:
+    resolution: {integrity: sha512-gIth6NdCEHWPiiRMCK3N6C8WjvdsrtEQrmsiG8h6Ov+lFP+b07Y+wcs9H0H7n146l0PDTYK4cQN1vgeG1pMdRQ==}
+    peerDependencies:
+      '@microsoft/api-extractor': '>=7'
+      rollup: '>=3'
+      vite: '>=3'
+    peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      rollup:
+        optional: true
+      vite:
+        optional: true
 
   vite-svg-loader@5.1.0:
     resolution: {integrity: sha512-M/wqwtOEjgb956/+m5ZrYT/Iq6Hax0OakWbokj8+9PXOnB7b/4AxESHieEtnNEy7ZpjsjYW1/5nK8fATQMmRxw==}
@@ -2020,6 +2082,12 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.0-rc.9': {}
 
+  '@rollup/pluginutils@5.4.0':
+    dependencies:
+      '@types/estree': 1.0.8
+      estree-walker: 2.0.2
+      picomatch: 4.0.3
+
   '@trysound/sax@0.2.0': {}
 
   '@tybys/wasm-util@0.10.1':
@@ -2202,6 +2270,8 @@ snapshots:
 
   commander@7.2.0: {}
 
+  compare-versions@6.1.1: {}
+
   confbox@0.1.8: {}
 
   confbox@0.2.4: {}
@@ -2331,6 +2401,8 @@ snapshots:
   is-what@5.5.0: {}
 
   js-tokens@9.0.1: {}
+
+  kolorist@1.8.0: {}
 
   leafer-ui@2.0.2:
     dependencies:
@@ -2650,6 +2722,23 @@ snapshots:
     optionalDependencies:
       '@vueuse/core': 13.9.0(vue@3.5.29(typescript@5.9.3))
 
+  unplugin-dts@1.0.3(@vue/language-core@3.2.5)(typescript@5.9.3)(vite@8.0.0(@types/node@24.10.15)(sass@1.97.3)):
+    dependencies:
+      '@rollup/pluginutils': 5.4.0
+      '@volar/typescript': 2.4.28
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.9.3
+      unplugin: 2.3.11
+    optionalDependencies:
+      '@vue/language-core': 3.2.5
+      vite: 8.0.0(@types/node@24.10.15)(sass@1.97.3)
+    transitivePeerDependencies:
+      - supports-color
+
   unplugin-utils@0.3.1:
     dependencies:
       pathe: 2.0.3
@@ -2684,6 +2773,20 @@ snapshots:
     dependencies:
       evtd: 0.2.4
       vue: 3.5.29(typescript@5.9.3)
+
+  vite-plugin-dts@5.0.3(@vue/language-core@3.2.5)(typescript@5.9.3)(vite@8.0.0(@types/node@24.10.15)(sass@1.97.3)):
+    dependencies:
+      unplugin-dts: 1.0.3(@vue/language-core@3.2.5)(typescript@5.9.3)(vite@8.0.0(@types/node@24.10.15)(sass@1.97.3))
+    optionalDependencies:
+      vite: 8.0.0(@types/node@24.10.15)(sass@1.97.3)
+    transitivePeerDependencies:
+      - '@rspack/core'
+      - '@vue/language-core'
+      - esbuild
+      - rolldown
+      - supports-color
+      - typescript
+      - webpack
 
   vite-svg-loader@5.1.0(vue@3.5.29(typescript@5.9.3)):
     dependencies:
