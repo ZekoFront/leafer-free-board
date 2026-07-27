@@ -1,188 +1,291 @@
 # leafer-free-board
 
-基于 **Vue 3 + TypeScript + Leafer.js** 的轻量级自由白板应用。支持拖拽创建图形、灵活布局与编辑，适用于草图绘制、原型设计等场景。
+基于 **Vue 3 + TypeScript + Leafer.js 2.x** 的自由画板项目，同时作为 npm 包 **`@leafer-free/board`** 发布。
+
+提供**可编辑画板**（`EditorCanvas`）与**渲染预览**（`RenderCanvas`）两种模式：插件化扩展工具能力，以**快照**（`ICanvasSnapshot`）驱动数据流转与预览。
+
+> 详细架构说明见 [新架构文档.md](./新架构文档.md)
+
+## 特性
+
+- **双引擎容器**：编辑模式 + 渲染模式，共享 `CanvasContext` / `EditorCore`
+- **插件注入**：吸附、标尺、连线、复制粘贴、历史记录等按需 `use()` 注册
+- **元素库**：工具栏 + 左侧面板，支持基础图形、多边形、星形、思维导图节点等
+- **元素连线**：直线 / 曲线连线，多边形与星形贴边连接，拖拽时自动更新
+- **撤销 / 重做**：`HistoryPlugin` 命令栈，支持快照导入导出
+- **主题系统**：Pinia 管理元素配色，供 UI 与 Leafer 工厂共享
+- **Vue 插件**：`app.use(LeaferBoard)` 全局注册，或按需引入组件
 
 ## 技术栈
 
 | 分类 | 技术 |
 |------|------|
 | 框架 | Vue 3 + TypeScript |
-| 构建工具 | Vite (rolldown-vite) |
-| 画布引擎 | Leafer.js 2.x (`leafer-ui`, `@leafer-in/*`) |
-| UI 组件库 | Naive UI |
-| 状态管理 | Pinia |
-| 工具库 | VueUse, lodash-es, decimal.js, hotkeys-js, lz-string |
-| 代码格式化 | oxfmt |
+| 构建 | Vite 8（Rolldown）+ vue-tsc + vite-plugin-dts |
+| 画布引擎 | Leafer.js 2.x（`leafer-ui`、`@leafer-in/*`） |
+| UI | Naive UI |
+| 状态 | Pinia |
+| 工具 | VueUse、lodash-es、decimal.js、hotkeys-js、lz-string |
+| 格式化 | oxfmt |
 
-## 核心架构
+## 快速开始（本地 Playground）
 
-### EditorBoard — 编辑器核心
+```bash
+# 安装依赖（推荐 pnpm）
+pnpm install
 
-`EditorBoard` 继承自 `EventEmitter`，是整个白板的核心控制器，负责：
+# 启动开发服务器
+pnpm dev
 
-- **初始化** Leafer `App` 引擎
-- **插件管理**：通过 `use()` 方法注册插件，自动绑定快捷键和 API 代理
-- **元素操作**：添加 (`addLeaferElement`)、删除 (`removeLeaferElement`)、查询 (`getById`)
-- **历史记录**：内置 `HistoryManager`，支持撤销/重做
-- **生命周期**：`init()` 初始化、`destroy()` 销毁释放资源
+# 构建 Playground（GitHub Pages）
+pnpm build
 
-```typescript
-const editorBoard = new EditorBoard();
-editorBoard.init(app);
-editorBoard.use(SnapPlugin);
-editorBoard.use(ShapePlugin);
+# 预览构建结果
+pnpm preview
+
+# 构建 npm 库（dist/index.js + dist/index.d.ts）
+pnpm run build:lib
+
+# 格式化代码
+pnpm fmt
 ```
 
-### 插件系统
+Playground 入口：`src/playground/App.vue`，默认挂载 `<EditorCanvas />`。
 
-所有插件实现 `IPluginTempl` 接口，支持：
+## 作为 npm 包使用
 
-- `pluginName`：插件唯一名称
-- `apis`：暴露给 EditorBoard 的 API 方法名列表
-- `hotkeys`：快捷键绑定
-- `events`：自定义事件
-- `hotkeyEvent()`：快捷键回调
-- `destroy()`：销毁清理
+### 安装
 
-#### 内置插件一览
+```bash
+pnpm add @leafer-free/board
+# peer: vue ^3.5、leafer-ui ^2.0、pinia ^3.0
+```
+
+### 全局注册
+
+```typescript
+import { createApp } from "vue";
+import { createPinia } from "pinia";
+import LeaferBoard from "@leafer-free/board";
+// import "@leafer-free/board/styles";
+
+const app = createApp(App);
+app.use(createPinia()); // 主题 store 需要 Pinia
+app.use(LeaferBoard);   // 注册 EditorCanvas / RenderCanvas / CanvasProvider
+app.mount("#app");
+```
+
+```vue
+<template>
+  <EditorCanvas @ready="onReady" />
+</template>
+```
+
+### 按需引入
+
+```typescript
+import {
+  EditorCanvas,
+  RenderCanvas,
+  SnapPlugin,
+  useEditorCore,
+  useHistory,
+} from "@leafer-free/board";
+
+// 仅编辑组件
+import { EditorCanvas } from "@leafer-free/board/editor";
+
+// 仅插件
+import { ShapePlugin, ConnectionPlugin } from "@leafer-free/board/plugins";
+```
+
+### 部分全局注册
+
+```typescript
+import { install } from "@leafer-free/board";
+
+app.use({
+  install: (app) => install(app, { components: ["EditorCanvas"] }),
+});
+```
+
+### 包导出路径
+
+| 路径 | 说明 |
+|------|------|
+| `@leafer-free/board` | 主入口：组件、Core、插件、Composables、类型 |
+| `@leafer-free/board/editor` | `EditorCanvas` |
+| `@leafer-free/board/render` | `RenderCanvas` |
+| `@leafer-free/board/plugins` | 全部插件类 |
+| `@leafer-free/board/styles` | 组件样式（构建产物） |
+
+## 架构概览
+
+```
+消费方 App
+    │
+    ├── EditorCanvas（编辑）    RenderCanvas（预览）
+    │         └────── CanvasProvider ──────┘
+    │                      │
+    │               CanvasContext（单 App + EditorCore）
+    │                      │
+    │          EditorCore · History · Snapshot
+    │                      │
+    └────────────── Plugins（Handler / Shape / Connection …）
+                           │
+                    Leafer.js App
+```
+
+### 命名对照（旧 → 新）
+
+| 旧名 | 新名 |
+|------|------|
+| `EditorBoard` | `EditorCore` |
+| `BoardContext` | `CanvasContext` |
+| `EditorBoard.vue` | `EditorCanvas.vue` |
+| `IBoardSnapshot` | `ICanvasSnapshot` |
+| `useEditorBoard` | `useEditorCore` |
+
+### EditorCore
+
+`EditorCore` 继承 `EventEmitter`，是每个画板实例的控制器：
+
+- 绑定 Leafer `App`（`bindApp` / `releaseApp`）
+- 插件注册：`use(PluginClass, options?)`，自动绑定快捷键与 API
+- 快照：`saveSnapshot()` / `loadSnapshot()` / `clearCanvas()`
+- 元素查询：`getById(id)`
+- 生命周期：`destroy()`
+
+```typescript
+const editor = useEditorCore();
+editor.use(SnapPlugin);
+const snapshot = editor.saveSnapshot();
+```
+
+### CanvasContext
+
+由 `CanvasProvider` 创建，持有唯一的 `app` 与 `editor`，负责插件装配与销毁，禁止在组件 / 插件内直接 `new App()`。
+
+## 插件系统
+
+插件实现 `IPluginTempl` 接口，通过 `EditorCore.use()` 注册。编辑模式默认插件见 `DEFAULT_EDIT_PLUGINS`（`ConnectionPlugin` 须在 `ShapePlugin`、`HistoryPlugin` 之前）。
 
 | 插件 | 功能 | 快捷键 |
 |------|------|--------|
-| **HandlerPlugin** | 核心事件处理（选择、拖拽开始/移动/结束、连线更新） | — |
-| **ShapePlugin** | 图形创建（拖拽创建、指针绘制箭头/直线/曲线连线） | — |
-| **CopyPlugin** | 复制粘贴元素 | `Ctrl+C` / `Ctrl+V` |
+| **HandlerPlugin** | 选择、拖拽、属性变更、连线同步 | — |
+| **ConnectionPlugin** | 连线拓扑管理、导入导出 | — |
+| **ShapePlugin** | 拖拽创建图形、指针绘制连线 / 箭头 / 画笔 | — |
+| **HistoryPlugin** | 撤销 / 重做命令栈 | — |
+| **CopyPlugin** | 复制粘贴（含内部连线重建） | `Ctrl+C` / `Ctrl+V` |
 | **DeleteHotKeyPlugin** | 删除选中元素 | `Backspace` / `Delete` |
-| **SnapPlugin** | 元素吸附对齐 (基于 leafer-x-easy-snap) | — |
-| **RulerPlugin** | X/Y 轴标尺，选中元素遮罩高亮 | — |
-| **ScrollBarPlugin** | 滚动条 (基于 @leafer-in/scroll) | — |
-| **DotMatrixPlugin** | 点阵网格背景 (基于 leafer-x-dot-matrix) | — |
+| **SnapPlugin** | 智能吸附（leafer-x-easy-snap） | — |
+| **RulerPlugin** | X/Y 标尺 | — |
+| **ScrollBarPlugin** | 滚动条 | — |
+| **DotMatrixPlugin** | 点阵网格 | — |
+| **ViewportPlugin** | 渲染模式视口（可选） | — |
 
-### 历史记录系统 (撤销/重做)
-
-基于 **命令模式 (Command Pattern)** 实现：
-
-- `HistoryManager`：管理撤销栈和重做栈，最大记录数可配置（默认 50）
-- 命令类型（`ExecuteTypeEnum`）：
-  - `AddElement` — 添加元素
-  - `DeleteElement` — 删除元素
-  - `MoveElement` — 移动元素
-  - `UpdateAttribute` — 更新属性
-  - `Paste` — 粘贴元素
-- 每个命令支持 `compress()` / `decompress()` 用于内存优化
-- 通过 `history:change` 事件通知 UI 更新
+自定义插件：
 
 ```typescript
-editorBoard.history.execute(element);  // 执行命令
-editorBoard.history.undo();            // 撤销
-editorBoard.history.redo();            // 重做
+import type { IPluginTempl } from "@leafer-free/board";
+
+class MyPlugin implements IPluginTempl {
+  static pluginName = "MyPlugin";
+  constructor(public editor: EditorCore, public options = {}) {}
+  destroy() {}
+}
+
+editor.use(MyPlugin);
 ```
 
-### 支持的图形类型
+## 历史记录
 
-通过工具栏可创建以下图形（定义在 `creatElement.ts`）：
-
-| 图形 | 类型标识 | 创建方式 | 说明 |
-|------|----------|----------|------|
-| 选择工具 | `select` | 点击 | 选择已有元素 |
-| 矩形 | `rect` | 拖拽 | Box 容器 + 内嵌可编辑文本 |
-| 圆形 | `circle` | 拖拽 | Group(Ellipse + Text) |
-| 椭圆 | `ellipse` | 拖拽 | Group(Ellipse + Text) |
-| 菱形 | `diamond` | 拖拽 | Group(Polygon + Text) |
-| 文本 | `text` | 拖拽 | 独立可编辑文本元素 |
-| 箭头 | `arrow` | 指针绘制 | 曲线箭头 |
-| 直线连线 | `line` | 指针绘制 | 带箭头的元素间连线 |
-| 曲线连线 | `curve` | 指针绘制 | 贝塞尔曲线元素间连线 |
-
-## Leafer App 引擎配置
-
-画板使用 Leafer `App` 引擎，配置了多层架构：
+由 `HistoryPlugin` 实现命令模式，通过 `useHistory()` 或 `CustomEvent.CHANGE`（`history:change`）驱动 UI：
 
 ```typescript
-const app = new App({
-    view: boardRef.value,
-    ground: { fill: '#91124c' },           // 底层背景
-    tree: { type: 'design' },              // 设计模式：空格键拖拽画布
-    editor: {                              // 编辑器配置
-        point: { cornerRadius: 0 },
-        middlePoint: {},
-        rotatePoint: { width: 16, height: 16, cursor: 'all-scroll' },
-        rect: { dashPattern: [3, 2] },
-        buttonsDirection: 'top',
-    },
-    sky: {},                               // Sky 层（标尺等覆盖层）
-    fill: '#ffffff',                       // 背景色
-    touch: { preventDefault: false },
-    pointer: { preventDefaultMenu: true }, // 阻止浏览器右键菜单
-});
+const { canUndo, canRedo, undo, redo } = useHistory();
 ```
 
-## 选择事件系统
+命令类型包括：`AddElement`、`DeleteElement`、`MoveElement`、`UpdateAttribute`、`Paste` 等。
 
-通过 `SelectMode` 和 `SelectEvent` 枚举管理元素选择状态：
+## 快照与连线
 
-- `SelectMode.EMPTY` — 未选中
-- `SelectMode.SINGLE` — 单选
-- `SelectMode.MULTIPLE` — 多选
+**快照** `ICanvasSnapshot` 包含：
 
-`HandlerPlugin` 监听编辑器的 `EditorEvent.SELECT` 事件并分发到 EditorBoard 的事件总线上，各插件（如 `CopyPlugin`、`DeleteHotKeyPlugin`）通过监听这些事件获取当前选中元素。
+- `canvas`：Leafer 元素 JSON 数组
+- `connections`：连线关系序列化
+- `history`（可选）：历史栈
+- `version` / `timestamp`
 
-## 快速开始
+**连线**：
 
-```bash
-# 安装依赖
-npm install
+1. 选择「直线连线」或「曲线连接」，从元素 A 拖到元素 B
+2. 基于世界坐标包围盒计算最佳连接点（`getBestConnectionByWorldBoxBounds`）
+3. 多边形 / 星形使用轮廓射线求交，连线贴边无空白
+4. 元素移动、缩放、旋转时连线自动更新
 
-# 启动开发服务器
-npm run dev
+## 支持的图形
 
-# 构建生产版本
-npm run build
+**工具栏**：选择、矩形、圆形、椭圆、菱形、文本、箭头、直线连线、曲线连线、画笔
 
-# 预览构建结果
-npm run preview
+**元素库（左侧面板）**：
 
-# 格式化代码
-npm run fmt
+| 分组 | 类型 |
+|------|------|
+| 思维导图 | 主题节点、子主题 |
+| 基础图形 | 矩形、圆角矩形、圆形、椭圆 |
+| 多边形 | 菱形、三角形、五 / 六边形 |
+| 星形 | 四 / 五 / 六 / 七 / 八角星 |
+
+通过 `createElement(type, point)` 工厂统一创建。
+
+## 目录结构
+
+```
+src/
+├── index.ts              # npm 主入口
+├── install.ts            # Vue 插件 install
+├── playground/           # 本地 Demo
+├── engine/
+│   ├── edit/             # EditorCanvas、CanvasProvider
+│   └── render/           # RenderCanvas
+├── core/                 # EditorCore、CanvasContext、元素工厂、几何
+├── plugins/              # 可注入插件
+├── composables/          # useEditorCore、useHistory 等
+├── components/           # 工具栏、属性面板、元素库
+├── theme/                # 主题与 Pinia store
+├── config/               # 工具栏、元素库配置
+└── styles/               # 对外样式入口
 ```
 
-## 连线功能
+## 构建说明
 
-支持元素之间的连接线绘制：
+| 命令 | 用途 | 产物 |
+|------|------|------|
+| `pnpm build` | Playground 站点 | `dist/`（带 hash 的静态资源） |
+| `pnpm run build:lib` | npm 库发布 | `dist/index.js`、`dist/index.d.ts`、`dist/plugins/` |
 
-1. **直线连线**：选择"直线连线"工具，从一个元素拖拽到另一个元素，自动计算最佳连接点并生成带箭头的直线
-2. **曲线连线**：选择"曲线连接"工具，同样拖拽操作，生成贝塞尔曲线连接
-3. **动态更新**：当连接的元素被拖拽移动、缩放或旋转时，连线自动跟随更新位置
+CI（`.github/workflows/deploy.yml`）在 `main` 分支 push 后执行 `pnpm install --frozen-lockfile` + `pnpm build`，部署至 GitHub Pages。
 
-连接点计算基于元素的世界坐标包围盒 (`worldBoxBounds`)，通过 `getBestConnectionByWorldBoxBounds()` 函数自动选择最优的连接方向。
+> 修改 `package.json` 依赖后请运行 `pnpm install` 并提交 `pnpm-lock.yaml`，否则 CI 会因 lockfile 不一致失败。
 
-## 碰撞检测
-
-支持元素之间的碰撞检测，通过 Leafer 提供的 `Bounds` API 在世界坐标中进行跨层级检测：
-
-```typescript
-text.on(DragEvent.DRAG, () => {
-    const rect2Bounds = new Bounds(rect.worldBoxBounds);
-    text.fill = rect2Bounds.hit(text.worldBoxBounds) ? 'blue' : '#FFE04B';
-});
-```
-
-## 关键依赖说明
+## 关键依赖
 
 | 依赖 | 用途 |
 |------|------|
-| `leafer-ui` | Leafer 画布引擎核心 |
-| `@leafer-in/editor` | 图形编辑器（选择、缩放、旋转） |
-| `@leafer-in/viewport` | 视口控制 |
+| `leafer-ui` | Leafer 画布引擎 |
+| `@leafer-in/editor` | 图形编辑器 |
+| `@leafer-in/viewport` | 视口 |
 | `@leafer-in/text-editor` | 文本编辑 |
-| `@leafer-in/arrow` | 箭头图形 |
-| `@leafer-in/find` | 元素查找 |
-| `@leafer-in/export` | 导出功能 |
-| `@leafer-in/scroll` | 滚动条 |
-| `@leafer-in/view` | 视图控制（平移、缩放） |
-| `leafer-x-easy-snap` | 智能吸附对齐 |
-| `leafer-x-dot-matrix` | 点阵网格背景 |
-| `hotkeys-js` | 快捷键绑定 |
-| `lz-string` | 数据压缩（历史记录优化） |
-| `naive-ui` | UI 组件库 |
-| `pinia` | 状态管理 |
-| `uuid` | 元素唯一 ID 生成 |
+| `@leafer-in/arrow` | 箭头 |
+| `@leafer-in/resize` | 缩放控制 |
+| `leafer-x-easy-snap` | 智能吸附 |
+| `leafer-x-dot-matrix` | 点阵背景 |
+| `hotkeys-js` | 快捷键 |
+| `lz-string` | 快照 / 历史压缩 |
+| `naive-ui` | UI 组件 |
+| `pinia` | 主题与状态 |
+
+## License
+
+MIT
