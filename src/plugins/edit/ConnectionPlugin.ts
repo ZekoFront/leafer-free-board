@@ -2,18 +2,24 @@ import { MIN_CONNECTION_LABEL_GAP } from "@/core/constants";
 import type EditorCore from "@/core/EditorCore";
 import { drawConnectionLabel } from "@/core/elements";
 import {
+    distancePointToRectBounds,
     enforceMinGap,
     getBestConnectionByWorldBoxBounds,
     getBezierMidpoint,
     getBezierPathString,
+    getLineElementEndpoints,
     getLineMidpoint,
+    getPathElementEndpoints,
+    getRectBounds,
+    INFER_MAX_DISTANCE,
 } from "@/core/geometry";
 import type {
+    IConnectionLineData,
     IConnectionRecord,
     IPluginTempl,
     ISerializedConnection,
 } from "@/core/types";
-import type { IUI, Line, Path, Text } from "leafer-ui";
+import type { App, IPointData, IUI, Line, Path, Text } from "leafer-ui";
 
 /**
  * ConnectionPlugin — 元素连线拓扑管理
@@ -21,8 +27,7 @@ import type { IUI, Line, Path, Text } from "leafer-ui";
  * 职责：
  * - 维护 from/to/line/label 运行时关系表
  * - 节点移动/变换时重算四边连接点（Line.points / Path.path）
- * - 快照 export/import
- * - 删除节点时清理关联连线
+ * - 快照 export/import；JSON 导入后 rebuildConnectionsFromCanvas
  */
 export class ConnectionPlugin implements IPluginTempl {
     static pluginName = "ConnectionPlugin";
@@ -35,6 +40,7 @@ export class ConnectionPlugin implements IPluginTempl {
         "getRelatedLabels",
         "exportConnections",
         "importConnections",
+        "rebuildConnectionsFromCanvas",
         "isConnectionLabel",
         "isConnectionLine",
         "syncConnectionLabelBackground",
@@ -47,27 +53,37 @@ export class ConnectionPlugin implements IPluginTempl {
 
     constructor(public editor: EditorCore) {}
 
-    /** 判断是否为连线中点标签（不可作为连线起/终点） */
     isConnectionLabel(el: IUI): boolean {
         return !!(el as IUI & { data?: { isConnectionLabel?: boolean } }).data
             ?.isConnectionLabel;
     }
 
-    /** 判断是否为拓扑连线（Line / Path），不可作为连线起点 */
     isConnectionLine(el: IUI): boolean {
         return el.name === "ConnectionLine" || el.name === "ConnectionCurve";
     }
 
-    /** 登记一条新连线（ShapePlugin 创建 line + label 后调用） */
+    /** 登记连线，并在 line.data 写入 from/to 供 JSON 序列化后重建拓扑 */
     addConnection(from: IUI, to: IUI, line: IUI, label: IUI | null) {
+        this.attachConnectionMeta(line, from.id!, to.id!, label?.id);
         this.connections.push({ from, to, line, label });
         if (label) this.syncConnectionLabelBackground(label);
     }
 
-    /**
-     * 节点移动/缩放/旋转时，重算所有关联连线的四边端点。
-     * Line 更新 points，Path 更新 path；标签移到中点。
-     */
+    private attachConnectionMeta(
+        line: IUI,
+        fromId: string,
+        toId: string,
+        labelId?: string,
+    ) {
+        const target = line as IUI & { data?: IConnectionLineData };
+        target.data = {
+            ...(target.data ?? {}),
+            connectionFromId: fromId,
+            connectionToId: toId,
+            connectionLabelId: labelId,
+        };
+    }
+
     updateConnectionsForNode(nodeId: string) {
         const app = this.editor.app;
         this.connections.forEach((conn) => {
@@ -78,7 +94,6 @@ export class ConnectionPlugin implements IPluginTempl {
                 conn.to,
                 app,
             );
-            // 为中间标签预留最小间距
             if (conn.label) {
                 ({ p0, p3 } = enforceMinGap(
                     p0,
@@ -104,7 +119,6 @@ export class ConnectionPlugin implements IPluginTempl {
         });
     }
 
-    /** 获取与某节点关联的所有连线元素（供 HistoryPlugin 拖拽备份） */
     getRelatedLines(nodeId: string): IUI[] {
         return this.connections
             .filter(
@@ -113,7 +127,6 @@ export class ConnectionPlugin implements IPluginTempl {
             .map((conn) => conn.line);
     }
 
-    /** 获取与某节点关联的所有标签元素 */
     getRelatedLabels(nodeId: string): IUI[] {
         return this.connections
             .filter(
@@ -124,17 +137,12 @@ export class ConnectionPlugin implements IPluginTempl {
             .map((conn) => conn.label as IUI);
     }
 
-    /** 按 lineId 移除拓扑记录（线已被外部 delete 时调用） */
     removeConnectionsByLineId(lineId: string) {
         this.connections = this.connections.filter(
             (conn) => conn.line.id !== lineId,
         );
     }
 
-    /**
-     * 删除节点前调用：移除该节点关联的 line、label，并清理拓扑表。
-     * 需在 node.remove() 之前执行，避免悬挂引用。
-     */
     removeConnectionsForNode(nodeId: string) {
         const related = this.connections.filter(
             (conn) => conn.from.id === nodeId || conn.to.id === nodeId,
@@ -162,10 +170,6 @@ export class ConnectionPlugin implements IPluginTempl {
             }));
     }
 
-    /**
-     * 从快照恢复拓扑（需在 canvas 元素全部 add 到 tree 之后调用）。
-     * 若 label 缺失则按当前四边位置补建。
-     */
     importConnections(data: ISerializedConnection[]) {
         this.connections = [];
         const tree = this.editor.app.tree;
@@ -180,7 +184,6 @@ export class ConnectionPlugin implements IPluginTempl {
             if (item.labelId) {
                 label = (tree.findId(item.labelId) as IUI) ?? null;
             }
-            // 旧快照无 label 节点时，按四边中点补建
             if (!label) {
                 const { p0, p3 } = getBestConnectionByWorldBoxBounds(
                     from,
@@ -195,16 +198,161 @@ export class ConnectionPlugin implements IPluginTempl {
                 if (item.labelText) (label as Text).text = item.labelText;
                 tree.add(label);
             }
-            if (label) this.syncConnectionLabelBackground(label);
 
+            this.attachConnectionMeta(
+                line,
+                from.id!,
+                to.id!,
+                label?.id,
+            );
+            if (label) this.syncConnectionLabelBackground(label);
             this.connections.push({ from, to, line, label });
         });
+
+        this.syncAllConnectionGeometry();
     }
 
     /**
-     * 标签背景：有文字 → 白底遮线；无文字 → 透明。
-     * 文本编辑后可再次调用以刷新样式。
+     * JSON / Leafer tree 导入后重建拓扑。
+     * 优先读 line.data.connectionFromId；缺失时按端点几何推断最近元素。
      */
+    rebuildConnectionsFromCanvas() {
+        this.connections = [];
+        const app = this.editor.app;
+        const tree = app.tree;
+        const lines = this.collectConnectionLines(tree);
+
+        for (const line of lines) {
+            const linked = this.resolveConnectionNodes(line, app);
+            if (!linked) continue;
+
+            const { from, to, label } = linked;
+            this.attachConnectionMeta(line, from.id!, to.id!, label?.id);
+            this.connections.push({ from, to, line, label });
+            if (label) this.syncConnectionLabelBackground(label);
+        }
+
+        this.syncAllConnectionGeometry();
+    }
+
+    /** 遍历 tree 下所有连线元素 */
+    private collectConnectionLines(root: IUI): IUI[] {
+        const result: IUI[] = [];
+        const walk = (node: IUI) => {
+            if (this.isConnectionLine(node)) result.push(node);
+            const children = (node as IUI & { children?: IUI[] }).children;
+            children?.forEach(walk);
+        };
+        walk(root);
+        return result;
+    }
+
+    private resolveConnectionNodes(
+        line: IUI,
+        app: App,
+    ): { from: IUI; to: IUI; label: IUI | null } | null {
+        const tree = app.tree;
+        const data = (line as IUI & { data?: IConnectionLineData }).data;
+
+        let from: IUI | undefined;
+        let to: IUI | undefined;
+        let label: IUI | null = null;
+
+        if (data?.connectionFromId && data?.connectionToId) {
+            from = tree.findId(data.connectionFromId) as IUI | undefined;
+            to = tree.findId(data.connectionToId) as IUI | undefined;
+            if (data.connectionLabelId) {
+                label =
+                    (tree.findId(data.connectionLabelId) as IUI) ?? null;
+            }
+        }
+
+        // 无 data 时：根据连线端点与元素包围盒距离推断
+        if (!from || !to) {
+            const endpoints = this.getConnectionLineEndpoints(line);
+            if (!endpoints) return null;
+            const candidates = this.collectConnectableNodes(tree);
+            from =
+                from ??
+                this.findNearestNode(endpoints.p0, candidates, app);
+            to =
+                to ??
+                this.findNearestNode(endpoints.p3, candidates, app);
+        }
+
+        if (!from?.id || !to?.id || from === to) return null;
+        return { from, to, label };
+    }
+
+    private getConnectionLineEndpoints(
+        line: IUI,
+    ): { p0: IPointData; p3: IPointData } | null {
+        if (line.tag === "Line") {
+            const pts = (line as Line).points;
+            return getLineElementEndpoints({
+                points: Array.isArray(pts)
+                    ? pts.flatMap((p) =>
+                          typeof p === "number" ? p : [p.x, p.y],
+                      )
+                    : undefined,
+            });
+        }
+        if (line.tag === "Path") {
+            const path = (line as Path).path;
+            return getPathElementEndpoints({
+                path: typeof path === "string" ? path : undefined,
+            });
+        }
+        return null;
+    }
+
+    private collectConnectableNodes(root: IUI): IUI[] {
+        const result: IUI[] = [];
+        const walk = (node: IUI) => {
+            if (
+                node.id &&
+                !this.isConnectionLine(node) &&
+                !this.isConnectionLabel(node)
+            ) {
+                result.push(node);
+            }
+            const children = (node as IUI & { children?: IUI[] }).children;
+            children?.forEach(walk);
+        };
+        walk(root);
+        return result;
+    }
+
+    private findNearestNode(
+        point: IPointData,
+        candidates: IUI[],
+        app: App,
+    ): IUI | undefined {
+        let best: IUI | undefined;
+        let bestDist = INFER_MAX_DISTANCE;
+        for (const node of candidates) {
+            const dist = distancePointToRectBounds(
+                point,
+                getRectBounds(node, app),
+            );
+            if (dist < bestDist) {
+                bestDist = dist;
+                best = node;
+            }
+        }
+        return best;
+    }
+
+    /** 按当前元素位置重算全部连线几何 */
+    private syncAllConnectionGeometry() {
+        const nodeIds = new Set<string>();
+        this.connections.forEach((conn) => {
+            if (conn.from.id) nodeIds.add(conn.from.id);
+            if (conn.to.id) nodeIds.add(conn.to.id);
+        });
+        nodeIds.forEach((id) => this.updateConnectionsForNode(id));
+    }
+
     syncConnectionLabelBackground(label: IUI) {
         const textEl = label as Text;
         const hasText = !!textEl.text;

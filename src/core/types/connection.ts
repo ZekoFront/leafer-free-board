@@ -26,3 +26,10 @@ export interface ISerializedConnection {
 }
 
 export type ConnectionKind = "line" | "curve";
+
+/** 写在连线元素 data 上，JSON 导入后可重建拓扑 */
+export interface IConnectionLineData {
+    connectionFromId?: string;
+    connectionToId?: string;
+    connectionLabelId?: string;
+}

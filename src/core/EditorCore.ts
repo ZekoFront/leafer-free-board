@@ -91,9 +91,11 @@ export default class EditorCore extends EventEmitter {
             });
         });
 
-        // 画布元素就绪后再恢复连线拓扑
         if (snapshot.connections?.length) {
             this.importConnections?.(snapshot.connections);
+        } else {
+            // IndexedDB / 旧快照无 connections 字段时，从 line.data 或几何推断重建
+            this.rebuildConnectionsFromCanvas?.();
         }
 
         if (snapshot.history) {

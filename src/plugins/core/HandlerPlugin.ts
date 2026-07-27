@@ -78,17 +78,17 @@ export class HandlerPlugin implements IPluginTempl {
         }
     };
 
-    /** 拖拽移动：更新被拖节点及其关联连线的四边端点 */
+    /** 拖拽移动：更新被拖节点及选中项的关联连线 */
     private onDragMove = (evt: DragEvent) => {
+        const nodeIds = new Set<string>();
         const target = evt.target as IUI;
-        if (target?.id) {
-            this.editor.updateConnectionsForNode?.(target.id);
-            return;
-        }
-        // 多选批量拖拽：逐个更新
+        if (target?.id) nodeIds.add(target.id);
         for (const el of this.selectedElements) {
-            if (el.id) this.editor.updateConnectionsForNode?.(el.id);
+            if (el.id) nodeIds.add(el.id);
         }
+        nodeIds.forEach((id) => {
+            this.editor.updateConnectionsForNode?.(id);
+        });
     };
 
     /** 缩放/旋转选中元素后重算连线 */

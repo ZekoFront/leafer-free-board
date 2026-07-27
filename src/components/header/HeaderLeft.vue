@@ -19,6 +19,7 @@
 import { MenuLeftIcon } from "@/assets/icons";
 import { useEditorCore } from "@/composables/useEditorCore";
 import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
+import type { ICanvasSnapshot } from "@/core/types";
 import type { IUIInputData } from "leafer-ui";
 import { exportOptions } from "@/config";
 
@@ -61,11 +62,30 @@ const importJsonToCanvas = () => {
                 const jsonStr = evt.target?.result as string;
                 if (!jsonStr) throw new Error("文件内容为空");
 
-                const jsonData = JSON.parse(jsonStr);
-                editor.app.tree.clear();
-                if (jsonData.children && Array.isArray(jsonData.children)) {
-                    editor.app.tree.add(jsonData.children as IUIInputData[]);
+                const jsonData = JSON.parse(jsonStr) as Record<string, unknown>;
+
+                // 完整快照：含 canvas + connections + history
+                if (Array.isArray(jsonData.canvas)) {
+                    editor.loadSnapshot(jsonData as unknown as ICanvasSnapshot);
+                    message.success("导入快照成功");
+                    return;
                 }
+
+                // Leafer tree JSON：{ children: [...] }
+                editor.runWithoutRecording?.(() => {
+                    editor.app.tree.clear();
+                    if (Array.isArray(jsonData.children)) {
+                        editor.app.tree.add(
+                            jsonData.children as IUIInputData[],
+                        );
+                    } else {
+                        throw new Error("未找到 children 或 canvas 字段");
+                    }
+                });
+
+                // 重建连线拓扑并重算端点，否则拖拽时线段不会跟随
+                editor.rebuildConnectionsFromCanvas?.();
+                editor.clearHistory?.();
                 message.success("导入文件内容成功");
             } catch (error) {
                 console.error("导入出错:", error);
