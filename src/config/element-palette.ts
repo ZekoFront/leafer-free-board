@@ -10,8 +10,18 @@ export const elementPaletteGroups: IElementPaletteGroup[] = [
         key: "mindmap",
         title: "思维导图",
         items: [
-            { type: "mindTopic", title: "主题节点", preview: "mind-topic", draggable: true },
-            { type: "mindSub", title: "子主题", preview: "mind-sub", draggable: true },
+            {
+                type: "mindTopic",
+                title: "主题节点",
+                preview: "mind-topic",
+                draggable: true,
+            },
+            {
+                type: "mindSub",
+                title: "子主题",
+                preview: "mind-sub",
+                draggable: true,
+            },
         ],
     },
     {
@@ -19,19 +29,85 @@ export const elementPaletteGroups: IElementPaletteGroup[] = [
         title: "基础图形",
         items: [
             { type: "rect", title: "矩形", preview: "rect", draggable: true },
-            { type: "roundedRect", title: "圆角矩形", preview: "rounded-rect", draggable: true },
-            { type: "circle", title: "圆形", preview: "circle", draggable: true },
-            { type: "ellipse", title: "椭圆", preview: "ellipse", draggable: true },
+            {
+                type: "roundedRect",
+                title: "圆角矩形",
+                preview: "rounded-rect",
+                draggable: true,
+            },
+            {
+                type: "circle",
+                title: "圆形",
+                preview: "circle",
+                draggable: true,
+            },
+            {
+                type: "ellipse",
+                title: "椭圆",
+                preview: "ellipse",
+                draggable: true,
+            },
         ],
     },
     {
         key: "polygon",
         title: "多边形",
         items: [
-            { type: "diamond", title: "菱形", preview: "diamond", draggable: true },
-            { type: "triangle", title: "三角形", preview: "triangle", draggable: true },
-            { type: "pentagon", title: "五边形", preview: "pentagon", draggable: true },
-            { type: "hexagon", title: "六边形", preview: "hexagon", draggable: true },
+            {
+                type: "diamond",
+                title: "菱形",
+                preview: "diamond",
+                draggable: true,
+            },
+            {
+                type: "triangle",
+                title: "三角形",
+                preview: "triangle",
+                draggable: true,
+            },
+            {
+                type: "pentagon",
+                title: "五边形",
+                preview: "pentagon",
+                draggable: true,
+            },
+            {
+                type: "hexagon",
+                title: "六边形",
+                preview: "hexagon",
+                draggable: true,
+            },
+        ],
+    },
+    {
+        key: "star",
+        title: "星形",
+        items: [
+            { type: "star", title: "五角星", preview: "star", draggable: true },
+            {
+                type: "star4",
+                title: "四角星",
+                preview: "star-4",
+                draggable: true,
+            },
+            {
+                type: "star6",
+                title: "六角星",
+                preview: "star-6",
+                draggable: true,
+            },
+            {
+                type: "star7",
+                title: "七角星",
+                preview: "star-7",
+                draggable: true,
+            },
+            {
+                type: "star8",
+                title: "八角星",
+                preview: "star-8",
+                draggable: true,
+            },
         ],
     },
 ];
@@ -42,7 +118,9 @@ export function getDraggableElementTypes(): Set<string> {
         .filter((item) => item.draggable)
         .map((item) => item.type);
     const fromPalette = elementPaletteGroups.flatMap((group) =>
-        group.items.filter((item) => item.draggable !== false).map((item) => item.type),
+        group.items
+            .filter((item) => item.draggable !== false)
+            .map((item) => item.type),
     );
     return new Set([...fromToolbar, ...fromPalette]);
 }

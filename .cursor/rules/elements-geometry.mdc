@@ -1,0 +1,31 @@
+---
+description: 元素工厂、连线几何与轮廓锚点
+globs: src/core/elements/**/*,src/core/geometry/**/*
+alwaysApply: false
+---
+
+# 元素与连线几何
+
+## 新增画布元素
+
+1. `src/core/elements/xxx.ts` — 工厂函数，使用 `DEFAULT_ELEMENT_OPTIONS` / `getElementTheme()`
+2. `src/core/elements/createElement.ts` — switch 分支
+3. `src/core/elements/index.ts` — export
+4. `src/config/element-palette.ts` — 左侧面板项 + `getDraggableElementTypes` 自动收录
+
+## Polygon / Star
+
+- Polygon 用 `points` 贴边，避免 `sides` 内接圆留白
+- Star 参数对齐 [Leafer Star 文档](https://www.leaferjs.com/ui/reference/display/Star.html)：`corners`、`innerRadius`、`cornerRadius`
+- 预设放 `src/core/elements/star.ts` 的 `STAR_PRESETS`
+
+## 连线锚点
+
+- 矩形/圆/椭圆：`getBestConnectionByWorldBoxBounds` 四边中点
+- Polygon / Star：`polygonConnection.ts` 轮廓射线求交，勿仅用包围盒
+- 新建元素需 `id`（uuid）且 `draggable: true` 才能被 line/curve 连线
+
+## 连线数据
+
+- 运行时：`ConnectionPlugin.connections[]`
+- 序列化：`line.data.connectionFromId/ToId/LabelId` + 快照 `connections[]`

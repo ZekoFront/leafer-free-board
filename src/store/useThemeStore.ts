@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { defaultTheme } from "@/theme/default-theme";
 import type { AppTheme, ElementThemeColors } from "@/theme/types";
+import { refreshDefaultElementOptions } from "@/core/constants/element";
 
 export const useThemeStore = defineStore("theme", () => {
     const theme = ref<AppTheme>(structuredClone(defaultTheme));
@@ -9,9 +10,6 @@ export const useThemeStore = defineStore("theme", () => {
     const elementTheme = computed(() => theme.value.element);
 
     async function syncDefaultElementOptions() {
-        const { refreshDefaultElementOptions } = await import(
-            "@/core/constants/element"
-        );
         refreshDefaultElementOptions();
     }
 

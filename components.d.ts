@@ -17,7 +17,6 @@ declare module 'vue' {
     HeaderCenter: typeof import('./src/components/header/HeaderCenter.vue')['default']
     HeaderLeft: typeof import('./src/components/header/HeaderLeft.vue')['default']
     HeaderRight: typeof import('./src/components/header/HeaderRight.vue')['default']
-    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     NCollapse: typeof import('naive-ui')['NCollapse']
     NCollapseItem: typeof import('naive-ui')['NCollapseItem']
     NColorPicker: typeof import('naive-ui')['NColorPicker']

@@ -1,0 +1,26 @@
+---
+description: Vue 组件、元素库 UI 与主题
+globs: src/components/**/*,src/config/**/*,src/theme/**/*,src/store/**/*
+alwaysApply: false
+---
+
+# Vue UI 与主题
+
+## 元素库 ElementPalette
+
+- 配置：`src/config/element-palette.ts`（type / title / preview）
+- 预览 class：`element-palette__preview--${preview}`，样式在 `ElementPalette.vue`
+- 星形/多边形预览用 `clip-path: polygon(...)`，颜色用 `v-bind('elementTheme.xxx')`
+- 拖拽协议：`dataTransfer.setData("type", type)`，与 `ShapePlugin.onDrop` 一致
+
+## 主题
+
+- 数据：`src/theme/default-theme.ts`
+- 状态：`src/store/useThemeStore.ts`（Pinia）
+- 组件：`storeToRefs(useThemeStore())`
+- Leafer 工厂：`getElementTheme()`（`src/theme/getElementTheme.ts`）
+- **不用 CSS 变量注入 document**；Vue 用 v-bind，Core 用 store 读取
+
+## inject
+
+UI 通过 `useSelectorListen` / `useCanvasContext` 获取 `editor`，勿直接 `new EditorCore()`。

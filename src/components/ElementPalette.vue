@@ -234,6 +234,113 @@ const addElement = (type: string) => {
             );
         }
 
+        &--star {
+            background: v-bind("elementTheme.fill");
+            clip-path: polygon(
+                50% 0%,
+                61.2% 34.5%,
+                97.6% 34.5%,
+                68.2% 55.9%,
+                79.4% 90.5%,
+                50% 69.1%,
+                20.6% 90.5%,
+                31.8% 55.9%,
+                2.4% 34.5%,
+                38.8% 34.5%
+            );
+        }
+
+        &--star-4 {
+            background: v-bind("elementTheme.fill");
+            clip-path: polygon(
+                50% 0%,
+                67.7% 32.3%,
+                100% 50%,
+                67.7% 67.7%,
+                50% 100%,
+                32.3% 67.7%,
+                0% 50%,
+                32.3% 32.3%
+            );
+        }
+
+        &--star-6 {
+            background: v-bind("elementTheme.fill");
+            clip-path: polygon(
+                50% 0%,
+                62.5% 28.3%,
+                93.3% 25%,
+                75% 50%,
+                93.3% 75%,
+                62.5% 71.7%,
+                50% 100%,
+                37.5% 71.7%,
+                6.7% 75%,
+                25% 50%,
+                6.7% 25%,
+                37.5% 28.3%
+            );
+        }
+
+        &--star-7 {
+            background: v-bind("elementTheme.fill");
+            clip-path: polygon(
+                50% 0%,
+                60.8% 27.5%,
+                89.1% 18.8%,
+                74.4% 44.4%,
+                98.7% 61.1%,
+                69.5% 65.6%,
+                71.7% 95%,
+                50% 75%,
+                28.3% 95%,
+                30.5% 65.6%,
+                1.3% 61.1%,
+                25.6% 44.4%,
+                10.9% 18.8%,
+                39.2% 27.5%
+            );
+        }
+
+        &--star-8 {
+            background: v-bind("elementTheme.fill");
+            clip-path: polygon(
+                50% 0%,
+                59.6% 26.9%,
+                85.4% 14.6%,
+                73.1% 40.4%,
+                100% 50%,
+                73.1% 59.6%,
+                85.4% 85.4%,
+                59.6% 73.1%,
+                50% 100%,
+                40.4% 73.1%,
+                14.6% 85.4%,
+                26.9% 59.6%,
+                0% 50%,
+                26.9% 40.4%,
+                14.6% 14.6%,
+                40.4% 26.9%
+            );
+        }
+
+        &--star-rounded {
+            background: v-bind("elementTheme.fill");
+            border-radius: 3px;
+            clip-path: polygon(
+                50% 0%,
+                62% 25%,
+                95% 25%,
+                68% 45%,
+                80% 85%,
+                50% 62%,
+                20% 85%,
+                32% 45%,
+                5% 25%,
+                38% 25%
+            );
+        }
+
         &--text {
             background: transparent;
             border: 1px dashed v-bind("elementTheme.fill");

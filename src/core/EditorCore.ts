@@ -85,7 +85,7 @@ export default class EditorCore extends EventEmitter {
 
     loadSnapshot(snapshot: ICanvasSnapshot) {
         this.runWithoutRecording?.(() => {
-            this.app.tree.clear();
+            this.clearTreeChildren();
             snapshot.canvas.forEach((item) => {
                 this.app.tree.add(item as never);
             });
@@ -102,6 +102,27 @@ export default class EditorCore extends EventEmitter {
             this.importHistory?.(snapshot.history);
         } else {
             this.clearHistory?.();
+        }
+    }
+
+    /** 清空画布（避免 tree.clear 在 Pen 等元素上触发 Leafer destroy 异常） */
+    clearCanvas() {
+        this.runWithoutRecording?.(() => {
+            this.clearTreeChildren();
+        });
+        this.clearHistory?.();
+    }
+
+    /**
+     * 安全移除 tree 全部子元素：取消选中 → 清空连线拓扑 → 逐个 remove
+     * （tree.clear / removeAll 对部分 Pen 路径会报 this.clear is not a function）
+     */
+    clearTreeChildren() {
+        this.app.editor.cancel?.();
+        this.clearConnections?.();
+        const children = [...(this.app.tree.children ?? [])];
+        for (let i = children.length - 1; i >= 0; i--) {
+            children[i]?.remove?.();
         }
     }
 

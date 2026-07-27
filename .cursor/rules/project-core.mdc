@@ -1,0 +1,38 @@
+---
+description: leafer-free-board 架构、命名与分层约定（全局）
+alwaysApply: true
+---
+
+# 项目核心约定
+
+## 架构分层
+
+- `src/core/` — EditorCore、元素工厂、几何、类型；**不依赖 Vue**
+- `src/plugins/` — 插件（Handler、Shape、Connection、History 等）
+- `src/engine/` — Vue 容器（CanvasProvider、EditorCanvas）
+- `src/components/`、`src/config/` — UI 与配置
+- `src/theme/` + `src/store/` — 主题数据与 Pinia 状态
+- `src/editor/` — **旧架构遗留**，新功能勿在此扩展
+
+## 命名（禁用 Board）
+
+| 使用 | 禁止 |
+|------|------|
+| `EditorCore` | ~~EditorBoard~~ |
+| `CanvasContext` / `ICanvasSnapshot` | ~~BoardContext~~ / ~~IBoardSnapshot~~ |
+| `saveSnapshot` / `loadSnapshot` | ~~saveBoard~~ |
+
+## 单 App 原则
+
+不在组件/Store 内 `new App()`；统一经 `CanvasContext` + `EditorCore.bindApp()`。
+
+## 插件注册顺序
+
+`ConnectionPlugin` 必须在 `ShapePlugin`、`HistoryPlugin` 之前。见 `src/engine/edit/default-plugins.ts`。
+
+## 改动原则
+
+- 最小 diff，不改动无关文件
+- 新元素走 `createElement` + `element-palette.ts`
+- 元素颜色从 `@/theme` / `useThemeStore` 读取，勿硬编码 `#32cd79`
+- 仅用户明确要求时提交 git

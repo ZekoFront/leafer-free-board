@@ -44,6 +44,7 @@ export class ConnectionPlugin implements IPluginTempl {
         "isConnectionLabel",
         "isConnectionLine",
         "syncConnectionLabelBackground",
+        "clearConnections",
     ];
 
     pluginName = ConnectionPlugin.pluginName;
@@ -362,6 +363,11 @@ export class ConnectionPlugin implements IPluginTempl {
         if (current.fill !== fill || current.stroke !== stroke) {
             (textEl as any).boxStyle = { ...current, fill, stroke };
         }
+    }
+
+    /** 清空拓扑表（画布批量 remove 前调用，避免 stale 引用） */
+    clearConnections() {
+        this.connections = [];
     }
 
     destroy() {

@@ -2,7 +2,7 @@ import type { App, IUI, IUIInputData } from "leafer-ui";
 import type { IConnectionPoint } from "../types";
 import {
     getConnectionPointOnPolygon,
-    isPolygonElement,
+    isOutlineShape,
 } from "./polygonConnection";
 
 /**
@@ -47,7 +47,7 @@ export const getBestConnectionByWorldBoxBounds = (
         }
     }
 
-    if (app && isPolygonElement(elA as IUI)) {
+    if (app && isOutlineShape(elA as IUI)) {
         const edge = getConnectionPointOnPolygon(
             elA as IUI,
             { x: cxB, y: cyB },
@@ -56,7 +56,7 @@ export const getBestConnectionByWorldBoxBounds = (
         if (edge) p0 = edge;
     }
 
-    if (app && isPolygonElement(elB as IUI)) {
+    if (app && isOutlineShape(elB as IUI)) {
         const edge = getConnectionPointOnPolygon(
             elB as IUI,
             { x: cxA, y: cyA },

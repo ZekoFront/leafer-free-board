@@ -8,10 +8,18 @@ import { drawEllipse } from "./ellipse";
 import { createPolygon } from "./polygonShape";
 import { createRoundedRect } from "./roundedRect";
 import { createMindTopic, createMindSubTopic } from "./mindNode";
+import { createStarByType, type StarPresetKey } from "./star";
 
 export function createElement(type: string, point: IPointData) {
     let element: IUIInputData;
     switch (type) {
+        case "star":
+        case "star4":
+        case "star6":
+        case "star7":
+        case "star8":
+            element = createStarByType(point, type as StarPresetKey);
+            break;
         case "rect":
             element = createRect(point);
             break;

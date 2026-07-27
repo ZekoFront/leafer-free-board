@@ -93,7 +93,7 @@ import { useNaiveDiscrete } from "@/hooks/useNaiveDiscrete";
 const isDev = import.meta.env.DEV;
 const snapshotStore = useCanvasSnapshot();
 const { editor } = useSelectorListen();
-const { canUndo: isCanUndo, canRedo: iscanRedo, undo, redo, clearHistory } = useHistory();
+const { canUndo: isCanUndo, canRedo: iscanRedo, undo, redo } = useHistory();
 const { dialog, message } = useNaiveDiscrete();
 
 const currentIndex = ref<number>(0);
@@ -135,10 +135,7 @@ const handleClear = () => {
         negativeText: "取消",
         draggable: true,
         onPositiveClick: () => {
-            editor.runWithoutRecording?.(() => {
-                editor.app.tree.clear();
-            });
-            clearHistory();
+            editor.clearCanvas?.();
             snapshotStore.clear();
         },
         onNegativeClick: () => { },

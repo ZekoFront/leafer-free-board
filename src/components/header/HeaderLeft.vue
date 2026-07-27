@@ -73,7 +73,7 @@ const importJsonToCanvas = () => {
 
                 // Leafer tree JSON：{ children: [...] }
                 editor.runWithoutRecording?.(() => {
-                    editor.app.tree.clear();
+                    editor.clearTreeChildren?.();
                     if (Array.isArray(jsonData.children)) {
                         editor.app.tree.add(
                             jsonData.children as IUIInputData[],

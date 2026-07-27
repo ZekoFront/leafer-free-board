@@ -314,7 +314,7 @@ const shortId = computed(() => {
 
 const showFillSection = computed(() => {
     const tag = selectedActive.value?.tag as string;
-    return ["Box", "Rect", "Text", "Group", "Ellipse", "Polygon"].includes(tag);
+    return ["Box", "Rect", "Text", "Group", "Ellipse", "Polygon", "Star"].includes(tag);
 });
 
 const setProxy = (key: string, value: unknown) => {

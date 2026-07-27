@@ -1,0 +1,39 @@
+---
+description: 插件开发规范（EditorCore + IPluginTempl）
+globs: src/plugins/**/*.ts
+alwaysApply: false
+---
+
+# 插件开发
+
+## 模板
+
+```typescript
+export class FooPlugin implements IPluginTempl {
+    static pluginName = "FooPlugin";
+    static apis = ["fooAction"]; // 可选，挂载到 editor.fooAction
+
+    pluginName = FooPlugin.pluginName;
+    hotkeys?: string[];
+
+    constructor(public editor: EditorCore) {}
+
+    fooAction() { /* ... */ }
+
+    hotkeyEvent = (name: string, e: KeyboardEvent) => {
+        if (e.type !== "keyup") return;
+        if (isEditableTargetFocused()) return; // input/textarea 时不拦截
+    };
+
+    destroy() { /* off 事件、cancel debounce */ }
+}
+```
+
+## 要点
+
+- 构造函数参数：`editor: EditorCore`（非 editorBoard）
+- 选中/属性：`SelectEvent` 来自 `@/core/constants`
+- 历史：`HistoryPlugin` 监听 `ChildEvent.ADD/REMOVE`，用 `tree.add/remove` 自动入栈
+- 批量/加载：`editor.runWithoutRecording?.(() => { ... })`
+- 连线：委托 `ConnectionPlugin`（`addConnection`、`removeConnectionsForNode`、`exportConnections`）
+- 注册：加入 `DEFAULT_EDIT_PLUGINS` 并 `export` 于 `src/plugins/index.ts`

@@ -13,4 +13,5 @@ export * from "./image";
 export * from "./polygonShape";
 export * from "./roundedRect";
 export * from "./mindNode";
+export * from "./star";
 export * from "./viewport";

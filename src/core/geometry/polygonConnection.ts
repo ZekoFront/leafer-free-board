@@ -1,9 +1,58 @@
 import type { App, IPointData, IUI } from "leafer-ui";
 import type { IConnectionPoint } from "../types";
 
-/** 是否为 Polygon 图元（含菱形、三角形等） */
+/** 是否为 Polygon / Star 等轮廓类图元 */
+export function isOutlineShape(el: IUI): boolean {
+    return el.tag === "Polygon" || el.tag === "Star";
+}
+
+/** @deprecated 使用 isOutlineShape */
 export function isPolygonElement(el: IUI): boolean {
-    return el.tag === "Polygon";
+    return isOutlineShape(el);
+}
+
+/** Star 本地顶点（内外圆交替取点，与 Leafer corners / innerRadius 一致） */
+export function getStarLocalVertices(el: IUI): IPointData[] {
+    const star = el as IUI & {
+        width?: number;
+        height?: number;
+        corners?: number;
+        innerRadius?: number;
+        startAngle?: number;
+    };
+
+    const w = star.width ?? 100;
+    const h = star.height ?? 100;
+    const corners = star.corners ?? 5;
+    const innerRatio = star.innerRadius ?? 0.382;
+    const startRad = ((star.startAngle ?? 0) * Math.PI) / 180;
+    const cx = w / 2;
+    const cy = h / 2;
+    const outerRx = w / 2;
+    const outerRy = h / 2;
+    const innerRx = outerRx * innerRatio;
+    const innerRy = outerRy * innerRatio;
+    const angleStep = Math.PI / corners;
+    const vertices: IPointData[] = [];
+
+    for (let i = 0; i < corners * 2; i++) {
+        const angle = startRad + i * angleStep;
+        const isOuter = i % 2 === 0;
+        const rx = isOuter ? outerRx : innerRx;
+        const ry = isOuter ? outerRy : innerRy;
+        vertices.push({
+            x: cx + rx * Math.cos(angle),
+            y: cy + ry * Math.sin(angle),
+        });
+    }
+
+    return vertices;
+}
+
+/** 读取轮廓图元本地顶点 */
+export function getShapeLocalVertices(el: IUI): IPointData[] {
+    if (el.tag === "Star") return getStarLocalVertices(el);
+    return getPolygonLocalVertices(el);
 }
 
 /** 读取 Polygon 本地坐标顶点（points 模式或 sides 模式） */
@@ -129,7 +178,7 @@ export function getConnectionPointOnPolygon(
     toward: IPointData,
     app: App,
 ): IConnectionPoint | null {
-    const localVerts = getPolygonLocalVertices(el);
+    const localVerts = getShapeLocalVertices(el);
     if (localVerts.length < 3) return null;
 
     const pageVerts = localVerts.map((v) => localToPage(el, v, app));
