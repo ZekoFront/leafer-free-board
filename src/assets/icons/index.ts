@@ -22,3 +22,5 @@ export { default as CopyIcon } from "./copy-icon.svg";
 export { default as EllipseIcon } from "./ellipse-icon.svg";
 export { default as HotkeyIcon } from "./hotkey-icon.svg";
 export { default as PaintbrushIcon } from "./paintbrush-icon.svg";
+export { default as EyeShowIcon } from "./eye-show-icon.svg";
+export { default as EyeHideIcon } from "./eye-hide-icon.svg";

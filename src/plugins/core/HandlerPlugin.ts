@@ -6,7 +6,11 @@ import {
     trackedAttrs,
 } from "@/core/constants";
 import type { IPluginTempl } from "@/core/types";
-import { EditorEvent, EditorRotateEvent, EditorScaleEvent } from "@leafer-in/editor";
+import {
+    EditorEvent,
+    EditorRotateEvent,
+    EditorScaleEvent,
+} from "@leafer-in/editor";
 import { isArray, isNull, isObject } from "lodash-es";
 import { DragEvent, PropertyEvent, ZoomEvent, type IUI } from "leafer-ui";
 
@@ -105,7 +109,6 @@ export class HandlerPlugin implements IPluginTempl {
         const oldValue = (evt as unknown as { oldValue?: unknown }).oldValue;
         const newValue = (evt as unknown as { newValue?: unknown }).newValue;
         const target = evt.target as IUI;
-
         if (!attrName || !TRACKED_ATTRS.has(attrName)) return;
 
         const elementId = target?.id;
@@ -116,7 +119,9 @@ export class HandlerPlugin implements IPluginTempl {
             this.editor.syncConnectionLabelBackground?.(target);
         }
 
-        const isSelected = this.selectedElements.some((el) => el.id === elementId);
+        const isSelected = this.selectedElements.some(
+            (el) => el.id === elementId,
+        );
         if (!isSelected) return;
 
         if (

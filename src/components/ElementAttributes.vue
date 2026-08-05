@@ -11,235 +11,176 @@
                 <h3 class="attr-panel__title">属性</h3>
             </header>
 
-            <n-tabs
-                class="attr-panel__tabs"
-                type="segment"
-                size="small"
-                animated
-                :value="activeName"
-                :on-update:value="handleClick"
-            >
+            <n-tabs class="attr-panel__tabs" type="segment" size="small" animated :value="activeName"
+                :on-update:value="handleClick">
                 <n-tab-pane name="setting" tab="设计">
                     <div class="attr-panel__pane">
                         <div class="attr-panel__scroll">
-                        <!-- 文本 -->
-                        <section v-if="selectedActive.tag === 'Text'" class="attr-section">
-                            <h4 class="attr-section__title">文本</h4>
-                            <div class="attr-section__body">
-                                <div class="attr-row">
-                                    <label class="attr-row__label">内容</label>
-                                    <n-input
-                                        class="attr-row__control"
-                                        size="small"
-                                        v-model:value="textContent"
-                                        clearable
-                                        :placeholder="(selectedActive as any).placeholder || '输入文本'"
-                                        :on-update:value="handleTextUpdate"
-                                    />
-                                </div>
-                                <div class="attr-row">
-                                    <label class="attr-row__label">字号</label>
-                                    <n-input-number
-                                        class="attr-row__control attr-row__control--narrow"
-                                        size="small"
-                                        v-model:value="fontSize"
-                                        :min="8"
-                                        :max="200"
-                                        :on-update:value="handleFontSizeChange"
-                                    />
-                                </div>
-                                <div class="attr-row attr-row--top">
-                                    <label class="attr-row__label">样式</label>
-                                    <div class="attr-segment">
-                                        <button
-                                            v-for="item in fontStyleList"
-                                            :key="item.value"
-                                            type="button"
-                                            class="attr-segment__btn"
-                                            :class="{ 'is-active': fontStyles.includes(item.value) }"
-                                            :title="item.label"
-                                            @click="handleFontStyleIcon(item.value)"
-                                        >
-                                            <n-icon :size="16">
-                                                <component :is="item.icon" />
-                                            </n-icon>
-                                        </button>
+                            <!-- 文本 -->
+                            <section v-if="selectedActive.tag === 'Text'" class="attr-section">
+                                <h4 class="attr-section__title">文本</h4>
+                                <div class="attr-section__body">
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">内容</label>
+                                        <n-input class="attr-row__control" size="small" v-model:value="textContent"
+                                            clearable :placeholder="(selectedActive as any)
+                                                    .placeholder || '输入文本'
+                                                " :on-update:value="handleTextUpdate" />
+                                    </div>
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">字号</label>
+                                        <n-input-number class="attr-row__control attr-row__control--narrow" size="small"
+                                            v-model:value="fontSize" :min="8" :max="200" :on-update:value="handleFontSizeChange
+                                                " />
+                                    </div>
+                                    <div class="attr-row attr-row--top">
+                                        <label class="attr-row__label">样式</label>
+                                        <div class="attr-segment">
+                                            <button v-for="item in fontStyleList" :key="item.value" type="button"
+                                                class="attr-segment__btn" :class="{
+                                                    'is-active':
+                                                        fontStyles.includes(
+                                                            item.value,
+                                                        ),
+                                                }" :title="item.label" @click="
+                                                    handleFontStyleIcon(
+                                                        item.value,
+                                                    )
+                                                    ">
+                                                <n-icon :size="16">
+                                                    <component :is="item.icon" />
+                                                </n-icon>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
 
-                        <!-- 箭头 -->
-                        <section v-if="selectedActive.tag === 'Arrow'" class="attr-section">
-                            <h4 class="attr-section__title">箭头</h4>
-                            <div class="attr-section__body">
-                                <div class="attr-row">
-                                    <label class="attr-row__label">头尾同步</label>
-                                    <n-switch v-model:value="isArrowBothEnds" size="small">
-                                        <template #checked>开</template>
-                                        <template #unchecked>关</template>
-                                    </n-switch>
-                                </div>
-                                <div class="attr-row attr-row--top">
-                                    <label class="attr-row__label">类型</label>
-                                    <div class="attr-arrow-grid">
-                                        <button
-                                            v-for="item in arrowTypes"
-                                            :key="item.key"
-                                            type="button"
-                                            class="attr-arrow-grid__item"
-                                            :title="item.label"
-                                            @click="handleArrowTypeClick(item.key)"
-                                        >
-                                            <img :src="item.icon" :alt="item.label" />
-                                        </button>
+                            <!-- 箭头 -->
+                            <section v-if="selectedActive.tag === 'Arrow'" class="attr-section">
+                                <h4 class="attr-section__title">箭头</h4>
+                                <div class="attr-section__body">
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">头尾同步</label>
+                                        <n-switch v-model:value="isArrowBothEnds" size="small">
+                                            <template #checked>开</template>
+                                            <template #unchecked>关</template>
+                                        </n-switch>
+                                    </div>
+                                    <div class="attr-row attr-row--top">
+                                        <label class="attr-row__label">类型</label>
+                                        <div class="attr-arrow-grid">
+                                            <button v-for="item in arrowTypes" :key="item.key" type="button"
+                                                class="attr-arrow-grid__item" :title="item.label" @click="
+                                                    handleArrowTypeClick(
+                                                        item.key,
+                                                    )
+                                                    ">
+                                                <img :src="item.icon" :alt="item.label" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
 
-                        <!-- 填充 -->
-                        <section
-                            v-if="showFillSection"
-                            class="attr-section"
-                        >
-                            <h4 class="attr-section__title">填充</h4>
-                            <div class="attr-section__body">
-                                <div class="attr-swatches">
-                                    <button
-                                        v-for="(item, index) in colorPanel"
-                                        :key="index + item"
-                                        type="button"
-                                        class="attr-swatches__item"
-                                        :style="{ background: item }"
-                                        :title="item"
-                                        @click="handleFillColor(item)"
-                                    />
+                            <!-- 填充 -->
+                            <section v-if="showFillSection" class="attr-section">
+                                <h4 class="attr-section__title">填充</h4>
+                                <div class="attr-section__body">
+                                    <div class="attr-swatches">
+                                        <button v-for="(item, index) in colorPanel" :key="index + item" type="button"
+                                            class="attr-swatches__item" :style="{ background: item }" :title="item"
+                                            @click="handleFillColor(item)" />
+                                    </div>
+                                    <n-color-picker class="attr-color-picker" size="small" v-model:value="fillColor"
+                                        :swatches="colorPanel" @update:value="handleFillColor" />
                                 </div>
-                                <n-color-picker
-                                    class="attr-color-picker"
-                                    size="small"
-                                    v-model:value="fillColor"
-                                    :swatches="colorPanel"
-                                    @update:value="handleFillColor"
-                                />
-                            </div>
-                        </section>
+                            </section>
 
-                        <!-- 内边距 -->
-                        <section
-                            v-if="['Box', 'Text'].includes(selectedActive.tag as string)"
-                            class="attr-section"
-                        >
-                            <h4 class="attr-section__title">间距</h4>
-                            <div class="attr-section__body">
-                                <div class="attr-row">
-                                    <label class="attr-row__label">上下</label>
-                                    <n-input-number
-                                        class="attr-row__control"
-                                        size="small"
-                                        v-model:value="padding[0]"
-                                        clearable
-                                        :on-update:value="(val: number | null) => handlePaddingChange(val, 0)"
-                                    />
-                                </div>
-                                <div class="attr-row">
-                                    <label class="attr-row__label">左右</label>
-                                    <n-input-number
-                                        class="attr-row__control"
-                                        size="small"
-                                        v-model:value="padding[1]"
-                                        clearable
-                                        :on-update:value="(val: number | null) => handlePaddingChange(val, 1)"
-                                    />
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- 描边 -->
-                        <section class="attr-section">
-                            <h4 class="attr-section__title">描边</h4>
-                            <div class="attr-section__body">
-                                <div class="attr-row attr-row--top">
-                                    <label class="attr-row__label">颜色</label>
-                                    <div class="attr-stroke-picker">
-                                        <button
-                                            v-for="(item, index) in strokeColorList"
-                                            :key="index + item"
-                                            type="button"
-                                            class="attr-swatches__item"
-                                            :style="{ background: item }"
-                                            @click="handleStrokeColor(item)"
-                                        />
-                                        <n-color-picker
-                                            class="attr-color-picker attr-color-picker--inline"
-                                            size="small"
-                                            v-model:value="strokeColor"
-                                            :swatches="colorPanel"
-                                            @update:value="handleStrokeColor"
-                                        />
+                            <!-- 内边距 -->
+                            <section v-if="
+                                ['Box', 'Text'].includes(
+                                    selectedActive.tag as string,
+                                )
+                            " class="attr-section">
+                                <h4 class="attr-section__title">间距</h4>
+                                <div class="attr-section__body">
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">上下</label>
+                                        <n-input-number class="attr-row__control" size="small"
+                                            v-model:value="padding[0]" clearable :on-update:value="(val: number | null) =>
+                                                    handlePaddingChange(val, 0)
+                                                " />
+                                    </div>
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">左右</label>
+                                        <n-input-number class="attr-row__control" size="small"
+                                            v-model:value="padding[1]" clearable :on-update:value="(val: number | null) =>
+                                                    handlePaddingChange(val, 1)
+                                                " />
                                     </div>
                                 </div>
-                                <div class="attr-row">
-                                    <label class="attr-row__label">宽度</label>
-                                    <n-input-number
-                                        class="attr-row__control attr-row__control--narrow"
-                                        size="small"
-                                        v-model:value="strokeWidth"
-                                        :min="0"
-                                        clearable
-                                        :on-update:value="handleStrokeWidthChange"
-                                    />
-                                </div>
-                                <div class="attr-row">
-                                    <label class="attr-row__label">虚线</label>
-                                    <div class="attr-inline-fields">
-                                        <n-input-number
-                                            size="small"
-                                            v-model:value="dashPattern[0]"
-                                            placeholder="段长"
-                                            :on-update:value="handleDashPatternChange0"
-                                        />
-                                        <span class="attr-inline-fields__sep">/</span>
-                                        <n-input-number
-                                            size="small"
-                                            v-model:value="dashPattern[1]"
-                                            placeholder="间隔"
-                                            :on-update:value="handleDashPatternChange1"
-                                        />
+                            </section>
+
+                            <!-- 描边 -->
+                            <section class="attr-section">
+                                <h4 class="attr-section__title">描边</h4>
+                                <div class="attr-section__body">
+                                    <div class="attr-row attr-row--top">
+                                        <label class="attr-row__label">颜色</label>
+                                        <div class="attr-stroke-picker">
+                                            <button v-for="(
+item, index
+                                                ) in strokeColorList" :key="index + item" type="button"
+                                                class="attr-swatches__item" :style="{ background: item }"
+                                                @click="handleStrokeColor(item)" />
+                                            <n-color-picker class="attr-color-picker attr-color-picker--inline"
+                                                size="small" v-model:value="strokeColor" :swatches="colorPanel"
+                                                @update:value="
+                                                    handleStrokeColor
+                                                " />
+                                        </div>
+                                    </div>
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">宽度</label>
+                                        <n-input-number class="attr-row__control attr-row__control--narrow" size="small"
+                                            v-model:value="strokeWidth" :min="0" clearable :on-update:value="handleStrokeWidthChange
+                                                " />
+                                    </div>
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">虚线</label>
+                                        <div class="attr-inline-fields">
+                                            <n-input-number size="small" v-model:value="dashPattern[0]" placeholder="段长"
+                                                :on-update:value="handleDashPatternChange0
+                                                    " />
+                                            <span class="attr-inline-fields__sep">/</span>
+                                            <n-input-number size="small" v-model:value="dashPattern[1]" placeholder="间隔"
+                                                :on-update:value="handleDashPatternChange1
+                                                    " />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
 
-                        <!-- 布局 -->
-                        <section class="attr-section">
-                            <h4 class="attr-section__title">布局</h4>
-                            <div class="attr-section__body">
-                                <div class="attr-row">
-                                    <label class="attr-row__label">层级</label>
-                                    <n-input-number
-                                        class="attr-row__control attr-row__control--narrow"
-                                        size="small"
-                                        v-model:value="zIndex"
-                                        clearable
-                                        :on-update:value="handleZIndexChange"
-                                    />
+                            <!-- 布局 -->
+                            <section class="attr-section">
+                                <h4 class="attr-section__title">布局</h4>
+                                <div class="attr-section__body">
+                                    <div class="attr-row">
+                                        <label class="attr-row__label">层级</label>
+                                        <n-input-number class="attr-row__control attr-row__control--narrow" size="small"
+                                            v-model:value="zIndex" clearable :on-update:value="handleZIndexChange
+                                                " />
+                                    </div>
                                 </div>
-                            </div>
-                        </section>
+                            </section>
                         </div>
 
-                        <footer
-                            v-if="selectedActive.id"
-                            class="attr-panel__footer"
-                        >
-                            <button
-                                type="button"
-                                class="attr-delete-btn"
-                                @click="handleAction('del')"
-                            >
-                                <n-icon :size="16"><DeleteIcon /></n-icon>
+                        <footer v-if="selectedActive.id" class="attr-panel__footer">
+                            <button type="button" class="attr-delete-btn" @click="handleAction('del')">
+                                <n-icon :size="16">
+                                    <DeleteIcon />
+                                </n-icon>
                                 <span>删除元素</span>
                             </button>
                         </footer>
@@ -251,19 +192,21 @@
                         <section class="attr-section">
                             <h4 class="attr-section__title">画布元素</h4>
                             <ul class="attr-layer-list">
-                                <li
-                                    v-for="item in editor.app.tree.children"
-                                    :key="item.id"
-                                    class="attr-layer-list__item"
-                                    :class="{ 'is-active': item.id === selectedActive.id }"
-                                >
-                                    <span class="attr-layer-list__tag">{{ item.tag }}</span>
-                                    <span class="attr-layer-list__z">z{{ item.zIndex ?? 0 }}</span>
+                                <li v-for="item in editor.app.tree.children" :key="item.id"
+                                    class="attr-layer-list__item" :class="{
+                                        'is-active':
+                                            item.id === selectedActive.id,
+                                    }" @click="handleSelect(item)">
+                                    <span class="attr-layer-list__tag">{{
+                                        item.name ?? item.tag
+                                        }}</span>
+                                    <span class="attr-layer-list__z">
+                                        <n-icon class="cursor" :title="item.visible?'可见':'不可见'" :size="22" @click="handleEye(item)">
+                                            <EyeShowIcon v-if="item.visible"/>
+                                            <EyeHideIcon v-else/>
+                                        </n-icon></span>
                                 </li>
-                                <li
-                                    v-if="!editor.app.tree.children?.length"
-                                    class="attr-layer-list__empty"
-                                >
+                                <li v-if="!editor.app.tree.children?.length" class="attr-layer-list__empty">
                                     暂无元素
                                 </li>
                             </ul>
@@ -281,7 +224,7 @@ defineOptions({ name: "ElementAttributes" });
 import { Arrow } from "@leafer-in/arrow";
 import type { IUI } from "leafer-ui";
 import { computed, ref, watchEffect } from "vue";
-import { DeleteIcon } from "@/assets/icons";
+import { DeleteIcon, EyeShowIcon, EyeHideIcon } from "@/assets/icons";
 import {
     arrowTypes,
     colorPanel,
@@ -315,8 +258,26 @@ const shortId = computed(() => {
 
 const showFillSection = computed(() => {
     const tag = selectedActive.value?.tag as string;
-    return ["Box", "Rect", "Text", "Group", "Ellipse", "Polygon", "Star"].includes(tag);
+    return [
+        "Box",
+        "Rect",
+        "Text",
+        "Group",
+        "Ellipse",
+        "Polygon",
+        "Star",
+    ].includes(tag);
 });
+
+
+const handleSelect = (item: IUI) => {
+    editor.app.editor.select(item)
+}
+
+const handleEye = (item:IUI) => {
+    item.visible = !item.visible
+    editor.app.editor.cancel()
+}
 
 const setProxy = (key: string, value: unknown) => {
     if (proxyData.value) {
@@ -447,7 +408,9 @@ watchEffect(() => {
     syncFontStylesFromTarget(target);
 
     if (target.tag === "Box" && target.children?.[0]) {
-        padding.value = (target.children[0].padding as [number, number]) || [0, 0];
+        padding.value = (target.children[0].padding as [number, number]) || [
+            0, 0,
+        ];
     } else if (Array.isArray(pd.padding)) {
         padding.value = pd.padding as [number, number];
     }
@@ -466,7 +429,9 @@ $panel-bg: #ffffff;
 
 .fade-attr-enter-active,
 .fade-attr-leave-active {
-    transition: opacity 0.22s ease, transform 0.22s ease;
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease;
 }
 
 .fade-attr-enter-from,
@@ -710,7 +675,9 @@ $panel-bg: #ffffff;
         border-radius: 6px;
         cursor: pointer;
         padding: 0;
-        transition: transform 0.12s ease, box-shadow 0.12s ease;
+        transition:
+            transform 0.12s ease,
+            box-shadow 0.12s ease;
 
         &:hover {
             transform: scale(1.08);
@@ -777,7 +744,9 @@ $panel-bg: #ffffff;
         border-radius: 8px;
         background: #fff;
         cursor: pointer;
-        transition: border-color 0.12s ease, background 0.12s ease;
+        transition:
+            border-color 0.12s ease,
+            background 0.12s ease;
 
         img {
             max-width: 100%;
@@ -806,7 +775,9 @@ $panel-bg: #ffffff;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition:
+        background 0.15s ease,
+        border-color 0.15s ease;
 
     &:hover {
         background: rgba(254, 226, 226, 0.9);
