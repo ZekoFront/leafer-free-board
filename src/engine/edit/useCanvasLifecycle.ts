@@ -52,7 +52,9 @@ export function useCanvasLifecycle(options: UseCanvasLifecycleOptions) {
             editor,
         });
 
-        const plugins = options.plugins ?? DEFAULT_EDIT_PLUGINS;
+        const plugins =
+            options.plugins ??
+            (ctx.mode === "edit" ? DEFAULT_EDIT_PLUGINS : []);
         plugins.forEach((plugin) => ctx.use(plugin));
 
         if (options.autoSave !== false) {
@@ -67,9 +69,11 @@ export function useCanvasLifecycle(options: UseCanvasLifecycleOptions) {
             ctx.editor.on(CustomEvent.CHANGE, autoSaveHandler);
         }
 
-        const snapshot = await snapshotStore.load();
-        if (snapshot?.canvas?.length) {
-            ctx.loadSnapshot(snapshot);
+        if (options.autoSave !== false) {
+            const snapshot = await snapshotStore.load();
+            if (snapshot?.canvas?.length) {
+                ctx.loadSnapshot(snapshot);
+            }
         }
 
         ctxRef.value = ctx;

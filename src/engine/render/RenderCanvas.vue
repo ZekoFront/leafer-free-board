@@ -1,31 +1,91 @@
 <template>
-    <div class="leafer-render-canvas">
-        <!-- 规划：CanvasProvider(render) + 可选 slot -->
-        <slot />
-    </div>
+    <CanvasProvider
+        mode="render"
+        :plugins="resolvedPlugins"
+        :auto-save="false"
+        :app-config="resolvedAppConfig"
+        class="leafer-render-canvas"
+        :style="canvasStyle"
+        @ready="onReady"
+    >
+        <template #default="{ ctx, editor }">
+            <slot :ctx="ctx" :editor="editor" />
+        </template>
+
+        <template #footer>
+            <slot name="footer" />
+        </template>
+    </CanvasProvider>
 </template>
 
 <script setup lang="ts">
-/**
- * RenderCanvas — 渲染 / 预览画板引擎容器（对外）
- *
- * engine/render 对外主组件，通过 props.snapshot 驱动只读预览，
- * 内部 CanvasMode 固定为 "render"。
- *
- * 核心职责：
- * - props.snapshot 传入 ICanvasSnapshot 或 canvas[]，watch 热更新 loadSnapshot
- * - 不加载 @leafer-in/editor，不注册 Shape / Copy / Delete 等编辑插件
- * - 可选 ViewportPlugin：interactive、fitView
- * - 不渲染 ToolBar / ElementAttributes（除非 slot 自定义）
- * - 不写入 history，不 autoSave
- *
- * Props（规划）：
- * - snapshot、interactive、fitView、plugins、appConfig、width、height
- *
- * 依赖：CanvasProvider、useRenderSnapshot、RENDER_APP_CONFIG
- *
- * 规划：新实现；预览页、嵌入文档、缩略图等场景
- */
+import { computed, provide, shallowRef, toRef } from "vue";
+import "@leafer-in/viewport";
+import "@leafer-in/view";
+
+import type { CanvasContext } from "@/core/CanvasContext";
+import type { IAppConfig, ICanvasSnapshot, IPluginClass } from "@/core/types";
+import { CANVAS_CONTEXT_KEY } from "@/core/constants/injection-keys";
+import CanvasProvider from "@/engine/edit/CanvasProvider.vue";
+import { useRenderSnapshot } from "./useRenderSnapshot";
+
+type RenderSnapshotInput = ICanvasSnapshot | ICanvasSnapshot["canvas"];
+
+const props = withDefaults(
+    defineProps<{
+        snapshot?: RenderSnapshotInput;
+        interactive?: boolean;
+        fitView?: boolean;
+        plugins?: IPluginClass[];
+        appConfig?: Partial<IAppConfig>;
+        width?: string | number;
+        height?: string | number;
+    }>(),
+    {
+        interactive: true,
+        fitView: true,
+        width: "100%",
+        height: "100%",
+    },
+);
+
+const emit = defineEmits<{
+    ready: [ctx: CanvasContext];
+}>();
+
+const ctxRef = shallowRef<CanvasContext | null>(null);
+provide(CANVAS_CONTEXT_KEY, ctxRef);
+
+const resolvedPlugins = computed(() => props.plugins ?? []);
+
+const resolvedAppConfig = computed<Partial<IAppConfig>>(() => ({
+    ...(props.appConfig ?? {}),
+    pointer: {
+        ...(props.appConfig?.pointer ?? {}),
+        preventDefaultMenu: !props.interactive,
+    },
+    editor: {
+        ...(props.appConfig?.editor ?? {}),
+        visible: false,
+    },
+}));
+
+const canvasStyle = computed(() => ({
+    width: typeof props.width === "number" ? `${props.width}px` : props.width,
+    height: typeof props.height === "number" ? `${props.height}px` : props.height,
+    pointerEvents: props.interactive ? "auto" : "none",
+}));
+
+useRenderSnapshot({
+    ctx: ctxRef,
+    snapshot: toRef(props, "snapshot"),
+    fitView: toRef(props, "fitView"),
+});
+
+function onReady(ctx: CanvasContext) {
+    ctxRef.value = ctx;
+    emit("ready", ctx);
+}
 </script>
 
 <style lang="scss">

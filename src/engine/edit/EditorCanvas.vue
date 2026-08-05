@@ -14,6 +14,22 @@
             </slot>
         </template>
 
+        <template #before-canvas>
+            <slot name="palette">
+                <ElementPalette />
+            </slot>
+        </template>
+
+        <template #default>
+            <slot name="attributes">
+                <ElementAttributes />
+            </slot>
+        </template>
+
+        <template #after-canvas>
+            <slot name="after-canvas" />
+        </template>
+
         <template #footer>
             <slot name="footer" />
         </template>
@@ -37,6 +53,8 @@ import type { IAppConfig, IPluginClass } from "@/core/types";
 import { CANVAS_CONTEXT_KEY } from "@/core/constants/injection-keys";
 import CanvasProvider from "./CanvasProvider.vue";
 import { DEFAULT_EDIT_PLUGINS } from "./default-plugins";
+import ElementAttributes from "@/components/ElementAttributes.vue";
+import ElementPalette from "@/components/ElementPalette.vue";
 import CanvasHeader from "@/components/header/CanvasHeader.vue";
 
 const props = withDefaults(

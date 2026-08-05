@@ -5,16 +5,16 @@
         </div>
 
         <div class="leafer-canvas-provider__body">
-            <!-- 左侧：更多元素面板（可拖拽 / 点击添加到画布） -->
-            <ElementPalette v-if="ready" />
+            <slot v-if="ready" name="before-canvas" :ctx="ctx" :editor="editor" />
 
             <div
                 ref="canvasRef"
                 class="leafer-canvas-provider__canvas leafer-canvas-shell"
             >
-                <!-- 右侧：选中元素属性面板 -->
-                <ElementAttributes v-if="ready" />
+                <slot v-if="ready" :ctx="ctx" :editor="editor" />
             </div>
+
+            <slot v-if="ready" name="after-canvas" :ctx="ctx" :editor="editor" />
         </div>
 
         <div v-if="ready" class="leafer-canvas-provider__footer">
@@ -29,8 +29,6 @@ import type EditorCore from "@/core/EditorCore";
 import type { CanvasMode, IAppConfig, IPluginClass } from "@/core/types";
 import { useTemplateRef } from "vue";
 import { useCanvasLifecycle } from "./useCanvasLifecycle";
-import ElementAttributes from "@/components/ElementAttributes.vue";
-import ElementPalette from "@/components/ElementPalette.vue";
 
 const props = withDefaults(
     defineProps<{
@@ -67,7 +65,15 @@ const { ctx, ready, editor } = useCanvasLifecycle({
 <script lang="ts">
 export type CanvasProviderSlots = {
     header?: (props: { ctx: CanvasContext | null; editor: EditorCore }) => unknown;
+    default?: (props: { ctx: CanvasContext | null; editor: EditorCore }) => unknown;
+    "before-canvas"?: (props: {
+        ctx: CanvasContext | null;
+        editor: EditorCore;
+    }) => unknown;
+    "after-canvas"?: (props: {
+        ctx: CanvasContext | null;
+        editor: EditorCore;
+    }) => unknown;
     footer?: (props: { ctx: CanvasContext | null; editor: EditorCore }) => unknown;
 };
 </script>
-
