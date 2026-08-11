@@ -102,6 +102,7 @@ export default function useSelectorListen() {
         isSingle,
         isMultiple,
         selectedMode: selectedModes,
+        selectedIds: computed(() => state.selectedIds),
         selectedActive,
         proxyData,
     };

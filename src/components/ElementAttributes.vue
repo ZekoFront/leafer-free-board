@@ -1,11 +1,14 @@
 <template>
     <transition name="fade-attr">
-        <aside class="attr-panel" v-if="isSingle && selectedActive">
+        <aside class="attr-panel" v-if="hasSelection">
             <header class="attr-panel__header">
                 <div class="attr-panel__meta">
                     <span class="attr-panel__badge">{{ elementTagLabel }}</span>
-                    <span class="attr-panel__id" v-if="selectedActive.id">
+                    <span class="attr-panel__id" v-if="isSingle && selectedActive?.id">
                         #{{ shortId }}
+                    </span>
+                    <span class="attr-panel__id" v-else-if="isMultiple">
+                        已选 {{ selectionCount }} 个
                     </span>
                 </div>
                 <h3 class="attr-panel__title">属性</h3>
@@ -17,7 +20,7 @@
                     <div class="attr-panel__pane">
                         <div class="attr-panel__scroll">
                             <!-- 文本 -->
-                            <section v-if="selectedActive.tag === 'Text'" class="attr-section">
+                            <section v-if="isSingle && selectedActive?.tag === 'Text'" class="attr-section">
                                 <h4 class="attr-section__title">文本</h4>
                                 <div class="attr-section__body">
                                     <div class="attr-row">
@@ -57,7 +60,7 @@
                             </section>
 
                             <!-- 箭头 -->
-                            <section v-if="selectedActive.tag === 'Arrow'" class="attr-section">
+                            <section v-if="isSingle && selectedActive?.tag === 'Arrow'" class="attr-section">
                                 <h4 class="attr-section__title">箭头</h4>
                                 <div class="attr-section__body">
                                     <div class="attr-row">
@@ -99,8 +102,9 @@
 
                             <!-- 内边距 -->
                             <section v-if="
+                                isSingle &&
                                 ['Box', 'Text'].includes(
-                                    selectedActive.tag as string,
+                                    selectedActive?.tag as string,
                                 )
                             " class="attr-section">
                                 <h4 class="attr-section__title">间距</h4>
@@ -178,27 +182,33 @@ item, index
                             <section class="attr-section">
                                 <h4 class="attr-section__title">操作</h4>
                                 <div class="attr-section__body flex">
-                                    <n-icon class="attr-section__icon" :size="15" title="删除" @click="handleAction('del')">
+                                    <n-icon class="attr-section__icon" :size="15" title="删除" @click.stop="handleAction('del')">
                                         <DeleteIcon />
                                     </n-icon>
-                                    <n-icon class="attr-section__icon" :size="18" title="复制" @click="handleAction('copy')">
+                                    <n-icon class="attr-section__icon" :size="18" title="复制" @click.stop="handleAction('copy')">
                                         <CopyIcon />
                                     </n-icon>
-                                    <n-icon class="attr-section__icon" :size="18" title="编组" @click="handleAction('grouping')">
+                                    <n-icon
+                                        class="attr-section__icon"
+                                        :class="{ 'is-disabled': !canGroup }"
+                                        :size="18"
+                                        title="编组"
+                                        @click.stop="handleAction('grouping')"
+                                    >
                                         <GroupingIcon />
+                                    </n-icon>
+                                    <n-icon
+                                        class="attr-section__icon"
+                                        :class="{ 'is-disabled': !canUngroup }"
+                                        :size="18"
+                                        title="解除编组"
+                                        @click.stop="handleAction('ungroup')"
+                                    >
+                                        <SplitGroupingIcon />
                                     </n-icon>
                                 </div>
                             </section>
                         </div>
-
-                        <!-- <footer v-if="selectedActive.id" class="attr-panel__footer">
-                            <button type="button" class="attr-delete-btn" @click="handleAction('del')">
-                                <n-icon :size="16">
-                                    <DeleteIcon />
-                                </n-icon>
-                                <span>删除元素</span>
-                            </button>
-                        </footer> -->
                     </div>
                 </n-tab-pane>
 
@@ -210,14 +220,14 @@ item, index
                                 <li v-for="item in editor.app.tree.children" :key="item.id"
                                     class="attr-layer-list__item" :class="{
                                         'is-active':
-                                            item.id === selectedActive.id,
+                                            isLayerActive(item.id),
                                     }" @click="handleSelect(item)">
                                     <span class="attr-layer-list__tag">{{
                                         item.name ?? item.tag
                                     }}</span>
                                     <span class="attr-layer-list__z">
                                         <n-icon class="cursor" :title="item.visible ? '可见' : '不可见'
-                                            " :size="22" @click="handleEye(item)">
+                                            " :size="22" @click.stop="handleEye(item)">
                                             <EyeShowIcon v-if="item.visible" />
                                             <EyeHideIcon v-else />
                                         </n-icon></span>
@@ -249,7 +259,18 @@ import {
 } from "@/config/attribute-panel";
 import useSelectorListen from "@/hooks/useSelectorListen";
 
-const { isSingle, selectedActive, proxyData, editor } = useSelectorListen();
+const { isSingle, isMultiple, selectedActive, proxyData, editor, selectedIds } =
+    useSelectorListen();
+
+const FILL_TAGS = new Set([
+    "Box",
+    "Rect",
+    "Text",
+    "Group",
+    "Ellipse",
+    "Polygon",
+    "Star",
+]);
 
 const activeName = ref("setting");
 const isArrowBothEnds = ref(false);
@@ -263,8 +284,45 @@ const fontSize = ref(12);
 const fontStyles = ref<string[]>([]);
 const textContent = ref("");
 
+/** 当前选中且可编辑的图元（排除连线/标签） */
+const getEditableSelection = (): IUI[] => {
+    const list = (editor.app.editor.list ?? []) as IUI[];
+    return list.filter(
+        (node) =>
+            node.id &&
+            !editor.isConnectionLine?.(node) &&
+            !editor.isConnectionLabel?.(node),
+    );
+};
+
+const selectionCount = computed(() => {
+    if (isMultiple.value) {
+        return selectedIds.value.filter(Boolean).length;
+    }
+    return isSingle.value ? 1 : 0;
+});
+
+/** 依赖 SelectEvent 驱动的 isSingle/isMultiple，勿直接读 editor.list（非响应式） */
+const hasSelection = computed(() => isSingle.value || isMultiple.value);
+
+const canGroup = computed(() => selectionCount.value >= 2);
+
+const canUngroup = computed(() => {
+    if (isSingle.value && selectedActive.value?.tag === "Group") {
+        return true;
+    }
+    if (isMultiple.value) {
+        const list = getEditableSelection();
+        return list.length > 0 && list.every((node) => node.tag === "Group");
+    }
+    return false;
+});
+
 const elementTagLabel = computed(() => {
-    return selectedActive.value?.name ?? "元素";
+    if (isMultiple.value) {
+        return `多选 · ${selectionCount.value}`;
+    }
+    return selectedActive.value?.name ?? selectedActive.value?.tag ?? "元素";
 });
 
 const shortId = computed(() => {
@@ -273,17 +331,64 @@ const shortId = computed(() => {
 });
 
 const showFillSection = computed(() => {
-    const tag = selectedActive.value?.tag as string;
-    return [
-        "Box",
-        "Rect",
-        "Text",
-        "Group",
-        "Ellipse",
-        "Polygon",
-        "Star",
-    ].includes(tag);
+    if (isSingle.value && selectedActive.value) {
+        return FILL_TAGS.has(selectedActive.value.tag as string);
+    }
+    if (isMultiple.value) {
+        return getEditableSelection().some((node) =>
+            FILL_TAGS.has(node.tag as string),
+        );
+    }
+    return false;
 });
+
+function getCommonAttr(
+    list: IUI[],
+    getter: (node: IUI) => unknown,
+): unknown | undefined {
+    if (!list.length) return undefined;
+    const first = getter(list[0]!);
+    return list.every((node) => getter(node) === first) ? first : undefined;
+}
+
+const isLayerActive = (id?: string) => {
+    if (!id) return false;
+    if (isMultiple.value) {
+        return selectedIds.value.includes(id);
+    }
+    return selectedActive.value?.id === id;
+};
+
+/** 批量写入属性（单选走 proxy，多选直接赋值） */
+const applyToSelection = (key: string, value: unknown) => {
+    const targets = getEditableSelection();
+    if (!targets.length) return;
+
+    if (targets.length === 1 && proxyData.value) {
+        proxyData.value[key] = value;
+        return;
+    }
+
+    for (const target of targets) {
+        if (key === "fill" && target.tag === "Group" && target.children?.[0]) {
+            target.children[0].fill = value as never;
+            continue;
+        }
+        if (
+            key === "padding" &&
+            target.tag === "Box" &&
+            target.children?.[0]
+        ) {
+            target.children[0].padding = value as never;
+            continue;
+        }
+        (target as unknown as Record<string, unknown>)[key] = value;
+    }
+};
+
+const setProxy = (key: string, value: unknown) => {
+    applyToSelection(key, value);
+};
 
 const handleSelect = (item: IUI) => {
     editor.app.editor.select(item);
@@ -294,20 +399,14 @@ const handleEye = (item: IUI) => {
     editor.app.editor.cancel();
 };
 
-const setProxy = (key: string, value: unknown) => {
-    if (proxyData.value) {
-        proxyData.value[key] = value;
-        return;
-    }
-    const target = selectedActive.value;
-    if (target) (target as any)[key] = value;
-};
-
 const handleAction = (type: string = "del") => {
     if (type === "del") editor.deleteNode?.();
     if (type === "copy") editor.copyNode?.();
-    if (type === 'grouping') {
-        console.log(editor.app.editor.list, 88)
+    if (type === "grouping" && canGroup.value) {
+        editor.groupSelection?.();
+    }
+    if (type === "ungroup" && canUngroup.value) {
+        editor.ungroupSelection?.();
     }
 };
 
@@ -401,37 +500,63 @@ const handleStrokeWidthChange = (value: number | null) => {
 const handleFillColor = (color: string | null) => {
     if (!color) return;
     fillColor.value = color;
-    const target = selectedActive.value as IUI | null;
-    if (!target) return;
-
-    if (target.tag === "Group" && target.children?.[0]) {
-        target.children[0].fill = color;
-        return;
-    }
-
-    setProxy("fill", color);
+    applyToSelection("fill", color);
 };
 
 watchEffect(() => {
-    const pd = proxyData.value;
-    const target = selectedActive.value as IUI | null;
-    if (!pd || !target) return;
+    const list = getEditableSelection();
+    if (!list.length) return;
 
-    textContent.value = String(pd.text ?? "");
-    fontSize.value = Number(pd.fontSize) || 12;
-    fillColor.value = String(pd.fill ?? "");
-    strokeColor.value = String(pd.stroke ?? "");
-    strokeWidth.value = Number(pd.strokeWidth) || 0;
-    dashPattern.value = (pd.dashPattern as number[]) || [0, 0];
-    zIndex.value = Number(pd.zIndex) || 0;
-    syncFontStylesFromTarget(target);
+    if (isSingle.value && proxyData.value && selectedActive.value) {
+        const pd = proxyData.value;
+        const target = selectedActive.value;
 
-    if (target.tag === "Box" && target.children?.[0]) {
-        padding.value = (target.children[0].padding as [number, number]) || [
-            0, 0,
-        ];
-    } else if (Array.isArray(pd.padding)) {
-        padding.value = pd.padding as [number, number];
+        textContent.value = String(pd.text ?? "");
+        fontSize.value = Number(pd.fontSize) || 12;
+        fillColor.value = String(pd.fill ?? "");
+        strokeColor.value = String(pd.stroke ?? "");
+        strokeWidth.value = Number(pd.strokeWidth) || 0;
+        dashPattern.value = (pd.dashPattern as number[]) || [0, 0];
+        zIndex.value = Number(pd.zIndex) || 0;
+        syncFontStylesFromTarget(target);
+
+        if (target.tag === "Box" && target.children?.[0]) {
+            padding.value = (target.children[0].padding as [number, number]) || [
+                0, 0,
+            ];
+        } else if (Array.isArray(pd.padding)) {
+            padding.value = pd.padding as [number, number];
+        }
+        return;
+    }
+
+    if (isMultiple.value) {
+        const commonFill = getCommonAttr(list, (n) => n.fill);
+        if (commonFill !== undefined) {
+            fillColor.value = String(commonFill ?? "");
+        }
+
+        const commonStroke = getCommonAttr(list, (n) => n.stroke);
+        if (commonStroke !== undefined) {
+            strokeColor.value = String(commonStroke ?? "");
+        }
+
+        const commonStrokeWidth = getCommonAttr(list, (n) => n.strokeWidth);
+        if (commonStrokeWidth !== undefined) {
+            strokeWidth.value = Number(commonStrokeWidth) || 0;
+        }
+
+        const commonDash = getCommonAttr(list, (n) =>
+            JSON.stringify(n.dashPattern ?? [0, 0]),
+        );
+        if (commonDash !== undefined) {
+            dashPattern.value = JSON.parse(String(commonDash)) as number[];
+        }
+
+        const commonZ = getCommonAttr(list, (n) => n.zIndex);
+        if (commonZ !== undefined) {
+            zIndex.value = Number(commonZ) || 0;
+        }
     }
 });
 </script>
@@ -624,6 +749,12 @@ $panel-bg: #ffffff;
         .attr-section__icon {
             cursor: pointer;
             color: $text-muted;
+
+            &.is-disabled {
+                opacity: 0.35;
+                cursor: not-allowed;
+                pointer-events: none;
+            }
         }
     }
 }
@@ -787,30 +918,6 @@ $panel-bg: #ffffff;
             border-color: $primary-light;
             background: $primary-soft;
         }
-    }
-}
-
-.attr-delete-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid rgba(239, 68, 68, 0.25);
-    border-radius: 8px;
-    background: rgba(254, 242, 242, 0.6);
-    color: #dc2626;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition:
-        background 0.15s ease,
-        border-color 0.15s ease;
-
-    &:hover {
-        background: rgba(254, 226, 226, 0.9);
-        border-color: rgba(239, 68, 68, 0.4);
     }
 }
 

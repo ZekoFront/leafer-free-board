@@ -1,11 +1,11 @@
 import type EditorCore from "@/core/EditorCore";
 import { CustomEvent, HOTKEY_TYPE } from "@/core/constants";
 import type { IPluginTempl } from "@/core/types";
-import { ChildEvent, DragEvent, Text } from "leafer-ui";
+import { ChildEvent, DragEvent, Text, type IUI } from "leafer-ui";
 import { InnerEditorEvent } from "@leafer-in/editor";
 
 // 1. 定义原子增量操作的 TS 类型体系
-export type HistoryType = "ADD" | "REMOVE" | "UPDATE_BATCH";
+export type HistoryType = "ADD" | "REMOVE" | "UPDATE_BATCH" | "STRUCTURE";
 
 export interface EntityProps {
     id: string;
@@ -36,6 +36,9 @@ export interface HistoryOp {
     targetTag?: string;
     undoData?: Partial<EntityProps>;
     redoData?: Partial<EntityProps>;
+    /** 编组/解组等结构变更：变更前后的完整子树 JSON */
+    structureUndo?: Record<string, any>[];
+    structureRedo?: Record<string, any>[];
 }
 
 export interface HistoryStateSnapshot {
@@ -56,6 +59,8 @@ export class HistoryPlugin implements IPluginTempl {
         "importHistory",
         "runWithoutRecording",
         "getIsExecuting",
+        "groupSelection",
+        "ungroupSelection",
     ];
     private app: any;
     private undoStack: HistoryOp[] = [];
@@ -311,6 +316,17 @@ export class HistoryPlugin implements IPluginTempl {
                     });
                 }
                 break;
+
+            case "STRUCTURE":
+                // 编组/解组：整体替换子树，避免逐个 ADD/REMOVE 造成坐标系错乱
+                if (op.structureUndo && op.structureRedo) {
+                    this.applyStructure(
+                        op.structureUndo,
+                        op.structureRedo,
+                        isUndo,
+                    );
+                }
+                break;
         }
     }
 
@@ -417,6 +433,91 @@ export class HistoryPlugin implements IPluginTempl {
         } finally {
             this.isExecuting = false;
         }
+    }
+
+    /**
+     * 编组：以单条 STRUCTURE 记录入栈。
+     * 直接用 Leafer 原生 group() 会连续触发多次 ADD/REMOVE，
+     * 撤销时逐条回放会在「世界坐标 ↔ 组内相对坐标」间错位。
+     */
+    public groupSelection() {
+        const before = this.snapshotSelection();
+        if (before.length < 2) return;
+
+        this.runWithoutRecording(() => {
+            // Leafer 默认创建的 Group 不带 id，会让历史、图层、解组全部失效
+            this.app.editor.group?.({
+                id: this.editor.generateId(),
+                name: "编组",
+            });
+        });
+
+        this.commitStructure(before);
+    }
+
+    /** 解组：同 groupSelection，用完整子树 JSON 还原层级与坐标 */
+    public ungroupSelection() {
+        const before = this.snapshotSelection();
+        if (before.length === 0) return;
+        if (!before.every((json) => json.tag === "Group")) return;
+
+        this.runWithoutRecording(() => {
+            this.app.editor.ungroup?.();
+        });
+
+        this.commitStructure(before);
+    }
+
+    /** 快照当前选中项的完整子树（排除连线与连线标签） */
+    private snapshotSelection(): Record<string, any>[] {
+        const list = (this.app.editor.list || []) as IUI[];
+        return list
+            .filter(
+                (node) =>
+                    !this.editor.isConnectionLine?.(node) &&
+                    !this.editor.isConnectionLabel?.(node),
+            )
+            .map((node) => {
+                // 兼容旧数据：无 id 的节点无法被 findId 定位，此处补齐
+                if (!node.id) node.id = this.editor.generateId();
+                return this.cloneJson(node);
+            });
+    }
+
+    private commitStructure(before: Record<string, any>[]) {
+        const after = this.snapshotSelection();
+        if (after.length === 0) return;
+
+        const sameIds =
+            before.length === after.length &&
+            before.every((json, i) => json.id === after[i]?.id);
+        if (sameIds) return;
+
+        this.pushOp({
+            type: "STRUCTURE",
+            structureUndo: before,
+            structureRedo: after,
+        });
+    }
+
+    private applyStructure(
+        undoTree: Record<string, any>[],
+        redoTree: Record<string, any>[],
+        isUndo: boolean,
+    ) {
+        const toRemove = isUndo ? redoTree : undoTree;
+        const toAdd = isUndo ? undoTree : redoTree;
+
+        toRemove.forEach((json) => {
+            if (typeof json.id === "string") this.rawRemove(json.id);
+        });
+        toAdd.forEach((json) => this.app.tree.add(this.cloneJson(json)));
+
+        this.editor.rebuildConnectionsFromCanvas?.();
+    }
+
+    private cloneJson(source: any): Record<string, any> {
+        return JSON.parse(JSON.stringify(source?.toJSON?.() ?? source));
     }
 
     private emitChange() {
