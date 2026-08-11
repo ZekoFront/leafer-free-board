@@ -372,10 +372,6 @@ export class HistoryPlugin implements IPluginTempl {
         }
     }
 
-    // ==========================================
-    // 四、外部纯 TS / Vue 业务层通用交互 API
-    // ==========================================
-
     public getCanUndo(): boolean {
         return this.undoStack.length > 0;
     }
