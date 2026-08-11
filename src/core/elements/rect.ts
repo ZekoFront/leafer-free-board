@@ -18,4 +18,4 @@ export const createRect = (point: IPointData): IUI => {
         draggable: DEFAULT_ELEMENT_OPTIONS.draggable,
         cornerRadius: DEFAULT_ELEMENT_OPTIONS.cornerRadius,
     });
-}
+};

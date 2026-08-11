@@ -24,3 +24,5 @@ export { default as HotkeyIcon } from "./hotkey-icon.svg";
 export { default as PaintbrushIcon } from "./paintbrush-icon.svg";
 export { default as EyeShowIcon } from "./eye-show-icon.svg";
 export { default as EyeHideIcon } from "./eye-hide-icon.svg";
+export { default as GroupingIcon } from './grouping-icon.svg'
+export { default as SplitGroupingIcon } from './split-grouping-icon.svg'

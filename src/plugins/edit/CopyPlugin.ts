@@ -8,9 +8,7 @@ import {
 import type { ConnectionKind, IPluginTempl } from "@/core/types";
 import { debounce } from "lodash-es";
 import type { IUI, Text } from "leafer-ui";
-import { HOTKEY_TYPE } from "@/core/constants";
-
-const PASTE_OFFSET = 50;
+import { HOTKEY_TYPE, PASTE_OFFSET } from "@/core/constants";
 
 interface ClipboardConnection {
     fromId: string;
@@ -61,14 +59,32 @@ export class CopyPlugin implements IPluginTempl {
     hotkeys = [HOTKEY_TYPE.COPY_NODE, HOTKEY_TYPE.PASTE_NODE];
 
     private clipboard: ClipboardPayload | null = null;
-    private pasteGeneration = 0;
+    /** 连续粘贴时 x/y 共用累加偏移（相对剪贴板原始坐标） */
+    private pasteOffsetX = 0;
+    private pasteOffsetY = 0;
+    private lastCopiedSourceKey: string | null = null;
 
     constructor(public editor: EditorCore) {}
+
+    private getSelectionSourceKey(nodes: IUI[]): string {
+        return nodes
+            .map((node) => node.id)
+            .filter(Boolean)
+            .sort()
+            .join("|");
+    }
 
     /** 复制当前选中图元到剪贴板 */
     copy() {
         const selected = this.getCopyableSelection();
         if (!selected.length) return;
+
+        const sourceKey = this.getSelectionSourceKey(selected);
+        if (sourceKey !== this.lastCopiedSourceKey) {
+            this.pasteOffsetX = 0;
+            this.pasteOffsetY = 0;
+        }
+        this.lastCopiedSourceKey = sourceKey;
 
         const selectedIds = new Set(
             selected.map((node) => node.id).filter(Boolean) as string[],
@@ -94,15 +110,14 @@ export class CopyPlugin implements IPluginTempl {
             nodes: selected.map((node) => node.toJSON?.() ?? node),
             connections,
         };
-        this.pasteGeneration = 0;
     }
 
     /** 粘贴剪贴板内容到画布 */
     paste() {
         if (!this.clipboard?.nodes.length) return;
 
-        this.pasteGeneration += 1;
-        const offset = PASTE_OFFSET * this.pasteGeneration;
+        this.pasteOffsetX += PASTE_OFFSET;
+        this.pasteOffsetY += PASTE_OFFSET;
         const idMap = new Map<string, IUI>();
         const pasted: IUI[] = [];
         const tree = this.editor.app.tree;
@@ -111,8 +126,8 @@ export class CopyPlugin implements IPluginTempl {
             const oldId = (nodeJson as { id?: string }).id;
             const data = structuredClone(nodeJson) as Record<string, unknown>;
             remapIdsInJson(data, () => this.editor.generateId());
-            data.x = ((data.x as number) ?? 0) + offset;
-            data.y = ((data.y as number) ?? 0) + offset;
+            data.x = ((data.x as number) ?? 0) + this.pasteOffsetX;
+            data.y = ((data.y as number) ?? 0) + this.pasteOffsetY;
 
             tree.add(data as never);
             const added = tree.findId(data.id as string);
@@ -125,7 +140,8 @@ export class CopyPlugin implements IPluginTempl {
         this.pasteConnections(idMap);
 
         if (pasted.length) {
-            this.editor.app.editor.select(pasted);
+            // 复制后选择当前元素，暂时不选择
+            // this.editor.app.editor.select(pasted);
         }
     }
 
@@ -198,6 +214,8 @@ export class CopyPlugin implements IPluginTempl {
         this.copyDebounced.cancel();
         this.pasteDebounced.cancel();
         this.clipboard = null;
-        this.pasteGeneration = 0;
+        this.pasteOffsetX = 0;
+        this.pasteOffsetY = 0;
+        this.lastCopiedSourceKey = null;
     }
 }

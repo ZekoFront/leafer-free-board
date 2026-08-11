@@ -24,7 +24,7 @@
                                         <label class="attr-row__label">内容</label>
                                         <n-input class="attr-row__control" size="small" v-model:value="textContent"
                                             clearable :placeholder="(selectedActive as any)
-                                                    .placeholder || '输入文本'
+                                                .placeholder || '输入文本'
                                                 " :on-update:value="handleTextUpdate" />
                                     </div>
                                     <div class="attr-row">
@@ -109,14 +109,14 @@
                                         <label class="attr-row__label">上下</label>
                                         <n-input-number class="attr-row__control" size="small"
                                             v-model:value="padding[0]" clearable :on-update:value="(val: number | null) =>
-                                                    handlePaddingChange(val, 0)
+                                                handlePaddingChange(val, 0)
                                                 " />
                                     </div>
                                     <div class="attr-row">
                                         <label class="attr-row__label">左右</label>
                                         <n-input-number class="attr-row__control" size="small"
                                             v-model:value="padding[1]" clearable :on-update:value="(val: number | null) =>
-                                                    handlePaddingChange(val, 1)
+                                                handlePaddingChange(val, 1)
                                                 " />
                                     </div>
                                 </div>
@@ -174,16 +174,31 @@ item, index
                                     </div>
                                 </div>
                             </section>
+
+                            <section class="attr-section">
+                                <h4 class="attr-section__title">操作</h4>
+                                <div class="attr-section__body flex">
+                                    <n-icon class="attr-section__icon" :size="15" title="删除" @click="handleAction('del')">
+                                        <DeleteIcon />
+                                    </n-icon>
+                                    <n-icon class="attr-section__icon" :size="18" title="复制" @click="handleAction('copy')">
+                                        <CopyIcon />
+                                    </n-icon>
+                                    <n-icon class="attr-section__icon" :size="18" title="编组" @click="handleAction('grouping')">
+                                        <GroupingIcon />
+                                    </n-icon>
+                                </div>
+                            </section>
                         </div>
 
-                        <footer v-if="selectedActive.id" class="attr-panel__footer">
+                        <!-- <footer v-if="selectedActive.id" class="attr-panel__footer">
                             <button type="button" class="attr-delete-btn" @click="handleAction('del')">
                                 <n-icon :size="16">
                                     <DeleteIcon />
                                 </n-icon>
                                 <span>删除元素</span>
                             </button>
-                        </footer>
+                        </footer> -->
                     </div>
                 </n-tab-pane>
 
@@ -199,11 +214,12 @@ item, index
                                     }" @click="handleSelect(item)">
                                     <span class="attr-layer-list__tag">{{
                                         item.name ?? item.tag
-                                        }}</span>
+                                    }}</span>
                                     <span class="attr-layer-list__z">
-                                        <n-icon class="cursor" :title="item.visible?'可见':'不可见'" :size="22" @click="handleEye(item)">
-                                            <EyeShowIcon v-if="item.visible"/>
-                                            <EyeHideIcon v-else/>
+                                        <n-icon class="cursor" :title="item.visible ? '可见' : '不可见'
+                                            " :size="22" @click="handleEye(item)">
+                                            <EyeShowIcon v-if="item.visible" />
+                                            <EyeHideIcon v-else />
                                         </n-icon></span>
                                 </li>
                                 <li v-if="!editor.app.tree.children?.length" class="attr-layer-list__empty">
@@ -224,7 +240,7 @@ defineOptions({ name: "ElementAttributes" });
 import { Arrow } from "@leafer-in/arrow";
 import type { IUI } from "leafer-ui";
 import { computed, ref, watchEffect } from "vue";
-import { DeleteIcon, EyeShowIcon, EyeHideIcon } from "@/assets/icons";
+import { DeleteIcon, EyeShowIcon, EyeHideIcon, CopyIcon, GroupingIcon, SplitGroupingIcon } from "@/assets/icons";
 import {
     arrowTypes,
     colorPanel,
@@ -269,15 +285,14 @@ const showFillSection = computed(() => {
     ].includes(tag);
 });
 
-
 const handleSelect = (item: IUI) => {
-    editor.app.editor.select(item)
-}
+    editor.app.editor.select(item);
+};
 
-const handleEye = (item:IUI) => {
-    item.visible = !item.visible
-    editor.app.editor.cancel()
-}
+const handleEye = (item: IUI) => {
+    item.visible = !item.visible;
+    editor.app.editor.cancel();
+};
 
 const setProxy = (key: string, value: unknown) => {
     if (proxyData.value) {
@@ -290,6 +305,10 @@ const setProxy = (key: string, value: unknown) => {
 
 const handleAction = (type: string = "del") => {
     if (type === "del") editor.deleteNode?.();
+    if (type === "copy") editor.copyNode?.();
+    if (type === 'grouping') {
+        console.log(editor.app.editor.list, 88)
+    }
 };
 
 const handleClick = (val: string) => {
@@ -596,6 +615,16 @@ $panel-bg: #ffffff;
         display: flex;
         flex-direction: column;
         gap: 10px;
+        &.flex {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+        }
+        .attr-section__icon {
+            cursor: pointer;
+            color: $text-muted;
+        }
     }
 }
 

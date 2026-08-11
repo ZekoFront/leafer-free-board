@@ -37,3 +37,6 @@ export function refreshDefaultElementOptions() {
  * 超过该数量时跳过持久化，避免大画布序列化导致浏览器卡顿/崩溃。
  */
 export const MAX_CACHED_CANVAS_ELEMENTS = 500;
+
+/** 粘贴元素时 x/y 共用累加偏移（相对剪贴板原始坐标） */
+export const PASTE_OFFSET = 15;

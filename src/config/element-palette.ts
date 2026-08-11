@@ -7,24 +7,6 @@ import { toolbarMenu } from "./toolbar-menu";
  */
 export const elementPaletteGroups: IElementPaletteGroup[] = [
     {
-        key: "mindmap",
-        title: "思维导图",
-        items: [
-            {
-                type: "mindTopic",
-                title: "主题节点",
-                preview: "mind-topic",
-                draggable: true,
-            },
-            {
-                type: "mindSub",
-                title: "子主题",
-                preview: "mind-sub",
-                draggable: true,
-            },
-        ],
-    },
-    {
         key: "basic",
         title: "基础图形",
         items: [
