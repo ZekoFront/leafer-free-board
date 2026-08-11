@@ -1,7 +1,7 @@
 import type EditorCore from "@/core/EditorCore";
 import { CustomEvent, HOTKEY_TYPE } from "@/core/constants";
 import type { IPluginTempl } from "@/core/types";
-import { ChildEvent, DragEvent, KeyEvent, Text } from "leafer-ui";
+import { ChildEvent, DragEvent, Text } from "leafer-ui";
 import { InnerEditorEvent } from "@leafer-in/editor";
 
 // 1. 定义原子增量操作的 TS 类型体系
