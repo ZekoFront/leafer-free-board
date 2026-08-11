@@ -1,22 +1,24 @@
 /**
- * IndexedDB 画布快照持久化
+ * IndexedDB 画布状态与历史记录持久化
  *
- * 存储 EditorCore.saveSnapshot() 产出的 ICanvasSnapshot，
- * 供 useCanvasSnapshot / useCanvasLifecycle 自动保存使用。
+ * 画布元素与历史记录分开缓存，互不耦合：
+ * - DEFAULT_CANVAS_STORAGE_KEY   画布元素 + 连接拓扑（防止刷新后丢失）
+ * - DEFAULT_HISTORY_STORAGE_KEY  撤销/重做栈（刷新后可继续撤销/重做）
  */
 
-import type { ICanvasSnapshot } from "@/core/types";
-
-/** 与 useCanvasSnapshot 默认 key 保持一致 */
+/** 画布元素缓存 key（不含历史记录） */
 export const DEFAULT_CANVAS_STORAGE_KEY = "leafer-editor-canvas-state";
+
+/** 历史记录缓存 key（仅 undo/redo 栈） */
+export const DEFAULT_HISTORY_STORAGE_KEY = "leafer-editor-history-state";
 
 const DB_NAME = "leafer-free-board";
 const DB_VERSION = 1;
 const STORE_NAME = "canvas-snapshots";
 
-interface CanvasSnapshotRecord {
+interface StoredRecord<T> {
     key: string;
-    snapshot: ICanvasSnapshot;
+    snapshot: T;
     timestamp: number;
 }
 
@@ -24,8 +26,8 @@ export function checkIndexedDBSupport(): boolean {
     return typeof indexedDB !== "undefined";
 }
 
-function cloneSnapshot(snapshot: ICanvasSnapshot): ICanvasSnapshot {
-    return JSON.parse(JSON.stringify(snapshot)) as ICanvasSnapshot;
+function cloneValue<T>(value: T): T {
+    return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function openDatabase(): Promise<IDBDatabase> {
@@ -71,9 +73,7 @@ function runTransaction<T>(
                 const transaction = db.transaction([STORE_NAME], mode);
                 const store = transaction.objectStore(STORE_NAME);
 
-                Promise.resolve(runner(store))
-                    .then(resolve)
-                    .catch(reject);
+                Promise.resolve(runner(store)).then(resolve).catch(reject);
 
                 transaction.oncomplete = () => {
                     db.close();
@@ -103,14 +103,11 @@ function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
     });
 }
 
-/** 保存画布快照 */
-export async function saveCanvasSnapshot(
-    key: string,
-    snapshot: ICanvasSnapshot,
-): Promise<void> {
-    const record: CanvasSnapshotRecord = {
+/** 保存任意类型的缓存值（画布状态 / 历史记录按 key 区分） */
+export async function saveStoredValue<T>(key: string, value: T): Promise<void> {
+    const record: StoredRecord<T> = {
         key,
-        snapshot: cloneSnapshot(snapshot),
+        snapshot: cloneValue(value),
         timestamp: Date.now(),
     };
 
@@ -119,11 +116,9 @@ export async function saveCanvasSnapshot(
     });
 }
 
-/** 读取画布快照 */
-export async function loadCanvasSnapshot(
-    key: string,
-): Promise<ICanvasSnapshot | null> {
-    const record = await runTransaction<CanvasSnapshotRecord | undefined>(
+/** 读取指定 key 的缓存值 */
+export async function loadStoredValue<T>(key: string): Promise<T | null> {
+    const record = await runTransaction<StoredRecord<T> | undefined>(
         "readonly",
         (store) => requestToPromise(store.get(key)),
     );
@@ -131,15 +126,15 @@ export async function loadCanvasSnapshot(
     return record?.snapshot ?? null;
 }
 
-/** 删除指定 key 的画布快照 */
-export async function clearCanvasSnapshot(key: string): Promise<void> {
+/** 删除指定 key 的缓存 */
+export async function clearStoredValue(key: string): Promise<void> {
     await runTransaction("readwrite", (store) => {
         return requestToPromise(store.delete(key));
     });
 }
 
-/** 清空所有画布快照 */
-export async function clearAllCanvasSnapshots(): Promise<void> {
+/** 清空全部缓存 */
+export async function clearAllStoredValues(): Promise<void> {
     await runTransaction("readwrite", (store) => {
         return requestToPromise(store.clear());
     });

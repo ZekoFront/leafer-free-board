@@ -1,8 +1,9 @@
 export {
     checkIndexedDBSupport,
-    clearAllCanvasSnapshots,
-    clearCanvasSnapshot,
+    clearAllStoredValues,
+    clearStoredValue,
     DEFAULT_CANVAS_STORAGE_KEY,
-    loadCanvasSnapshot,
-    saveCanvasSnapshot,
+    DEFAULT_HISTORY_STORAGE_KEY,
+    loadStoredValue,
+    saveStoredValue,
 } from "./indexedDB";

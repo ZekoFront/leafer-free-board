@@ -70,9 +70,14 @@ export function useCanvasLifecycle(options: UseCanvasLifecycleOptions) {
         }
 
         if (options.autoSave !== false) {
-            const snapshot = await snapshotStore.load();
-            if (snapshot?.canvas?.length) {
-                ctx.loadSnapshot(snapshot);
+            // 画布元素与历史记录分开缓存、分开恢复
+            const canvasState = await snapshotStore.loadCanvasState();
+            if (canvasState?.canvas?.length) {
+                ctx.loadSnapshot(canvasState);
+            }
+            const historyState = await snapshotStore.loadHistoryState();
+            if (historyState) {
+                editor.importHistory?.(historyState);
             }
         }
 

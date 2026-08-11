@@ -18,15 +18,15 @@
 
 ## 技术栈
 
-| 分类 | 技术 |
-|------|------|
-| 框架 | Vue 3 + TypeScript |
-| 构建 | Vite 8（Rolldown）+ vue-tsc + vite-plugin-dts |
-| 画布引擎 | Leafer.js 2.x（`leafer-ui`、`@leafer-in/*`） |
-| UI | Naive UI |
-| 状态 | Pinia |
-| 工具 | VueUse、lodash-es、decimal.js、hotkeys-js、lz-string |
-| 格式化 | oxfmt |
+| 分类     | 技术                                                 |
+| -------- | ---------------------------------------------------- |
+| 框架     | Vue 3 + TypeScript                                   |
+| 构建     | Vite 8（Rolldown）+ vue-tsc + vite-plugin-dts        |
+| 画布引擎 | Leafer.js 2.x（`leafer-ui`、`@leafer-in/*`）         |
+| UI       | Naive UI                                             |
+| 状态     | Pinia                                                |
+| 工具     | VueUse、lodash-es、decimal.js、hotkeys-js、lz-string |
+| 格式化   | oxfmt                                                |
 
 ## 快速开始（本地 Playground）
 
@@ -71,13 +71,13 @@ import LeaferBoard from "@leafer-free/board";
 
 const app = createApp(App);
 app.use(createPinia()); // 主题 store 需要 Pinia
-app.use(LeaferBoard);   // 注册 EditorCanvas / RenderCanvas / CanvasProvider
+app.use(LeaferBoard); // 注册 EditorCanvas / RenderCanvas / CanvasProvider
 app.mount("#app");
 ```
 
 ```vue
 <template>
-  <EditorCanvas @ready="onReady" />
+    <EditorCanvas @ready="onReady" />
 </template>
 ```
 
@@ -85,11 +85,11 @@ app.mount("#app");
 
 ```typescript
 import {
-  EditorCanvas,
-  RenderCanvas,
-  SnapPlugin,
-  useEditorCore,
-  useHistory,
+    EditorCanvas,
+    RenderCanvas,
+    SnapPlugin,
+    useEditorCore,
+    useHistory,
 } from "@leafer-free/board";
 
 // 仅编辑组件
@@ -105,19 +105,19 @@ import { ShapePlugin, ConnectionPlugin } from "@leafer-free/board/plugins";
 import { install } from "@leafer-free/board";
 
 app.use({
-  install: (app) => install(app, { components: ["EditorCanvas"] }),
+    install: (app) => install(app, { components: ["EditorCanvas"] }),
 });
 ```
 
 ### 包导出路径
 
-| 路径 | 说明 |
-|------|------|
-| `@leafer-free/board` | 主入口：组件、Core、插件、Composables、类型 |
-| `@leafer-free/board/editor` | `EditorCanvas` |
-| `@leafer-free/board/render` | `RenderCanvas` |
-| `@leafer-free/board/plugins` | 全部插件类 |
-| `@leafer-free/board/styles` | 组件样式（构建产物） |
+| 路径                         | 说明                                        |
+| ---------------------------- | ------------------------------------------- |
+| `@leafer-free/board`         | 主入口：组件、Core、插件、Composables、类型 |
+| `@leafer-free/board/editor`  | `EditorCanvas`                              |
+| `@leafer-free/board/render`  | `RenderCanvas`                              |
+| `@leafer-free/board/plugins` | 全部插件类                                  |
+| `@leafer-free/board/styles`  | 组件样式（构建产物）                        |
 
 ## 架构概览
 
@@ -138,13 +138,13 @@ app.use({
 
 ### 命名对照（旧 → 新）
 
-| 旧名 | 新名 |
-|------|------|
-| `EditorBoard` | `EditorCore` |
-| `BoardContext` | `CanvasContext` |
+| 旧名              | 新名               |
+| ----------------- | ------------------ |
+| `EditorBoard`     | `EditorCore`       |
+| `BoardContext`    | `CanvasContext`    |
 | `EditorBoard.vue` | `EditorCanvas.vue` |
-| `IBoardSnapshot` | `ICanvasSnapshot` |
-| `useEditorBoard` | `useEditorCore` |
+| `IBoardSnapshot`  | `ICanvasSnapshot`  |
+| `useEditorBoard`  | `useEditorCore`    |
 
 ### EditorCore
 
@@ -170,19 +170,19 @@ const snapshot = editor.saveSnapshot();
 
 插件实现 `IPluginTempl` 接口，通过 `EditorCore.use()` 注册。编辑模式默认插件见 `DEFAULT_EDIT_PLUGINS`（`ConnectionPlugin` 须在 `ShapePlugin`、`HistoryPlugin` 之前）。
 
-| 插件 | 功能 | 快捷键 |
-|------|------|--------|
-| **HandlerPlugin** | 选择、拖拽、属性变更、连线同步 | — |
-| **ConnectionPlugin** | 连线拓扑管理、导入导出 | — |
-| **ShapePlugin** | 拖拽创建图形、指针绘制连线 / 箭头 / 画笔 | — |
-| **HistoryPlugin** | 撤销 / 重做命令栈 | — |
-| **CopyPlugin** | 复制粘贴（含内部连线重建） | `Ctrl+C` / `Ctrl+V` |
-| **DeleteHotKeyPlugin** | 删除选中元素 | `Backspace` / `Delete` |
-| **SnapPlugin** | 智能吸附（leafer-x-easy-snap） | — |
-| **RulerPlugin** | X/Y 标尺 | — |
-| **ScrollBarPlugin** | 滚动条 | — |
-| **DotMatrixPlugin** | 点阵网格 | — |
-| **ViewportPlugin** | 渲染模式视口（可选） | — |
+| 插件                   | 功能                                     | 快捷键                 |
+| ---------------------- | ---------------------------------------- | ---------------------- |
+| **HandlerPlugin**      | 选择、拖拽、属性变更、连线同步           | —                      |
+| **ConnectionPlugin**   | 连线拓扑管理、导入导出                   | —                      |
+| **ShapePlugin**        | 拖拽创建图形、指针绘制连线 / 箭头 / 画笔 | —                      |
+| **HistoryPlugin**      | 撤销 / 重做命令栈                        | —                      |
+| **CopyPlugin**         | 复制粘贴（含内部连线重建）               | `Ctrl+C` / `Ctrl+V`    |
+| **DeleteHotKeyPlugin** | 删除选中元素                             | `Backspace` / `Delete` |
+| **SnapPlugin**         | 智能吸附（leafer-x-easy-snap）           | —                      |
+| **RulerPlugin**        | X/Y 标尺                                 | —                      |
+| **ScrollBarPlugin**    | 滚动条                                   | —                      |
+| **DotMatrixPlugin**    | 点阵网格                                 | —                      |
+| **ViewportPlugin**     | 渲染模式视口（可选）                     | —                      |
 
 自定义插件：
 
@@ -190,9 +190,12 @@ const snapshot = editor.saveSnapshot();
 import type { IPluginTempl } from "@leafer-free/board";
 
 class MyPlugin implements IPluginTempl {
-  static pluginName = "MyPlugin";
-  constructor(public editor: EditorCore, public options = {}) {}
-  destroy() {}
+    static pluginName = "MyPlugin";
+    constructor(
+        public editor: EditorCore,
+        public options = {},
+    ) {}
+    destroy() {}
 }
 
 editor.use(MyPlugin);
@@ -217,6 +220,12 @@ const { canUndo, canRedo, undo, redo } = useHistory();
 - `history`（可选）：历史栈
 - `version` / `timestamp`
 
+**缓存策略**：画布元素与历史记录分开缓存（IndexedDB 分 key 存储）：
+
+- `leafer-editor-canvas-state`：画布元素 + 连接拓扑，防止刷新后丢失
+- `leafer-editor-history-state`：撤销/重做栈，刷新后可继续撤销
+- 画布元素数超过 `MAX_CACHED_CANVAS_ELEMENTS`（默认 500）时跳过持久化，避免大画布序列化导致浏览器卡顿
+
 **连线**：
 
 1. 选择「直线连线」或「曲线连接」，从元素 A 拖到元素 B
@@ -230,12 +239,12 @@ const { canUndo, canRedo, undo, redo } = useHistory();
 
 **元素库（左侧面板）**：
 
-| 分组 | 类型 |
-|------|------|
-| 思维导图 | 主题节点、子主题 |
+| 分组     | 类型                       |
+| -------- | -------------------------- |
+| 思维导图 | 主题节点、子主题           |
 | 基础图形 | 矩形、圆角矩形、圆形、椭圆 |
-| 多边形 | 菱形、三角形、五 / 六边形 |
-| 星形 | 四 / 五 / 六 / 七 / 八角星 |
+| 多边形   | 菱形、三角形、五 / 六边形  |
+| 星形     | 四 / 五 / 六 / 七 / 八角星 |
 
 通过 `createElement(type, point)` 工厂统一创建。
 
@@ -260,10 +269,10 @@ src/
 
 ## 构建说明
 
-| 命令 | 用途 | 产物 |
-|------|------|------|
-| `pnpm build` | Playground 站点 | `dist/`（带 hash 的静态资源） |
-| `pnpm run build:lib` | npm 库发布 | `dist/index.js`、`dist/index.d.ts`、`dist/plugins/` |
+| 命令                 | 用途            | 产物                                                |
+| -------------------- | --------------- | --------------------------------------------------- |
+| `pnpm build`         | Playground 站点 | `dist/`（带 hash 的静态资源）                       |
+| `pnpm run build:lib` | npm 库发布      | `dist/index.js`、`dist/index.d.ts`、`dist/plugins/` |
 
 CI（`.github/workflows/deploy.yml`）在 `main` 分支 push 后执行 `pnpm install --frozen-lockfile` + `pnpm build`，部署至 GitHub Pages。
 
@@ -271,20 +280,20 @@ CI（`.github/workflows/deploy.yml`）在 `main` 分支 push 后执行 `pnpm ins
 
 ## 关键依赖
 
-| 依赖 | 用途 |
-|------|------|
-| `leafer-ui` | Leafer 画布引擎 |
-| `@leafer-in/editor` | 图形编辑器 |
-| `@leafer-in/viewport` | 视口 |
-| `@leafer-in/text-editor` | 文本编辑 |
-| `@leafer-in/arrow` | 箭头 |
-| `@leafer-in/resize` | 缩放控制 |
-| `leafer-x-easy-snap` | 智能吸附 |
-| `leafer-x-dot-matrix` | 点阵背景 |
-| `hotkeys-js` | 快捷键 |
-| `lz-string` | 快照 / 历史压缩 |
-| `naive-ui` | UI 组件 |
-| `pinia` | 主题与状态 |
+| 依赖                     | 用途            |
+| ------------------------ | --------------- |
+| `leafer-ui`              | Leafer 画布引擎 |
+| `@leafer-in/editor`      | 图形编辑器      |
+| `@leafer-in/viewport`    | 视口            |
+| `@leafer-in/text-editor` | 文本编辑        |
+| `@leafer-in/arrow`       | 箭头            |
+| `@leafer-in/resize`      | 缩放控制        |
+| `leafer-x-easy-snap`     | 智能吸附        |
+| `leafer-x-dot-matrix`    | 点阵背景        |
+| `hotkeys-js`             | 快捷键          |
+| `lz-string`              | 快照 / 历史压缩 |
+| `naive-ui`               | UI 组件         |
+| `pinia`                  | 主题与状态      |
 
 ## License
 
