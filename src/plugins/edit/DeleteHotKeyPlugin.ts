@@ -2,6 +2,7 @@ import type EditorCore from "@/core/EditorCore";
 import type { IPluginTempl } from "@/core/types";
 import type { IUI } from "leafer-ui";
 import { debounce } from "lodash-es";
+import { HOTKEY_TYPE } from "@/core/constants";
 
 function isEditableTargetFocused(): boolean {
     const el = document.activeElement;
@@ -21,7 +22,7 @@ export class DeleteHotKeyPlugin implements IPluginTempl {
     static apis = ["deleteNode"];
 
     pluginName = DeleteHotKeyPlugin.pluginName;
-    hotkeys = ["backspace", "delete"];
+    hotkeys = [HOTKEY_TYPE.BACKSPACE, HOTKEY_TYPE.DELETE_NODE];
 
     constructor(public editor: EditorCore) {}
 

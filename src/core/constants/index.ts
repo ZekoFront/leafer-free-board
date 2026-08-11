@@ -6,3 +6,4 @@ export * from "./tracked-attrs";
 export * from "./zoom";
 export * from "./element";
 export * from "./connection";
+export * from "./hotkey";

@@ -8,6 +8,7 @@ import {
 import type { ConnectionKind, IPluginTempl } from "@/core/types";
 import { debounce } from "lodash-es";
 import type { IUI, Text } from "leafer-ui";
+import { HOTKEY_TYPE } from "@/core/constants";
 
 const PASTE_OFFSET = 50;
 
@@ -57,7 +58,7 @@ export class CopyPlugin implements IPluginTempl {
     static apis = ["copy", "paste", "copyNode"];
 
     pluginName = CopyPlugin.pluginName;
-    hotkeys = ["ctrl+c", "ctrl+v"];
+    hotkeys = [HOTKEY_TYPE.COPY_NODE, HOTKEY_TYPE.PASTE_NODE];
 
     private clipboard: ClipboardPayload | null = null;
     private pasteGeneration = 0;

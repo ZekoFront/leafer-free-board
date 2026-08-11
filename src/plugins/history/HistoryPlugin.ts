@@ -1,5 +1,5 @@
 import type EditorCore from "@/core/EditorCore";
-import { CustomEvent } from "@/core/constants";
+import { CustomEvent, HOTKEY_TYPE } from "@/core/constants";
 import type { IPluginTempl } from "@/core/types";
 import { ChildEvent, DragEvent, KeyEvent, Text } from "leafer-ui";
 import { InnerEditorEvent } from "@leafer-in/editor";
@@ -77,12 +77,8 @@ export class HistoryPlugin implements IPluginTempl {
     pluginName = HistoryPlugin.pluginName;
     events?: string[] | undefined;
     apis?: string[] | undefined;
-    hotkeys?: string[] | undefined;
-    hotkeyEvent?: ((name: string, e: KeyboardEvent) => void) | undefined;
+    hotkeys = [HOTKEY_TYPE.UNDO, HOTKEY_TYPE.REDO];
 
-    // ==========================================
-    // 一、官方事件流的高性能拦截
-    // ==========================================
     private listen() {
         // 拖拽需监听 app 层（editor 层首次拖拽可能不触发，见 leaferjs配置注意事项.md）
         this.app.on(DragEvent.START, this.onDragStart);
@@ -94,7 +90,6 @@ export class HistoryPlugin implements IPluginTempl {
         // 自定义批量更新事件（onDragEnd 内 emit）
         this.app.tree.on("update", this.onUpdateUnified);
 
-        this.app.on(KeyEvent.DOWN, this.onKeydown);
         this.app.editor.on(InnerEditorEvent.OPEN, this.onOpenInnerEditor)
         this.app.editor.on(InnerEditorEvent.CLOSE, this.onCloseInnerEditor);
     }
@@ -178,15 +173,14 @@ export class HistoryPlugin implements IPluginTempl {
         });
     };
 
-    private onKeydown = (e: any) => {
-        // 自动捕获键盘快捷键快捷撤销重做
-        const isCtrl = e.ctrlKey || e.metaKey;
-        if (isCtrl && e.code === "KeyZ") {
-            e.preventDefault();
-            this.undo();
-        } else if (isCtrl && e.code === "KeyY") {
-            e.preventDefault();
-            this.redo();
+    hotkeyEvent = (eventName: string, e: KeyboardEvent) => {
+        e.preventDefault();
+        if (e.type !== "keyup") return;
+
+        if (eventName === HOTKEY_TYPE.UNDO) {
+            this.undo()
+        }else if (eventName === HOTKEY_TYPE.REDO) {
+            this.redo()
         }
     };
 
@@ -232,10 +226,6 @@ export class HistoryPlugin implements IPluginTempl {
             ],
         });
     };
-
-    // ==========================================
-    // 二、核心撤销（Undo）与重做（Redo）核心逻辑
-    // ==========================================
 
     /**
      * 压入历史栈底
@@ -323,10 +313,6 @@ export class HistoryPlugin implements IPluginTempl {
                 break;
         }
     }
-
-    // ==========================================
-    // 三、底层画布实体组装与映射（工具函数）
-    // ==========================================
 
     private storeTargetSnapshot(target: any) {
         if (!target || !target.id) return;
@@ -453,7 +439,6 @@ export class HistoryPlugin implements IPluginTempl {
         this.app.tree.off(ChildEvent.ADD, this.onAddUnified);
         this.app.tree.off(ChildEvent.REMOVE, this.onRemoveUnified);
         this.app.tree.off("update", this.onUpdateUnified);
-        this.app.off(KeyEvent.DOWN, this.onKeydown);
         this.app.editor.off(InnerEditorEvent.OPEN, this.onOpenInnerEditor);
         this.app.editor.off(InnerEditorEvent.CLOSE, this.onCloseInnerEditor);
         this.snapshotBeforeDrag.clear();

@@ -12,6 +12,7 @@ import type {
 export default class EditorCore extends EventEmitter {
     private _app: App | null = null;
     pluginMap: Record<string, IPluginTempl> = {};
+    hotKeyMap: string[] = [];
     [key: string]: any;
 
     constructor() {
@@ -137,12 +138,25 @@ export default class EditorCore extends EventEmitter {
                 );
             }
         });
+        // 解绑所有已注册的快捷键，避免残留绑定在实例重建后重复触发
+        this.hotKeyMap.forEach((keyName) => {
+            hotkeys.unbind(keyName);
+        });
         this.pluginMap = {};
+        this.hotKeyMap = [];
         this.removeAllListeners();
     }
 
     private bindHotkeys(plugin: IPluginTempl) {
         plugin.hotkeys?.forEach((keyName: string) => {
+            // 先查重再注册：已占用的快捷键跳过，避免 hotkeys 二次绑定
+            if (this.hotKeyMap.includes(keyName)) {
+                console.warn(
+                    `[EditorCore] 快捷键 "${keyName}" 已被其他插件注册，跳过（当前插件：${plugin.pluginName}）`,
+                );
+                return;
+            }
+            this.hotKeyMap.push(keyName);
             hotkeys(keyName, { keyup: true }, (e) => {
                 plugin.hotkeyEvent?.(keyName, e);
             });
