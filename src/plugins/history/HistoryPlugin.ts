@@ -1,7 +1,7 @@
 import type EditorCore from "@/core/EditorCore";
 import { CustomEvent, HOTKEY_TYPE } from "@/core/constants";
 import type { IPluginTempl } from "@/core/types";
-import { ChildEvent, DragEvent, Text, type IUI } from "leafer-ui";
+import { App, ChildEvent, DragEvent, Text, type IUI } from "leafer-ui";
 import { InnerEditorEvent } from "@leafer-in/editor";
 
 // 1. 定义原子增量操作的 TS 类型体系
@@ -62,7 +62,7 @@ export class HistoryPlugin implements IPluginTempl {
         "groupSelection",
         "ungroupSelection",
     ];
-    private app: any;
+    private app: App;
     private undoStack: HistoryOp[] = [];
     private redoStack: HistoryOp[] = [];
     private maxStackSize = 50; // 限制栈深度防止内存溢出
@@ -95,7 +95,7 @@ export class HistoryPlugin implements IPluginTempl {
         // 自定义批量更新事件（onDragEnd 内 emit）
         this.app.tree.on("update", this.onUpdateUnified);
 
-        this.app.editor.on(InnerEditorEvent.OPEN, this.onOpenInnerEditor)
+        this.app.editor.on(InnerEditorEvent.OPEN, this.onOpenInnerEditor);
         this.app.editor.on(InnerEditorEvent.CLOSE, this.onCloseInnerEditor);
     }
 
@@ -119,7 +119,7 @@ export class HistoryPlugin implements IPluginTempl {
         const updateBatch: HistoryOp["batchData"] = [];
 
         this.snapshotBeforeDrag.forEach((oldProps, id) => {
-            const currentTarget = this.app.tree.findId(id);
+            const currentTarget: any = this.app.tree.findId(id);
             if (!currentTarget) return;
 
             // 精准对比关键几何属性及连线点位是否真正发生突变
@@ -183,9 +183,9 @@ export class HistoryPlugin implements IPluginTempl {
         if (e.type !== "keyup") return;
 
         if (eventName === HOTKEY_TYPE.UNDO) {
-            this.undo()
-        }else if (eventName === HOTKEY_TYPE.REDO) {
-            this.redo()
+            this.undo();
+        } else if (eventName === HOTKEY_TYPE.REDO) {
+            this.redo();
         }
     };
 
@@ -213,7 +213,10 @@ export class HistoryPlugin implements IPluginTempl {
 
         this.innerEditorTextSnapshot = null;
 
-        if (!(editTarget instanceof Text) || editTarget.id !== snapshot.targetId) {
+        if (
+            !(editTarget instanceof Text) ||
+            editTarget.id !== snapshot.targetId
+        ) {
             return;
         }
 
@@ -249,7 +252,7 @@ export class HistoryPlugin implements IPluginTempl {
      */
     public undo() {
         if (this.isExecuting) return;
-        this.app.editor.cancel()
+        this.app.editor.cancel();
         const op = this.undoStack.pop();
         if (!op) return;
 
@@ -288,14 +291,14 @@ export class HistoryPlugin implements IPluginTempl {
                 if (isUndo) {
                     this.rawRemove(op.targetId!);
                 } else {
-                    this.app.tree.add(op.redoData);
+                    this.app.tree.add(op.redoData as IUI);
                 }
                 break;
 
             case "REMOVE":
                 // REMOVE 的撤销是重新恢复图元，重做是再次移除
                 if (isUndo) {
-                    this.app.tree.add(op.undoData);
+                    this.app.tree.add(op.undoData as IUI);
                 } else {
                     this.rawRemove(op.targetId!);
                 }
@@ -409,8 +412,12 @@ export class HistoryPlugin implements IPluginTempl {
     /** 导出 undo/redo 栈，供 IndexedDB 持久化 */
     public exportHistory(): HistoryStateSnapshot {
         return {
-            undoStack: JSON.parse(JSON.stringify(this.undoStack)) as HistoryOp[],
-            redoStack: JSON.parse(JSON.stringify(this.redoStack)) as HistoryOp[],
+            undoStack: JSON.parse(
+                JSON.stringify(this.undoStack),
+            ) as HistoryOp[],
+            redoStack: JSON.parse(
+                JSON.stringify(this.redoStack),
+            ) as HistoryOp[],
         };
     }
 
